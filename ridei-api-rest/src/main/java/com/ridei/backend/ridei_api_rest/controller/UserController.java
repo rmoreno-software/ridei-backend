@@ -1,5 +1,6 @@
 package com.ridei.backend.ridei_api_rest.controller;
 
+import com.ridei.backend.ridei_api_rest.controller.RequestBody.UserRequest;
 import com.ridei.backend.ridei_api_rest.model.User;
 import com.ridei.backend.ridei_api_rest.service.UserService;
 import org.springframework.web.bind.annotation.*;
@@ -23,8 +24,8 @@ public class UserController {
     }
 
     @PostMapping
-    public User save(@RequestBody User user) {
-        return userService.save(user);
+    public User save(@RequestBody UserRequest user) {
+        return userService.createUser(user);
     }
 
     @DeleteMapping("/{id}")
