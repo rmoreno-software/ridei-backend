@@ -29,6 +29,8 @@ public class UserApp {
     // --- Dades de Google Auth ---
     private String googleId;  // ID únic proporcionat per google
     private String pictureUrl; // URL del avatar de Google
+
+    @Enumerated(EnumType.STRING)
     private AuthenticationProvider provider; // "google" o Local
 
     // --- Dades personals ---
@@ -38,12 +40,17 @@ public class UserApp {
     // -- Estat i auditoria --
     private boolean enabled = true;
     private boolean emailVerified = false;
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     // -- Rols i permisos --
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    @PrePersist
+    public void prePersist() {
+        createdAt = LocalDateTime.now();
+    }
 
     @PreUpdate
     public void preUpdate() {
