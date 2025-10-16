@@ -15,24 +15,24 @@ import lombok.*;
 public class UserRequest {
 
     @Schema(description = "User email", example = "usuario@dominio.com")
-    @NotBlank(message = "Email is required")
-    @Email(message = "Email format not valid")
+    @NotBlank(message = "{user.email.required}")
+    @Email(message = "{user.email.required}")
     @UniqueEmail
     private String email;
 
     @Schema(description = "User name", example = "Juan")
-    @NotBlank(message = "Name is required")
-    @Size(min = 2, max = 50, message = "Lastame must have between 2 and 50 characters")
+    @NotBlank(message = "{user.firstname.required}")
+    @Size(min = 2, max = 50, message = "{user.firstname.size}")
     private String firstName;
 
     @Schema(description = "User lastname", example = "López")
-    @NotBlank(message = "LastName is required")
-    @Size(min = 2, max = 50, message = "LastName must have between 2 and 50 characters")
+    @NotBlank(message = "{user.lastname.required}")
+    @Size(min = 2, max = 50, message = "{user.lastname.size}")
     private String lastName;
 
     @Schema(description = "User password.", example = "123456")
-    @NotBlank(message = "Password is required")
-    @Size(min = 6, message = "Password must have at least 6 characters")
+    @NotBlank(message = "{user.password.required}")
+    @Size(min = 6, message = "{user.password.size}")
     private String password;
 
 }

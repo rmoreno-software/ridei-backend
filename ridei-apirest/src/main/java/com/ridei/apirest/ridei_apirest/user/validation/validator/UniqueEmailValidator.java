@@ -1,6 +1,6 @@
 package com.ridei.apirest.ridei_apirest.user.validation.validator;
 
-import com.ridei.apirest.ridei_apirest.user.repository.UserRepository;
+import com.ridei.apirest.ridei_apirest.user.service.UserService;
 import com.ridei.apirest.ridei_apirest.user.validation.annotation.UniqueEmail;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
@@ -11,10 +11,10 @@ import org.springframework.stereotype.Component;
 public class UniqueEmailValidator implements ConstraintValidator<UniqueEmail, String> {
 
     @Autowired
-    private UserRepository userRepository;
+    private UserService userService;
 
     @Override
     public boolean isValid(String email, ConstraintValidatorContext context) {
-        return email == null || !userRepository.existsByEmail(email);
+        return email == null || !userService.existsByEmail(email);
     }
 }

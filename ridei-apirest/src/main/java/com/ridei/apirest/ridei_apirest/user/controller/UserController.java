@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,7 +32,8 @@ public class UserController {
     })
     public ResponseEntity<ApiResponseDto<List<UserResponse>>> listAllUsers() {
         List<UserResponse> users = userService.findAllUsers();
-        return ResponseEntity.ok(ApiResponseDto.success(users));
+        String correlationId = MDC.get("correlationId");
+        return ResponseEntity.ok(ApiResponseDto.success(users, correlationId));
     }
 
     @PostMapping
@@ -44,6 +46,7 @@ public class UserController {
     public ResponseEntity<ApiResponseDto<UserResponse>> createUser(
             @Valid @RequestBody UserRequest request ) {
         UserResponse user = userService.createUser(request);
-        return ResponseEntity.ok(ApiResponseDto.success(user));
+        String correlationId = MDC.get("correlationId");
+        return ResponseEntity.ok(ApiResponseDto.success(user, correlationId));
     }
 }

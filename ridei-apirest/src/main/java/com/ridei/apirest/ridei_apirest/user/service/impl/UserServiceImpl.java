@@ -30,6 +30,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+    @Override
     public UserResponse createUser(UserRequest request) {
         UserApp user = userMapper.toEntity(request);
 

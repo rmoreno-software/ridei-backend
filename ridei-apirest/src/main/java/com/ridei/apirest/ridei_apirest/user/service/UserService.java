@@ -7,5 +7,6 @@ import java.util.List;
 
 public interface UserService {
     List<UserResponse> findAllUsers();
+    boolean existsByEmail(String email);
     UserResponse createUser(UserRequest request);
 }
