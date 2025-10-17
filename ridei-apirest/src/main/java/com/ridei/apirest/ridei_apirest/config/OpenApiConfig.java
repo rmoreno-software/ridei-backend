@@ -11,59 +11,50 @@ import org.springframework.context.annotation.Configuration;
 import java.util.List;
 
 /**
- * Configuration class responsible for defining the OpenAPI (Swagger) documentation
- * for the REST API.
- * <p>
- *     This configuration integrates with <b>springdoc-openapi</b> to automatically generate
- *     interactive API documentation available at runtime (e.g., via Swagger UI).
- * </p>
- * Once the application starts, you can access:
+ * Spring configuration class for OpenAPI / Swagger documentation.
+ *
+ * <p>This class defines the OpenAPI metadata, including API title, description,
+ * version, contact information, license, and available server environments.
+ * It is used by SpringDoc to generate Swagger UI and API documentation automatically.</p>
+ *
+ * <p><b>Key Responsibilities:</b></p>
  * <ul>
- *     <li><b>Swagger UI:</b> {@code http://localhost:8080/swagger-ui/index.html}</li>
- *     <li><b>OpenAPI JSON:</b> {@code http://localhost:8080/v3/api-docs}</li>
+ *     <li>Provide a {@link OpenAPI} bean containing API metadata.</li>
+ *     <li>Set contact information for API maintainers or consumers.</li>
+ *     <li>Define license information to specify usage rights.</li>
+ *     <li>Declare multiple server environments (local, production, etc.).</li>
  * </ul>
  *
- * <p>
- *     Purpose:
- *     <ul>
- *         <li>Provides global metadata about the API (name, version, description).</li>
- *         <li>Specifies contact details for API maintainers or support.</li>
- *         <li>Declares license information for API usage.</li>
- *         <li>Defines the list of environments (servers) where the API can be accessed.</li>
- *     </ul>
- * </p>
- * <p>
- *     This configuration helps developers and consumers easily explore and test endpoints
- *     directly from the browser using Swagger UI.
- * </p>
+ * <p><b>Usage:</b></p>
+ * <pre>
+ * // Swagger UI will automatically use this OpenAPI bean
+ * // Access it at: http://localhost:8080/swagger-ui.html
+ * </pre>
+ *
+ * <p>Example of metadata configuration:</p>
+ * <ul>
+ *     <li>Title: "Ridei API"</li>
+ *     <li>Description: "REST API for the Ridei App"</li>
+ *     <li>Version: "1.0.0"</li>
+ *     <li>Contact: Backend Team (email: roger.moreno.software.engineer@gmail.com)</li>
+ *     <li>License: Apache 2.0</li>
+ *     <li>Servers: Local (http://localhost:8080), Production (https://api.tuempresa.com)</li>
+ * </ul>
+ *
+ * @author Roger Moreno González
+ * @version 1.0.0
+ * @since 2025-10
  */
 @Configuration
 public class OpenApiConfig {
 
     /**
-     * Defines the primary OpenAPI bean used by SpringDoc to generate
-     * the Swagger documentation automatically.
-     * <p>
-     *     The configuration includes:
-     *     <ul>
-     *         <li>API title, description, and version.</li>
-     *         <li>Contact details for the backend team.</li>
-     *         <li>License information (Apache 2.0)</li>
-     *         <li>Environment server URLs for local and production setups.</li>
-     *     </ul>
-     * </p>
-     * <p>
-     *     <b>Usage:</b>
-     *     <ul>
-     *         <li>The {@link Info} object defines general metadata displayed at the top of the Swagger UI.</li>
-     *         <li>The {@link Contact} section provides API support contact information.</li>
-     *         <li>The {@link License} section references the applicable open-source license.</li>
-     *         <li>THe {@link Server} list specifies base URLs for different environments.</li>
-     *     </ul>
-     * </p>
+     * Creates a custom {@link OpenAPI} bean that defines API metadata and server environments.
      *
-     * @return a fully configured {@link OpenAPI} instance containing metadata and server details
-     * used by SpringDoc to render Swagger documentation.
+     * <p>This bean is automatically picked up by SpringDoc to generate Swagger UI and OpenAPI documentation.
+     * It allows API consumers to see the endpoints, descriptions, request/response models, and available servers.</p>
+     *
+     * @return a configured {@link OpenAPI} instance with metadata and server information
      */
     @Bean
     public OpenAPI customOpenAPI() {

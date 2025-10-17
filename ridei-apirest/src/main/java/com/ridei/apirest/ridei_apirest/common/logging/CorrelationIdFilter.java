@@ -13,26 +13,74 @@ import java.io.IOException;
 import java.util.UUID;
 
 /**
- * CorrelationIdFilter
+ * Servlet filter that generates and manages a correlation ID for each HTTP request.
  *
- * <p>
- *     Assigns a unique correlation ID (UUID) to every incoming HTTP request.
- *     The correlation ID is stored in the MDC (Mapped Diagnostic Context),
- *     making it automatically available in all Log entries during that request's lifecycle.
- * </p>
+ * <p>This filter ensures that every incoming request has a unique identifier that can
+ * be used for tracing logs across different services and components. The correlation
+ * ID is propagated in the HTTP response headers and stored in the {@link MDC} for logging.</p>
  *
- * <p>
- *     Also adds the correlation ID to the HTTP response headers as "X-Correlation-Id".
- *     This allows clients and developers to trace and correlate logs and API responses.
- * </p>
+ * <p><b>Key Responsibilities:</b></p>
+ * <ul>
+ *     <li>Check if the incoming request already contains a correlation ID header
+ *         (<code>X-Correlation-Id</code>).</li>
+ *     <li>If missing, generate a new unique correlation ID using {@link UUID}.</li>
+ *     <li>Add the correlation ID to the {@link MDC} so all log entries for this request
+ *         include it.</li>
+ *     <li>Add the correlation ID header to the HTTP response.</li>
+ *     <li>Clear the MDC after request processing to prevent memory leaks in asynchronous contexts.</li>
+ *     <li>Log the start of each request with method, URI, and correlation ID.</li>
+ * </ul>
+ *
+ * <p>This filter extends {@link OncePerRequestFilter}, ensuring that it is executed
+ * only once per request, even in the presence of request dispatchers and forwards.</p>
+ *
+ * <p><b>Example HTTP Flow:</b></p>
+ * <pre>
+ * Incoming request headers:
+ * X-Correlation-Id: (optional)
+ *
+ * Filter behavior:
+ * - Read or generate correlation ID
+ * - Add it to MDC
+ * - Log request start
+ * - Continue filter chain
+ * - Add X-Correlation-Id to response headers
+ * - Clear MDC
+ *
+ * Response headers:
+ * X-Correlation-Id: &lt;correlation-id&gt;
+ * </pre>
+ *
+ * <p>This pattern is commonly used in distributed systems to trace requests across
+ * multiple microservices.</p>
+ *
+ * @author Roger Moreno González
+ * @version 1.0.0
+ * @since 2025-10
  */
 @Slf4j
 @Component
 public class CorrelationIdFilter extends OncePerRequestFilter {
 
+    /**
+     * HTTP header used for passing the correlation ID between services and clients.
+     */
     private static final String CORRELATION_ID_HEADER = "X-Correlation-Id";
+
+    /**
+     * MDC key under which the correlation ID is stored for logging.
+     */
     private static final String MDC_CORRELATION_ID_KEY = "correlationId";
 
+    /**
+     * Filters each incoming HTTP request, ensuring a correlation ID is present and logged.
+     *
+     * @param request     the incoming {@link HttpServletRequest}
+     * @param response    the outgoing {@link HttpServletResponse}
+     * @param filterChain the {@link FilterChain} to pass the request/response to
+     * @throws ServletException if an internal error occurs in the servlet
+     * @throws IOException      if an I/O error occurs during request processing
+     */
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,

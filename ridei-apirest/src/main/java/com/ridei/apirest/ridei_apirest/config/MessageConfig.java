@@ -11,42 +11,50 @@ import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 import java.util.Locale;
 
 /**
- * Central configuration class responsible for application-wide internationalization (i18n)
- * and message handling.
- * <p>
- *     This configuration ensures that:
- *     <ul>
- *         <li>All validation and API messages are translated based on the user's local.</li>
- *         <li>Localization is automatically determined using the <b>Accept-Language</b> HTTP header.</li>
- *         <li>English is used as the default language if no locale is specified by the client.</li>
- *         <li>Spring Validation annotations (e.g. {@code @NotBlank}, {@code @Email}) and custom
- *             exceptions can use messages from properties files (e.g., {@code messages_ca.properties}).</li>
- *     </ul>
+ * Configuration class for internationalization (i18n) and validation messages.
  *
- *     <p>
- *         Expected message bundle files:
- *         <ul>
- *             <li>{@code src/main/resources/messages.properties} ➡ Default (English)</li>
- *             <li>{@code src/main/resources/messages_ca.properties} ➡ Catalan</li>
- *             <li>{@code src/main/resources/messages_es.properties} ➡ Spanish</li>
- *         </ul>
- *     </p>
- * </p>
+ * <p>This class provides beans to handle locale resolution, message sources for multiple
+ * languages, and integration with Bean Validation to support localized validation messages.</p>
  *
- * These messages can be referenced in validation annotations or service exceptions.
+ * <p><b>Key Responsibilities:</b></p>
+ * <ul>
+ *     <li>Define a {@link LocaleResolver} that reads the "Accept-Language" header from HTTP requests
+ *         and falls back to English if no locale is specified.</li>
+ *     <li>Define a {@link MessageSource} that loads messages from properties files
+ *         (e.g., messages.properties, messages_es.properties) and supports UTF-8 encoding.</li>
+ *     <li>Define a {@link LocalValidatorFactoryBean} that integrates Bean Validation with the
+ *         {@link MessageSource} for localized validation messages (e.g., @NotBlank, @Size).</li>
+ * </ul>
+ *
+ * <p><b>Usage:</b></p>
+ * <pre>
+ * // Example of validation message in messages.properties
+ * user.email.required=Email is required
+ *
+ * // Example of validation message in messages_es.properties
+ * user.email.required=El correo electrónico es obligatorio
+ *
+ * // The LocalValidatorFactoryBean ensures that @Valid annotations use these messages
+ * </pre>
+ *
+ * <p>With this configuration, all controllers using {@code @Valid} will return validation
+ * errors in the language requested by the client, falling back to English if no language
+ * is specified.</p>
+ *
+ * @author Roger Moreno González
+ * @version 1.0.0
+ * @since 2025-10
  */
 @Configuration
 public class MessageConfig {
 
     /**
-     * Defines the default {@link LocaleResolver}.
-     * <p>
-     *     This resolver determines the locale (language and region) based on the
-     *     {@code Accept-Language} HTTP header sent by the client.
-     *     If the client does not specify locale, the default language will be English (en)
-     * </p>
+     * Creates a {@link LocaleResolver} that determines the locale of incoming requests
+     * based on the "Accept-Language" HTTP header.
      *
-     * @return a configured {@link LocaleResolver} that uses HTTP headers to determine language preference.
+     * <p>If the client does not specify a language, English (en) is used by default.</p>
+     *
+     * @return a configured {@link LocaleResolver} instance
      */
     @Bean
     public LocaleResolver localeResolver() {
@@ -59,23 +67,17 @@ public class MessageConfig {
     }
 
     /**
-     * Configures the application's {@link MessageSource}, which provides localized messages
-     * for validations, exceptions, and API responses.
-     * <p>
-     *     This implementation uses {@link ReloadableResourceBundleMessageSource}, allowing message
-     *     bundles to be reloaded automatically during development without restarting the application.
-     * </p>
-     * <p>
-     *     Characteristics:
-     *     <ul>
-     *         <li>Loads message files with the base name {@code messages}</li>
-     *         <li>Supports multiple locales (e.g., English, Spanish, Catalan)</li>
-     *         <li>Encodes all files as UTF-8 support special characters</li>
-     *         <li>Defaults to English when no locale is specified</li>
-     *     </ul>
+     * Creates a {@link MessageSource} that loads message bundles for i18n.
+     *
+     * <p>This message source supports:
+     * <ul>
+     *     <li>UTF-8 encoding for accented and non-Latin characters</li>
+     *     <li>Multiple languages through properties files named "messages*.properties"</li>
+     *     <li>Automatic fallback to English when no translation exists</li>
+     * </ul>
      * </p>
      *
-     * @return a {@link MessageSource} bean responsible for resolving localized text from message bundles.
+     * @return a configured {@link MessageSource} instance
      */
     @Bean
     public MessageSource messageSource() {
@@ -94,21 +96,14 @@ public class MessageConfig {
     }
 
     /**
-     * Configures a costum validator factory to integrate Bean Validation (JSR 380)
-     * with the configured {@link MessageSource}.
-     * <p>
-     *     This allows validation annotations like {@code @NotBlank}, {@code @Size}, or custom ones
-     *     (e.g., {@code @UniqueEmail}) to use localized messages defined in
-     *     {@code message_*.properties} files instead of hardcoded English text.
-     * </p>
-     * For example:
-     * <pre>
-     *     @NotBlank(message = "{user.email.required}")
-     *     private String email;
-     * </pre>
+     * Creates a {@link LocalValidatorFactoryBean} that integrates Bean Validation with the
+     * {@link MessageSource} for localized validation messages.
      *
-     * @param messageSource the configured {@link MessageSource} bean.
-     * @return a {@link LocalValidatorFactoryBean} that supports internationalized validation messages.
+     * <p>All @Valid annotations on DTOs will use this message source to return errors
+     * in the appropriate language based on the client's request.</p>
+     *
+     * @param messageSource the {@link MessageSource} used for validation messages
+     * @return a configured {@link LocalValidatorFactoryBean} instance
      */
     @Bean
     public LocalValidatorFactoryBean getValidator(MessageSource messageSource) {

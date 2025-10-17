@@ -61,42 +61,111 @@ import java.time.LocalDateTime;
 @Builder
 public class UserApp {
 
+    /**
+     * Unique identifier for the user.
+     * <p>Generated automatically by the database using an identity strategy.</p>
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // --- Dades d'autenticación ---
+    // --- Authentication Data ---
+
+    /**
+     * The user's email address.
+     * <p>Must be unique and not null. Used as the main login credential.</p>
+     */
     @Column(nullable = false, unique = true)
     private String email;
+
+    /**
+     * The user's encrypted password.
+     * <p>Required only for local authentication (not for Google login)<./p>
+     */
     @Column(nullable = false)
     private String password;
 
-    // --- Dades de Google Auth ---
+    // --- Google Authentication Data ---
+
+    /**
+     * The unique identifier provided by Google for OAuth2 authentication.
+     * <p>This field is only populated when the user registers or logs in with Google.</p>
+     */
     private String googleId;  // ID únic proporcionat per google
+
+    /**
+     * URL of the user's Google profile picture (avatar).
+     * <p>Can be updated manually or retrieved automatically from Google.</p>
+     */
     private String pictureUrl; // URL del avatar de Google
 
+    /**
+     * The authentication provider used by the user.
+     * <p>Can be {@link AuthenticationProvider#GOOGLE} or {@link AuthenticationProvider#LOCAL}.</p>
+     */
     @Enumerated(EnumType.STRING)
     private AuthenticationProvider provider; // "google" o Local
 
-    // --- Dades personals ---
+    // --- Personal Information ---
+
+    /**
+     * The user's first name.
+     */
     private String firstName;
+
+    /**
+     * The user's last name.
+     */
     private String lastName;
 
-    // -- Estat i auditoria --
+    // -- Status and Audit Fields --
+
+    /**
+     * Indicates whether the account is active and can access the system.
+     * <p>Default value is {@code true}</p>
+     */
     private boolean enabled = true;
+
+    /**
+     * Indicates whether the user's email address has been verified.
+     * <p>Used for account confirmation in registration workflows.</p>
+     */
     private boolean emailVerified = false;
+
+    /**
+     * Timestamp marking when the user account was created.
+     * <p>Automatically populated via {@link #prePersist()} before persisting.</p>
+     */
     private LocalDateTime createdAt;
+
+    /**
+     * Timestamp marking the last time the user account was updated.
+     * <p>Automatically populated via {@link #preUpdate()} before updating.</p>
+     */
     private LocalDateTime updatedAt;
 
-    // -- Rols i permisos --
+    // -- Roles and Permissions --
+
+    /**
+     * The user's assigned role within the system.
+     * <p>Defines their access level (e.g., USER)</p>
+     */
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    /**
+     * Lifecycle callback executed before persisting the entity.
+     * <p>Automatically sets the {@link #createdAt} timestamp to the current time.</p>
+     */
     @PrePersist
     public void prePersist() {
         createdAt = LocalDateTime.now();
     }
 
+    /**
+     * Lifecycle callback executed before updating the entity.
+     * <p>Automatically sets the {@link #updatedAt} timestamp to the current time.</p>
+     */
     @PreUpdate
     public void preUpdate() {
         updatedAt = LocalDateTime.now();

@@ -17,78 +17,52 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * REST controller responsible for mapping user-related operations.
- * <p>
- *     This class exposes endpoints for:
- *     <ul>
- *         <li>Retrieving all registered users</li>
- *         <li>Creating new users</li>
- *     </ul>
- * </p>
- * <p>
- *     It communicates with the {@link UserService} layer to handle business logic
- *     and wraps responses using the standardized {@link ApiResponseDto} structure.
- * </p>
- * <p>
- *     Each response includes a <b>correlation ID</b> extracted from {@link MDC}
- *     (Mapped Diagnostic Context) to help trace logs across the request lifestyle.
- * </p>
- * <p>
- *     Swagger/OpenAPI annotations are used to:
- *     <ul>
- *         <li>Generate API documentation</li>
- *         <li>Provide summaries and detailed descriptions for each endpoint</li>
- *         <li>Document possible HTTP response codes</li>
- *     </ul>
- * </p>
- * <p><b>Base URL: {@code /api/users}</b></p>
+ * REST controller responsible for managing system users.
  *
- * <p><b>Example requests:</b></p>
- * <pre>
- *     GET /api/users
- *     POST /api/users
- *     Content-Type: application/json
- *     {
- *         "email": "john.doe@example.com",
- *         "firstName": "John",
- *         "lastName": "Doe",
- *         "password": "123456"
- *     }
- * </pre>
+ * <p>This controller exposes endpoints to:
+ * <ul>
+ *     <li>List all registered users</li>
+ *     <li>Create a new user in the system</li>
+ * </ul>
+ *
+ * <p>Responses are standardized using {@link ApiResponseDto}, which includes:
+ * <ul>
+ *     <li>Success status</li>
+ *     <li>Data payload</li>
+ *     <li>Optional error messages</li>
+ *     <li>Correlation ID for request tracing</li>
+ * </ul>
+ *
+ * <p>Swagger/OpenAPI annotations provide documentation and API metadata
+ * to support automatic generation of API docs and interactive UI.
+ *
+ * <p>Correlation IDs are automatically retrieved from the logging context (MDC)
+ * to allow tracing requests through logs and services.
+ *
+ * @see UserService
+ * @see ApiResponseDto
+ *
+ * @author Roger Moreno González
+ * @version 1.0.0
+ * @since 2025-10
  */
 @RestController
 @RequestMapping("/api/users")
 @Tag(name = "Users", description = "System user management")
 public class UserController {
 
-    /**
-     * Service layer dependency used to execute business operations related to users.
-     */
     @Autowired
     private UserService userService;
 
     /**
-     * Retrieves a list of all registered users in the system.
-     * <p>
-     *     This endpoint is typically used by administrators or internal modules
-     *     that require access to user data.
+     * Lists all registered users.
      *
-     *     <p><b>Workflow:</b></p>
-     *     <ol>
-     *         <li>Delegate to {@link UserService#findAllUsers()} to fetch data.</li>
-     *         <li>Retrieves the current {@code correlationId} from {@link MDC}.</li>
-     *         <li>Wraps the result in {@link ApiResponseDto} for standardized API responses.</li>
-     *     </ol>
-     * </p>
+     * <p>This endpoint fetches all users from the service layer,
+     * wraps the result in a standardized {@link ApiResponseDto},
+     * and returns HTTP 200 with the list of users.
      *
-     * @return a {@link ResponseEntity} containing an {@link ApiResponseDto}
-     *          with the list of {@link UserResponse} objects.
-     *
-     * <p><b>Possible responses:</b></p>
-     * <ul>
-     *     <li><b>200 OK:</b> User successfully obtained</li>
-     *     <li><b>500 Internal Server Error:</b> Unexpected server error</li>
-     * </ul>
+     * @return ResponseEntity containing a list of {@link UserResponse} objects
+     *         wrapped in {@link ApiResponseDto}, including correlation ID
      */
     @GetMapping
     @Operation(summary = "List all users", description = "Returns a list of all registered users")
@@ -109,31 +83,15 @@ public class UserController {
 
     /**
      * Creates a new user in the system.
-     * <p>
-     *     The request body must contain a valid {@link UserRequest} object, validated
-     *     using {@code @Valid} annotations.
-     *     If any validation errors occur, they are handled globally by
-     *     {@link com.ridei.apirest.ridei_apirest.common.exception.GlobalExceptionHandler}
-     * </p>
-     * <p><b>Workflow:</b></p>
-     * <ol>
-     *     <li>Validates incoming request using Bean Validation annotations.</li>
-     *     <li>Delegates creation logic to {@link UserService#createUser(UserRequest)}.</li>
-     *     <li>Retrieves the current {@code correlationId} for traceability</li>
-     *     <li>Returns a standardized success response with the created user.</li>
-     * </ol>
      *
-     * @param request the {@link UserRequest} DTO containing user registration data.
-     *                Must pass all validation rules.
-     * @return a {@link ResponseEntity} containing an {@link ApiResponseDto}
-     *         with the created {@link UserResponse} object.
+     * <p>The request body must contain a valid {@link UserRequest}.
+     * Validation errors are automatically handled by global exception handlers.
+     * The response includes the created user data, standardized in {@link ApiResponseDto},
+     * and a correlation ID for logging and tracing.
      *
-     * <p><b>Possible responses:</b></p>
-     * <ul>
-     *     <li><b>200 OK:</b> User successfully created</li>
-     *     <li><b>400 Bad Request:</b> Validation failed</li>
-     *     <li><b>500 Internal Server Error:</b> Unexpected error</li>
-     * </ul>
+     * @param request The user creation request payload
+     * @return ResponseEntity containing the created {@link UserResponse}
+     *         wrapped in {@link ApiResponseDto}, including correlation ID
      */
     @PostMapping
     @Operation(summary = "Create an user", description = "Registers a ser to the system and returns it")

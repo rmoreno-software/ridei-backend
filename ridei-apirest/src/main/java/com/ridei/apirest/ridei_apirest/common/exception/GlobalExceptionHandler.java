@@ -17,22 +17,49 @@ import org.springframework.web.servlet.LocaleResolver;
 import java.util.*;
 
 /**
- * GlobalExceptionHandler
+ * Global exception handler for the Ridei REST API.
  *
- * <p>
- *     A centralized exception handler for REST controllers. Annotated with {@link RestControllerAdvice}
- *     so Spring will apply the handlers in this class to exceptions thrown by controller methods
- *     (controllers annotated with {@code @RestController} or controllers that produce {@code @ResponseBody}).
- * </p>
+ * <p>This class centralizes the handling of exceptions thrown by REST controllers,
+ * ensuring that all errors are returned in a consistent and structured format
+ * using {@link ApiResponseDto}.</p>
  *
- * <p>
- *     Responsibilities:
- *     <ul>
- *         <li>Catch and transform validation errors (MethodArgumentNotValidException) into a stable JSON shape</li>
- *         <li>Catch unexpected exceptions and return a generic 500 response in the same JSON shape</li>
- *         <li>Keep controller code simple by centralizing error formating and HTTP status mapping</li>
- *     </ul>
- * </p>
+ * <p>It provides internationalized (i18n) error messages through {@link MessageSource}
+ * and supports locale resolution via {@link LocaleResolver}. Each response includes a
+ * correlation ID (via {@link MDC}) for easier tracking across logs and distributed systems.</p>
+ *
+ * <p><b>Responsibilities:</b></p>
+ * <ul>
+ *     <li>Handle validation errors thrown by {@link MethodArgumentNotValidException}.</li>
+ *     <li>Provide user-friendly and localized validation error messages.</li>
+ *     <li>Handle all other uncaught exceptions with a generic error response.</li>
+ *     <li>Log relevant error information for debugging and monitoring.</li>
+ * </ul>
+ *
+ * <p><b>Example responses:</b></p>
+ * <pre>
+ * {
+ *   "success": false,
+ *   "message": "Validation failed",
+ *   "errors": {
+ *     "email": ["Email is required", "Email format not valid"],
+ *     "password": ["Password must have at least 6 characters"]
+ *   },
+ *   "correlationId": "e7b8c123-4567-89ab-cdef-0123456789ab"
+ * }
+ * </pre>
+ *
+ * <p>For unexpected errors, a more generic response is returned:</p>
+ * <pre>
+ * {
+ *   "success": false,
+ *   "message": "An internal server error occurred. Please try again later.",
+ *   "correlationId": "e7b8c123-4567-89ab-cdef-0123456789ab"
+ * }
+ * </pre>
+ *
+ * @author Roger Moreno González
+ * @version 1.0.0
+ * @since 2025-10
  */
 @Slf4j
 @RestControllerAdvice
@@ -45,31 +72,17 @@ public class GlobalExceptionHandler {
     private LocaleResolver localeResolver;
 
     /**
-     * Handle validation failures raised by the {@code @valid} annotation on controller method parameters.
+     * Handles validation errors thrown when method arguments fail validation.
      *
-     * <p>
-     *     Spring throws {@link MethodArgumentNotValidException} when validation on an object annotated with
-     *     {@code @Valid} fails (for example, a request body DTO). This handler:
-     * </p>
-     * <ol>
-     *     <li>Extracts {@link FieldError}s from the exception's BindingResult</li>
-     *     <li>Created a simple map where keys are filed names and values are the validation messages</li>
-     *     <li>Logs the full stack trace with WARN level</li>
-     *     <li>Builds an {@link ApiResponseDto}</li> with a standard "Validation failed" message and the map of errors</li>
-     *     <li>Returns the response with HTTP 400 BAD REQUEST</li>
-     * </ol>
+     * <p>This method captures all {@link FieldError} instances from the binding result
+     * of a {@link MethodArgumentNotValidException}. Each field may contain multiple
+     * validation messages (e.g., both {@code @NotBlank} and {@code @Email} can fail).
+     * The messages are localized using the configured message source.</p>
      *
-     * <p>
-     *     Notes & behavior:
-     *     <ul>
-     *          <li>The current implementation uses {@link FieldError#getDefaultMessage()} which is typically the
-     *              message from the constraint. If you use message interpolation & i18n, the message will reflect
-     *              the configured message source and locale resolution.</li>
-     *     </ul>
-     * </p>
-     *
-     * @param ex the validation exception thrown by Spring when @Valid annotated argument fails validation
-     * @return a {@link ResponseEntity} with {@link ApiResponseDto} body and HTTP status 400
+     * @param ex the validation exception containing invalid field details
+     * @param request the current HTTP request, used to determine locale
+     * @return a {@link ResponseEntity} containing a structured {@link ApiResponseDto}
+     *         with field-specific validation messages and a correlation ID
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponseDto<Void>> handleValidationErrors(
@@ -100,16 +113,16 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handles any unhandled exceptions that are not explicitly caught elsewhere.
+     * Handles any unexpected exceptions that occur during request processing.
      *
-     * <p>
-     *     Logs the full stack trace with ERROR level.
-     *     Provides a generic "Internal Server Error" response to the client.
-     *     This ensures that internal stack traces are not leaked and the JSON response format stays consistent.
-     * </p>
+     * <p>This method acts as a catch-all fallback for unhandled exceptions,
+     * preventing the API from exposing sensitive internal details. The error message
+     * is localized based on the request locale, and detailed logs are produced for developers.</p>
      *
-     * @param ex unhandled exception
-     * @return generic API error response with HTTP 500
+     * @param ex the unexpected exception
+     * @param request the current HTTP request, used to determine locale
+     * @return a {@link ResponseEntity} containing a generic error {@link ApiResponseDto}
+     *         with a correlation ID for tracking
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponseDto<Void>> handleGeneralException(
