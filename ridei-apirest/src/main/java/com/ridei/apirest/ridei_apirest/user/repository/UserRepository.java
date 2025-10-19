@@ -4,6 +4,8 @@ import com.ridei.apirest.ridei_apirest.user.model.entity.UserApp;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 /**
  * Repository interface for managing {@link UserApp} entities.
  *
@@ -58,4 +60,6 @@ public interface UserRepository extends JpaRepository<UserApp, Long> {
      * @return {@code true} if a user with the given email already exists, otherwise {@code false}
      */
     boolean existsByEmail(String email);
+
+    Optional<UserApp> findByEmail(String email);
 }

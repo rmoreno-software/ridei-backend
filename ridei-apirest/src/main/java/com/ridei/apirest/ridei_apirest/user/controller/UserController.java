@@ -93,7 +93,7 @@ public class UserController {
      * @return ResponseEntity containing the created {@link UserResponse}
      *         wrapped in {@link ApiResponseDto}, including correlation ID
      */
-    @PostMapping
+    @PostMapping("/auth")
     @Operation(summary = "Create an user", description = "Registers a ser to the system and returns it")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Users successfully created"),

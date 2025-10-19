@@ -5,6 +5,8 @@ import com.ridei.apirest.ridei_apirest.user.model.Role;
 import com.ridei.apirest.ridei_apirest.user.model.dto.UserRequest;
 import com.ridei.apirest.ridei_apirest.user.model.dto.UserResponse;
 import com.ridei.apirest.ridei_apirest.user.model.entity.UserApp;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 /**
@@ -51,6 +53,9 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class UserMapper {
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     /**
      * Converts a {@link UserApp} entity into a {@link UserResponse} DTO.
@@ -100,7 +105,7 @@ public class UserMapper {
                 .email(request.getEmail())
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
-                .password(request.getPassword())
+                .password(passwordEncoder.encode(request.getPassword()))
                 .provider(AuthenticationProvider.LOCAL)
                 .role(Role.USER)
                 .enabled(true)

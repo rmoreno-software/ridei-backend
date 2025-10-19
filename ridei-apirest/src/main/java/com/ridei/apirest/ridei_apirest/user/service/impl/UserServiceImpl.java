@@ -7,6 +7,7 @@ import com.ridei.apirest.ridei_apirest.user.model.mapper.UserMapper;
 import com.ridei.apirest.ridei_apirest.user.repository.UserRepository;
 import com.ridei.apirest.ridei_apirest.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -108,7 +109,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse createUser(UserRequest request) {
         UserApp user = userMapper.toEntity(request);
-
         UserApp saved = userRepository.save(user);
         return userMapper.toDto(saved);
     }
