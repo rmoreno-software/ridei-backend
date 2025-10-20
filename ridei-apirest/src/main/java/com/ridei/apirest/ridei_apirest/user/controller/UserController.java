@@ -1,6 +1,8 @@
 package com.ridei.apirest.ridei_apirest.user.controller;
 
 import com.ridei.apirest.ridei_apirest.common.response.ApiResponseDto;
+import com.ridei.apirest.ridei_apirest.security.JwtTokenProvider;
+import com.ridei.apirest.ridei_apirest.user.model.dto.LoginRequest;
 import com.ridei.apirest.ridei_apirest.user.model.dto.UserRequest;
 import com.ridei.apirest.ridei_apirest.user.model.dto.UserResponse;
 import com.ridei.apirest.ridei_apirest.user.service.UserService;
@@ -12,9 +14,14 @@ import jakarta.validation.Valid;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * REST controller responsible for managing system users.
@@ -53,6 +60,12 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
 
     /**
      * Lists all registered users.
@@ -111,5 +124,18 @@ public class UserController {
 
         // Return standardized API response with created user details
         return ResponseEntity.ok(ApiResponseDto.success(user, correlationId));
+    }
+
+    @PostMapping("/auth/login")
+    public ResponseEntity<ApiResponseDto<?>> login(@RequestBody LoginRequest body) {
+        Authentication auth = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(body.getEmail(), body.getPassword())
+        );
+        UserDetails userDetails = (UserDetails) auth.getPrincipal();
+        String token = jwtTokenProvider.createToken(userDetails.getUsername(), userDetails.getAuthorities());
+        return ResponseEntity.ok(ApiResponseDto.success(
+                Map.of("accessToken", token),
+                MDC.get("correlationId")
+        ));
     }
 }
