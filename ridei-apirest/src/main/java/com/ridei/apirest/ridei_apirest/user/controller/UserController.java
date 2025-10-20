@@ -13,11 +13,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -127,15 +130,26 @@ public class UserController {
     }
 
     @PostMapping("/auth/login")
-    public ResponseEntity<ApiResponseDto<?>> login(@RequestBody LoginRequest body) {
-        Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(body.getEmail(), body.getPassword())
-        );
-        UserDetails userDetails = (UserDetails) auth.getPrincipal();
-        String token = jwtTokenProvider.createToken(userDetails.getUsername(), userDetails.getAuthorities());
-        return ResponseEntity.ok(ApiResponseDto.success(
-                Map.of("accessToken", token),
-                MDC.get("correlationId")
-        ));
+    public ResponseEntity<ApiResponseDto<?>> login(@Valid @RequestBody LoginRequest body) {
+        try {
+            Authentication auth = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(body.getEmail(), body.getPassword())
+            );
+            UserDetails userDetails = (UserDetails) auth.getPrincipal();
+            String token = jwtTokenProvider.createToken(userDetails.getUsername(), userDetails.getAuthorities());
+
+            return ResponseEntity.ok(ApiResponseDto.success(
+                    Map.of("accessToken", token),
+                    MDC.get("correlationId")
+            ));
+        } catch (BadCredentialsException be) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponseDto.error("Invalid email or password", MDC.get("correlationId")));
+        } catch (Exception ex) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponseDto.error("Authentication failed", MDC.get("correlationId")));
+        }
     }
 }
