@@ -1,18 +1,28 @@
+server:
+  port: 8081
+
 spring:
   application:
     name: ridei-backend
-
-  # Configuración MÍNIMA para que arranque y conecte a tu Docker
+  
   datasource:
     url: jdbc:postgresql://db:5432/ridei_db
     username: ridei_user
     password: 12345
     driver-class-name: org.postgresql.Driver
-
+  
   jpa:
     hibernate:
       ddl-auto: update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        
+
+  kafka:
+    bootstrap-servers: host.docker.internal:9092
+    consumer:
+      group-id: ridei-group
+      auto-offset-reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
