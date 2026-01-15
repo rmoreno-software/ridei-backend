@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: ridei-backend
+
+  # Configuración MÍNIMA para que arranque y conecte a tu Docker
+  datasource:
+    url: jdbc:postgresql://db:5432/ridei_db
+    username: ridei_user
+    password: 12345
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        
