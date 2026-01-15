@@ -16,7 +16,7 @@ services:
   # --- GRAPHICAL INTERFACE FOR THE DATABASE (pgAdmin) ---
   pgadmin:
     image: dpage/pgadmin4
-    container_name: rodadas_pgadmin
+    container_name: ridei_pgadmin
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@ridei.com
       PGADMIN_DEFAULT_PASSWORD: admin
