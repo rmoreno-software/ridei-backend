@@ -1,0 +1,30 @@
+{
+    "name": "Rodadas Java Dev Env",
+    "image": "mcr.microsoft.com/devcontainers/java:1-21-bullseye",
+    
+    "features": {
+      "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+    },
+  
+    // VS Code settings inside the container
+    "customizations": {
+      "vscode": {
+        "settings": {
+          "java.configuration.updateBuildConfiguration": "automatic",
+          "maven.terminal.useJavaHome": true
+        },
+        "extensions": [
+          "vscjava.vscode-java-pack",
+          "Pivotal.vscode-spring-boot",
+          "humao.rest-client", 
+          "eamodio.gitlens"
+        ]
+      }
+    },
+  
+    // Ports we want to expose (App, Kafka UI, PgAdmin)
+    "forwardPorts": [8080, 5050, 9092, 5432],
+  
+    // When creating the container, we start the database automatically
+    "postCreateCommand": "docker compose up -d"
+  }
