@@ -2,7 +2,9 @@ package com.ridei.identity.application.service;
 
 import org.springframework.stereotype.Service;
 
+import com.ridei.identity.application.port.in.RegisterUserCommand;
 import com.ridei.identity.application.port.in.RegisterUserUseCase;
+import com.ridei.identity.domain.exception.UserAlreadyExistsException;
 import com.ridei.identity.domain.model.User;
 import com.ridei.identity.domain.port.out.PasswordEncoder;
 import com.ridei.identity.domain.port.out.UserRepository;
@@ -22,14 +24,18 @@ public class RegisterUserService implements RegisterUserUseCase{
     }
 
     @Override
-    public void register(String email, String password, String name) {
-        if (userRepository.findByEmail(email).isPresent()) {
-            throw new RuntimeException("The user with email " + email + " already exists");
+    public void register(RegisterUserCommand command) {
+        if (userRepository.findByEmail(command.getEmail()).isPresent()) {
+            throw new UserAlreadyExistsException(command.getEmail());
         }
 
-        String encodedPassword = passwordEncoder.encode(password);
+        String encodedPassword = passwordEncoder.encode(command.getPassword());
 
-        User newUser = User.create(email, encodedPassword, name);
+        User newUser = User.create(
+            command.getEmail(),
+            encodedPassword,
+            command.getName()
+        );
 
         userRepository.save(newUser);
 
