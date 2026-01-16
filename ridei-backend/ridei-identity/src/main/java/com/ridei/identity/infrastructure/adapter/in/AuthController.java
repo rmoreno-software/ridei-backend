@@ -14,18 +14,15 @@ import com.ridei.identity.infrastructure.adapter.in.web.dto.RegisterRequest;
 import com.ridei.identity.infrastructure.adapter.in.web.mapper.AuthMapper;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/auth")
+@RequiredArgsConstructor
 public class AuthController {
 
     private final RegisterUserUseCase registerUserUseCase;
     private final AuthMapper authMapper;
-
-    public AuthController(RegisterUserUseCase registerUserUseCase, AuthMapper authMapper) {
-        this.registerUserUseCase = registerUserUseCase;
-        this.authMapper = authMapper;
-    }
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<Void>> register(@Valid @RequestBody RegisterRequest request) {

@@ -39,7 +39,11 @@ public class RegisterUserService implements RegisterUserUseCase{
 
         userRepository.save(newUser);
 
-        System.out.println("User successfully registered: " + newUser.getId());
+        System.out.println("User successfully registered: " + newUser.getId() + " " +
+                            newUser.getEmail() + " " +
+                            newUser.getPassword() + " " +
+                            newUser.getName()    
+                        );
     }
 
     
