@@ -10,40 +10,61 @@ import com.ridei.identity.domain.port.out.PasswordEncoder;
 import com.ridei.identity.domain.port.out.UserRepository;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Application Service implementation for the User Registration Use Case.
+ * <p>
+ * This class acts as the orchestrator of the business logic. It sits between the
+ * Input Port (UseCase interface) and the Output Port (Repository/Encoder).
+ * It is responsible for encoding high-level business rules that depend on the
+ * system state (e.g., uniqueness checks) and coordinating the transaction.
+ * </p>
+ */
+@Slf4j
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class RegisterUserService implements RegisterUserUseCase{
     
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public RegisterUserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
-
+    /**
+     * {@inheritDoc}
+     * <p>
+     * <b>Implementation Details:</b>
+     * <ol>
+     * <li>Checks if the email is already taken by querying the repository (Stateful Validation).</li>
+     * <li>Delegates password hashing to the infrastructure adapter.</li>
+     * <li>Instantiates the {@link User} Aggregate Root using the factory method.</li>
+     * <li>Persists the new entity to the database.</li>
+     * </ol>
+     * </p>
+     */
     @Override
     public void register(RegisterUserCommand command) {
+        // 1. Business Rule: Email Uniqueness (Stateful check)
         if (userRepository.findByEmail(command.getEmail()).isPresent()) {
+            log.warn("Registration attempt failed: Email {} already exists", command.getEmail());
             throw new UserAlreadyExistsException(command.getEmail());
         }
 
+        // 2. Security: Hash the password
         String encodedPassword = passwordEncoder.encode(command.getPassword());
 
+        // 3. Domain Logic: Create the Aggregate Root
         User newUser = User.create(
             command.getEmail(),
             encodedPassword,
             command.getName()
         );
 
+        // 4. Persistence: Save state
         userRepository.save(newUser);
 
-        System.out.println("User successfully registered: " + newUser.getId() + " " +
-                            newUser.getEmail() + " " +
-                            newUser.getPassword() + " " +
-                            newUser.getName()    
-                        );
+        log.info("User successfully registered with ID: {}", newUser.getId());
     }
 
     
