@@ -42,4 +42,18 @@ public interface UserRepository {
      * the "not found" scenario by the caller.
      */
     Optional<User> findByEmail(String email);
+
+    /**
+     * Retrieves a User entity based on their unique nickname.
+     * <p>
+     * This method is primarily used for business rules validation (e.g., uniqueness checks)
+     * and authentication processes.
+     * </p>
+     *
+     * @param nickname The nickname to search for.
+     * @return An {@link Optional} containing the found {@link User}, or {@code Optional.empty()}
+     * if no user is found with the provided nickname. This forces explicit handling of
+     * the "not found" scenario by the caller.
+     */
+    Optional<User> findByNickname(String nickname);
 }

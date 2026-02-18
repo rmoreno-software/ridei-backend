@@ -42,6 +42,7 @@ public abstract class UserPersistenceMapper {
         return User.restore(
             entity.getId(),
             entity.getEmail(),
+            entity.getNickname(),
             entity.getPassword(),
             entity.getName()
         );

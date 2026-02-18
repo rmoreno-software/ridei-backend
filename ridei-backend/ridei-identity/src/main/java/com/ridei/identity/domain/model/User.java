@@ -31,6 +31,12 @@ public class User {
     private final String email;
 
     /**
+     * The user's nickname.
+     * Functions as a natural key or secondary index in the persistance layer.
+     */
+    private final String nickname;
+
+    /**
      * The <b>securely hashed</b> password.
      * <p>
      * <b>Security Note:</b> This field must never contain plain-text passwords.
@@ -56,9 +62,10 @@ public class User {
      * @param password  The hashed password.
      * @param name      The name.
      */
-    private User(UUID id, String email, String password, String name) {
+    private User(UUID id, String email, String nickname, String password, String name) {
         this.id = id;
         this.email = email;
+        this.nickname = nickname;
         this.password = password;
         this.name = name;
     }
@@ -75,8 +82,8 @@ public class User {
      * @param name      The user's name.
      * @return A new instance of {@link User} with a generated ID.
      */
-    public static User create(String email, String password, String name) {
-        return new User(UUID.randomUUID(), email, password, name);
+    public static User create(String email, String nickname, String password, String name) {
+        return new User(UUID.randomUUID(), email, nickname, password, name);
     }
 
     /**
@@ -92,7 +99,7 @@ public class User {
      * @param name     The stored name.
      * @return The reconstituted User object.
      */
-    public static User restore(UUID id, String email, String password, String name) {
-        return new User(id, email, password, name);
+    public static User restore(UUID id, String email, String nickname, String password, String name) {
+        return new User(id, email, nickname, password, name);
     }
 }

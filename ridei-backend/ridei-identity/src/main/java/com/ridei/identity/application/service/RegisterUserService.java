@@ -4,7 +4,8 @@ import org.springframework.stereotype.Service;
 
 import com.ridei.identity.application.port.in.RegisterUserCommand;
 import com.ridei.identity.application.port.in.RegisterUserUseCase;
-import com.ridei.identity.domain.exception.UserAlreadyExistsException;
+import com.ridei.identity.domain.exception.UserEmailAlreadyExistsException;
+import com.ridei.identity.domain.exception.UserNicknameAlreadyExistsException;
 import com.ridei.identity.domain.model.User;
 import com.ridei.identity.domain.port.out.PasswordEncoder;
 import com.ridei.identity.domain.port.out.UserRepository;
@@ -48,7 +49,13 @@ public class RegisterUserService implements RegisterUserUseCase{
         // 1. Business Rule: Email Uniqueness (Stateful check)
         if (userRepository.findByEmail(command.getEmail()).isPresent()) {
             log.warn("Registration attempt failed: Email {} already exists", command.getEmail());
-            throw new UserAlreadyExistsException(command.getEmail());
+            throw new UserEmailAlreadyExistsException(command.getEmail());
+        }
+
+        // 2. Business Rule: Nickname Uniqueness (Stateful check)
+        if (userRepository.findByNickname(command.getNickname()).isPresent()) {
+            log.warn("Registration attempt failed: Nickname {} already exists", command.getEmail());
+            throw new UserNicknameAlreadyExistsException(command.getNickname());
         }
 
         // 2. Security: Hash the password
@@ -57,6 +64,7 @@ public class RegisterUserService implements RegisterUserUseCase{
         // 3. Domain Logic: Create the Aggregate Root
         User newUser = User.create(
             command.getEmail(),
+            command.getNickname(),
             encodedPassword,
             command.getName()
         );

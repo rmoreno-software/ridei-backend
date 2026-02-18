@@ -48,6 +48,20 @@ public class PostgresUserRepository implements UserRepository{
     /**
      * {@inheritDoc}
      * <p>
+     * <b>Mapping Logic (Read):</b>
+     * Reconstitutes the Domain Aggregate using the {@code User.restore()} factory method.
+     * This ensures we preserve the original UUID from the database instead of generating a new one.
+     * </p>
+     */
+    @Override
+    public Optional<User> findByNickname(String nickname) {
+        return springRepository.findByNickname(nickname)
+            .map(userMapper::toDomain);
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
      * <b>Mapping Logic (Write):</b>
      * Extracts the state from the Domain Aggregate to create a JPA Entity
      * compatible with the underlying database schema.

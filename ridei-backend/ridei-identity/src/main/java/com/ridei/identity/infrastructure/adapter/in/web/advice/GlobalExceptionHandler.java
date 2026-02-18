@@ -8,7 +8,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.ridei.identity.domain.exception.UserAlreadyExistsException;
+import com.ridei.identity.domain.exception.UserEmailAlreadyExistsException;
 import com.ridei.identity.infrastructure.adapter.in.web.dto.ApiResponse;
 
 import lombok.extern.slf4j.Slf4j;
@@ -55,7 +55,7 @@ public class GlobalExceptionHandler {
     /**
      * Handles specific Business Domain exceptions.
      * <p>
-     * Maps the {@link UserAlreadyExistsException} (Domain Layer) to the appropriate
+     * Maps the {@link UserEmailAlreadyExistsException} (Domain Layer) to the appropriate
      * HTTP 409 (Conflict) status, indicating that the resource cannot be created
      * due to current state conflicts.
      * </p>
@@ -63,8 +63,8 @@ public class GlobalExceptionHandler {
      * @param ex The domain exception.
      * @return HTTP 409 (Conflict) with the business error message.
      */
-    @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<ApiResponse<Void>> handleUserAlreadyExistsException(UserAlreadyExistsException ex) {
+    @ExceptionHandler(UserEmailAlreadyExistsException.class)
+    public ResponseEntity<ApiResponse<Void>> handleUserAlreadyExistsException(UserEmailAlreadyExistsException ex) {
 
         log.warn("Business exception: {}", ex.getMessage());
 

@@ -52,6 +52,15 @@ public class UserEntity {
     private String email;
 
     /**
+     * The user's nickname.
+     * <p>
+     * Indexed unique column to prevent duplicate registrations at the database level.
+     * </p>
+     */
+    @Column(nullable = false, unique = true) // Enforce DB constraints
+    private String nickname;
+
+    /**
      * The BCrypt hashed password.
      */
     @Column(nullable = false)

@@ -7,14 +7,14 @@ package com.ridei.identity.domain.exception;
  * a new user with an email address that is already persisted in the system.
  * </p>
  */
-public class UserAlreadyExistsException extends RuntimeException{
+public class UserEmailAlreadyExistsException extends RuntimeException{
 
     /**
      * Constructs a new exception with a detailed message identifying the conflicting entity.
      * 
      * @param email The email address that caused the uniqueness constraint violation
      */
-    public UserAlreadyExistsException(String email) {
+    public UserEmailAlreadyExistsException(String email) {
         super("User with email " + email + " already exists");
     }
     

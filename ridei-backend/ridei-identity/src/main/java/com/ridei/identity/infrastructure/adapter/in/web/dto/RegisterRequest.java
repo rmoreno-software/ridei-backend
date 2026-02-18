@@ -28,6 +28,15 @@ public record RegisterRequest(
     @NotBlank(message = "Email is required")
     @Email(message = "The email format is invalid")
     String email,
+
+    /**
+     * The user's email address.
+     * <p>
+     * <b>Validation:</b> Checked for non-blank value and adherence to RFC 5322 email format.
+     * </p>
+     */
+    @NotBlank(message = "Nickname is required")
+    String nickname,
     
     /**
      * The confidential password string.
@@ -61,6 +70,7 @@ public record RegisterRequest(
     public String toString() {
         return "RegisterRequest[" +
                 "email='" + email + '\'' +
+                ", nickname='" + nickname + '\'' +
                 ", name='" + name + '\'' +
                 ", password='*****']";
     }

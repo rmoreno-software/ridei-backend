@@ -34,4 +34,16 @@ public interface SpringDataUserRepository extends JpaRepository<UserEntity, UUID
      * @return An {@link Optional} containing the <b>Infrastructure Entity</b> if found.
      */
     Optional<UserEntity> findByEmail(String email);
+
+    /**
+     * Derived Query Method to find a user by their nickname.
+     * <p>
+     * <b>Spring Magic:</b> Spring Data automatically generates the SQL query at runtime
+     * based on the method name convention (e.g., {@code SELECT * FROM users WHERE nickname = ?}).
+     * </p>
+     *
+     * @param nickname The exact nickname to search for.
+     * @return An {@link Optional} containing the <b>Infrastructure Entity</b> if found.
+     */
+    Optional<UserEntity> findByNickname(String nickname);
 }

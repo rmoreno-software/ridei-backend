@@ -26,6 +26,13 @@ public class RegisterUserCommand extends SelfValidating<RegisterUserCommand> {
     private final String email;
 
     /**
+     * The user's email address.
+     * Acts as the unique identifier for the user account. Must not be blank.
+     */
+    @NotBlank(message = "The nickname is invalid")
+    private final String nickname;
+
+    /**
      * The raw password provided by the user.
      * <p>
      * <b>Security Note:</b> This field holds the plain-text password before hashing.
@@ -50,8 +57,9 @@ public class RegisterUserCommand extends SelfValidating<RegisterUserCommand> {
      * @param name      The user's name
      * @throws jakarta.validation.ConstraintViolationException if any field violates constraints.
      */
-    public RegisterUserCommand(String email, String password, String name) {
+    public RegisterUserCommand(String email, String nickname, String password, String name) {
         this.email = email;
+        this.nickname = nickname;
         this.password = password;
         this.name = name;
 
