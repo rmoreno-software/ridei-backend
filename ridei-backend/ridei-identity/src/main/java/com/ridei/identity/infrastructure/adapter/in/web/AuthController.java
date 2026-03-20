@@ -46,7 +46,7 @@ public class AuthController {
     private final AuthMapper authMapper;
 
     @GetMapping("/test")
-    public ResponseEntity<ApiResponse<Void>> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<ApiResponse<Void>> test() {
         return ResponseEntity
             .status(HttpStatus.CREATED)
             .body(ApiResponse.success(200, "Backend Running"));
