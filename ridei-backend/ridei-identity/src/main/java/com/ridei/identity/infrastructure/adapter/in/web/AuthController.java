@@ -45,6 +45,13 @@ public class AuthController {
      */
     private final AuthMapper authMapper;
 
+    @GetMapping("/test")
+    public ResponseEntity<ApiResponse<Void>> register(@Valid @RequestBody RegisterRequest request) {
+        return ResponseEntity
+            .status(HttpStatus.CREATED)
+            .body(ApiResponse.success(200, "Backend Running"));
+    }
+
     /**
      * Public endpoint to register a new user in the system.
      * <p>
