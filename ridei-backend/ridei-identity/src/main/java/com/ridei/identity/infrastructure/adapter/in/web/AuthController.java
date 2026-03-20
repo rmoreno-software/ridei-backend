@@ -2,6 +2,7 @@ package com.ridei.identity.infrastructure.adapter.in.web;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -48,7 +49,7 @@ public class AuthController {
     @GetMapping("/test")
     public ResponseEntity<ApiResponse<Void>> test() {
         return ResponseEntity
-            .status(HttpStatus.CREATED)
+            .status(HttpStatus.OK)
             .body(ApiResponse.success(200, "Backend Running"));
     }
 
