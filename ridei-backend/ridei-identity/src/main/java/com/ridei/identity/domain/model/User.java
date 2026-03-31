@@ -40,7 +40,7 @@ public class User {
      * The <b>securely hashed</b> password.
      * <p>
      * <b>Security Note:</b> This field must never contain plain-text passwords.
-     * It stores the result of the {@link com.ridei.identity.domain.port.out.PasswordEncoder}.
+     * It stores the result of the {@link com.ridei.identity.application.port.out.PasswordEncoder}.
      * </p>
      */
     private final String password;

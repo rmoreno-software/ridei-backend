@@ -1,13 +1,20 @@
 package com.ridei.identity.infrastructure.adapter.in.web;
 
+import java.util.Locale;
+import java.util.Map;
+
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ridei.identity.application.port.in.ExistsNicknameQuery;
+import com.ridei.identity.application.port.in.ExistsNicknameUseCase;
 import com.ridei.identity.application.port.in.RegisterUserCommand;
 import com.ridei.identity.application.port.in.RegisterUserUseCase;
 import com.ridei.identity.infrastructure.adapter.in.web.dto.ApiResponse;
@@ -46,6 +53,10 @@ public class AuthController {
      */
     private final AuthMapper authMapper;
 
+    private final ExistsNicknameUseCase existsNicknameUseCase;
+
+    private final MessageSource messageSource;
+
     @GetMapping("/test")
     public ResponseEntity<ApiResponse<Void>> test() {
         return ResponseEntity
@@ -83,5 +94,24 @@ public class AuthController {
         return ResponseEntity
             .status(HttpStatus.CREATED)
             .body(ApiResponse.success(201, "Successfully registered user"));
+    }
+
+    @GetMapping("/exists-nickname")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> existsNickname(
+        @RequestParam String nickname,
+        Locale locale
+    ) {
+        ExistsNicknameQuery query = new ExistsNicknameQuery(nickname);
+        
+        boolean exists = existsNicknameUseCase.check(query);
+
+        String messageKey = exists ? "nickname.taken" : "nickname.available";
+        String message = messageSource.getMessage(messageKey, null, locale);
+
+        Map<String, Object> responseData = Map.of(
+            "exists", exists
+        );
+
+        return ResponseEntity.ok(ApiResponse.success(200, message, responseData));
     }
 }

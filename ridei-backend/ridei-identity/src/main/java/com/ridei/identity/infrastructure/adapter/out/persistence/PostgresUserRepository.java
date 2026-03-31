@@ -4,8 +4,9 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
+import com.ridei.identity.application.port.out.CheckUserPort;
+import com.ridei.identity.application.port.out.UserRepository;
 import com.ridei.identity.domain.model.User;
-import com.ridei.identity.domain.port.out.UserRepository;
 import com.ridei.identity.infrastructure.adapter.out.persistence.entity.UserEntity;
 import com.ridei.identity.infrastructure.adapter.out.persistence.mapper.UserPersistenceMapper;
 import com.ridei.identity.infrastructure.adapter.out.persistence.repository.SpringDataUserRepository;
@@ -26,7 +27,7 @@ import lombok.RequiredArgsConstructor;
  */
 @Component
 @RequiredArgsConstructor
-public class PostgresUserRepository implements UserRepository{
+public class PostgresUserRepository implements UserRepository, CheckUserPort{
     
     private final SpringDataUserRepository springRepository;
     private final UserPersistenceMapper userMapper;
@@ -74,6 +75,11 @@ public class PostgresUserRepository implements UserRepository{
         
         // 2. Persist
         springRepository.save(entity);       
+    }
+
+    @Override
+    public boolean existsByNickname(String nickname) {
+        return springRepository.existsByNickname(nickname);
     }
 
 }

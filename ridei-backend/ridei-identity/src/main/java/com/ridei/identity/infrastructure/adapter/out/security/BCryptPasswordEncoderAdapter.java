@@ -3,7 +3,7 @@ package com.ridei.identity.infrastructure.adapter.out.security;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import com.ridei.identity.domain.port.out.PasswordEncoder;
+import com.ridei.identity.application.port.out.PasswordEncoder;
 
 /**
  * Secondary Adapter (Driven Adapter) implementing secure password hashing.

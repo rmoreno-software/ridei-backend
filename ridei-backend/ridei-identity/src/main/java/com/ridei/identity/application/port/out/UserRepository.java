@@ -1,4 +1,4 @@
-package com.ridei.identity.domain.port.out;
+package com.ridei.identity.application.port.out;
 
 import java.util.Optional;
 

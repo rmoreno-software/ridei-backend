@@ -4,11 +4,11 @@ import org.springframework.stereotype.Service;
 
 import com.ridei.identity.application.port.in.RegisterUserCommand;
 import com.ridei.identity.application.port.in.RegisterUserUseCase;
+import com.ridei.identity.application.port.out.PasswordEncoder;
+import com.ridei.identity.application.port.out.UserRepository;
 import com.ridei.identity.domain.exception.UserEmailAlreadyExistsException;
 import com.ridei.identity.domain.exception.UserNicknameAlreadyExistsException;
 import com.ridei.identity.domain.model.User;
-import com.ridei.identity.domain.port.out.PasswordEncoder;
-import com.ridei.identity.domain.port.out.UserRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

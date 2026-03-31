@@ -1,4 +1,4 @@
-package com.ridei.identity.domain.port.out;
+package com.ridei.identity.application.port.out;
 
 /**
  * Output Port (Driven Port) interface for secure password handling.

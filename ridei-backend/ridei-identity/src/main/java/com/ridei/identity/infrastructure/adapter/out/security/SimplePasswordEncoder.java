@@ -2,9 +2,7 @@ package com.ridei.identity.infrastructure.adapter.out.security;
 
 import java.util.Base64;
 
-// import org.springframework.stereotype.Component;
-
-import com.ridei.identity.domain.port.out.PasswordEncoder;
+import com.ridei.identity.application.port.out.PasswordEncoder;
 
 // @Component
 public class SimplePasswordEncoder implements PasswordEncoder{

@@ -18,7 +18,7 @@ import com.ridei.identity.infrastructure.adapter.out.persistence.entity.UserEnti
  * <b>Architectural Boundary:</b> This interface belongs strictly to the Infrastructure layer.
  * It deals with {@link UserEntity} (Database Table representation), not the Domain Model.
  * The Domain Service should <b>never</b> inject this interface directly; it must go through
- * the {@link com.ridei.identity.domain.port.out.UserRepository} port.
+ * the {@link com.ridei.identity.application.port.out.UserRepository} port.
  * </p>
  */
 public interface SpringDataUserRepository extends JpaRepository<UserEntity, UUID> {
@@ -46,4 +46,6 @@ public interface SpringDataUserRepository extends JpaRepository<UserEntity, UUID
      * @return An {@link Optional} containing the <b>Infrastructure Entity</b> if found.
      */
     Optional<UserEntity> findByNickname(String nickname);
+
+    boolean existsByNickname(String nickname);
 }
