@@ -7,7 +7,7 @@ import lombok.Getter;
 
 @Getter
 public class ExistsNicknameQuery extends SelfValidating<ExistsNicknameQuery> {
-    @NotBlank(message = "El nickname no puede estar vacío")
+    @NotBlank(message = "Nickname can't be empty")
     private final String nickname;
 
     public ExistsNicknameQuery(String nickname) {
