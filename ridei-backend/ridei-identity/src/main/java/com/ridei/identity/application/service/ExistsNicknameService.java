@@ -7,7 +7,9 @@ import com.ridei.identity.application.port.in.ExistsNicknameUseCase;
 import com.ridei.identity.application.port.out.CheckUserPort;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ExistsNicknameService implements ExistsNicknameUseCase{
@@ -16,6 +18,7 @@ public class ExistsNicknameService implements ExistsNicknameUseCase{
 
     @Override
     public boolean check(ExistsNicknameQuery query) {
+        log.info("Checking nickname for: {}", query.getNickname());
         return checkUserPort.existsByNickname(query.getNickname());
     }
     

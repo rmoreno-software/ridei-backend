@@ -1,9 +1,15 @@
 package com.ridei.identity.infrastructure.adapter.out.persistence.entity;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
+
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -29,6 +35,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor // CRITICAL: Required by Hibernate to instantiate the class via Reflection
 @AllArgsConstructor // Convenience for the Mapper
+@EntityListeners(AuditingEntityListener.class)
 public class UserEntity {
     
     /**
@@ -71,5 +78,13 @@ public class UserEntity {
      */
     @Column(nullable = false)
     private String name;
+
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @LastModifiedBy
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
 }
