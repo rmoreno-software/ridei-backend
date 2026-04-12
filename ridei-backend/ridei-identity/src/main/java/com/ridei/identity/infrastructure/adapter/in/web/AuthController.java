@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ridei.identity.application.port.in.ExistsEmailQuery;
+import com.ridei.identity.application.port.in.ExistsEmailUseCase;
 import com.ridei.identity.application.port.in.ExistsNicknameQuery;
 import com.ridei.identity.application.port.in.ExistsNicknameUseCase;
 import com.ridei.identity.application.port.in.RegisterUserCommand;
@@ -54,6 +56,8 @@ public class AuthController {
     private final AuthMapper authMapper;
 
     private final ExistsNicknameUseCase existsNicknameUseCase;
+
+    private final ExistsEmailUseCase existsEmailUseCase;
 
     private final MessageSource messageSource;
 
@@ -106,6 +110,25 @@ public class AuthController {
         boolean exists = existsNicknameUseCase.check(query);
 
         String messageKey = exists ? "nickname.taken" : "nickname.available";
+        String message = messageSource.getMessage(messageKey, null, locale);
+
+        Map<String, Object> responseData = Map.of(
+            "exists", exists
+        );
+
+        return ResponseEntity.ok(ApiResponse.success(200, message, responseData));
+    }
+
+    @GetMapping("/exists-email")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> existsEmail(
+        @RequestParam String email,
+        Locale locale
+    ) {
+        ExistsEmailQuery query = new ExistsEmailQuery(email);
+        
+        boolean exists = existsEmailUseCase.check(query);
+
+        String messageKey = exists ? "email.taken" : "email.available";
         String message = messageSource.getMessage(messageKey, null, locale);
 
         Map<String, Object> responseData = Map.of(

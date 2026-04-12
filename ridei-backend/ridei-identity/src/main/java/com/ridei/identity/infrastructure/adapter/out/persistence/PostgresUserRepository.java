@@ -82,4 +82,9 @@ public class PostgresUserRepository implements UserRepository, CheckUserPort{
         return springRepository.existsByNickname(nickname);
     }
 
+    @Override
+    public boolean existsByEmail(String email) {
+        return springRepository.existsByEmail(email);
+    }
+
 }
