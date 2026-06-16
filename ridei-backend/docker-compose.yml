@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ridei-postgres
+    environment:
+      POSTGRES_USER: ridei
+      POSTGRES_PASSWORD: ridei_dev
+      POSTGRES_DB: ridei_identity
+    ports:
+      - "5432:5432"
+    volumes:
+      - ridei_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ridei"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  ridei_postgres_data:

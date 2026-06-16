@@ -1,0 +1,33 @@
+package com.ridei.identity.infrastructure.adapter.out.persistence;
+
+import org.springframework.stereotype.Component;
+
+import com.ridei.identity.domain.model.Email;
+import com.ridei.identity.domain.model.User;
+import com.ridei.identity.domain.model.Username;
+import com.ridei.identity.domain.port.out.UserRepositoryPort;
+
+import lombok.AllArgsConstructor;
+
+@Component
+@AllArgsConstructor
+public class UserPersistenceAdapter implements UserRepositoryPort {
+
+    private final UserJpaRepository jpaRepository;
+
+    @Override
+    public void save(User user) {
+        jpaRepository.save(UserJpaEntity.fromDomain(user));
+    }
+
+    @Override
+    public boolean existsByEmail(Email email) {
+        return jpaRepository.existsByEmail(email.value());
+    }
+
+    @Override
+    public boolean existsByUsername(Username username) {
+        return jpaRepository.existsByUsername(username.value());
+    }
+
+}

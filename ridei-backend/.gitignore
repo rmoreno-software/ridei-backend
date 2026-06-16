@@ -1,0 +1,48 @@
+# ── Maven ────────────────────────────────────────────────────────────────────
+target/
+.mvn/wrapper/maven-wrapper.jar
+!.mvn/wrapper/maven-wrapper.properties
+
+# ── Java ─────────────────────────────────────────────────────────────────────
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+
+# ── Spring Boot ───────────────────────────────────────────────────────────────
+application-local.yml
+application-secrets.yml
+
+# ── IDE — IntelliJ ────────────────────────────────────────────────────────────
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# ── IDE — VS Code ─────────────────────────────────────────────────────────────
+.vscode/
+*.code-workspace
+
+# ── Sistema operativo — Windows ───────────────────────────────────────────────
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ── Sistema operativo — macOS ─────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ── Docker ────────────────────────────────────────────────────────────────────
+.docker/
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Variables de entorno (nunca subir credenciales) ───────────────────────────
+.env
+.env.*
