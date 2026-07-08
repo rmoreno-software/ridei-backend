@@ -5,6 +5,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.ridei.identity.domain.exception.EmailAlreadyRegisteredException;
+import com.ridei.identity.domain.exception.InvalidGoogleTokenException;
 import com.ridei.identity.domain.exception.MinimumAgeNotMetException;
 import com.ridei.identity.domain.exception.UsernameAlreadyTakenException;
 import com.ridei.identity.infrastructure.adapter.in.rest.exception.ApiError;
@@ -71,6 +73,13 @@ public class GlobalExceptionHandler {
         log.error("Unexpected error", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
             new ApiError(500, "Internal Server Error", "An unexpected error ocurred")
+        );
+    }
+
+    @ExceptionHandler(InvalidGoogleTokenException.class)
+    public ResponseEntity<ApiError> handleInvalidGoogleToken(InvalidGoogleTokenException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+            new ApiError(401, "Unaythorized", ex.getMessage())
         );
     }
 }

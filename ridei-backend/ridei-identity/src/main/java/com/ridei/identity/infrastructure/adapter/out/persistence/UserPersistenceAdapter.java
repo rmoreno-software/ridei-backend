@@ -1,5 +1,7 @@
 package com.ridei.identity.infrastructure.adapter.out.persistence;
 
+import java.util.Optional;
+
 import org.springframework.stereotype.Component;
 
 import com.ridei.identity.domain.model.Email;
@@ -28,6 +30,16 @@ public class UserPersistenceAdapter implements UserRepositoryPort {
     @Override
     public boolean existsByUsername(Username username) {
         return jpaRepository.existsByUsername(username.value());
+    }
+
+    @Override
+    public Optional<User> findByEmail(Email email) {
+        return jpaRepository.findByEmail(email.value()).map(UserJpaEntity::toDomain);
+    }
+
+    @Override
+    public Optional<User> findByGoogleId(String googleId) {
+        return jpaRepository.findByGoogleId(googleId).map(UserJpaEntity::toDomain);
     }
 
 }

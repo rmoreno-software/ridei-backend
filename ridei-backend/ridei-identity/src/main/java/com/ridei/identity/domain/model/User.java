@@ -24,6 +24,7 @@ public class User {
     private LocalDate dateOfBirth;
     private String countryCode;
     private IdentityDocument identityDocument;
+    private String googleId;
     private UserRole role;
     private AccountStatus status;
     private boolean termsAccepted;
@@ -46,6 +47,7 @@ public class User {
             cmd.dateOfBirth(),
             cmd.countryCode(),
             cmd.identityDocument(),
+            null,
             cmd.role(),
             AccountStatus.PENDING_VERIFICATION,
             cmd.termsAccepted(),
@@ -66,6 +68,7 @@ public class User {
         LocalDate dateOfBirth,
         String countryCode,
         IdentityDocument identityDocument,
+        String googleId,
         UserRole role,
         AccountStatus status,
         boolean termsAccepted,
@@ -84,12 +87,38 @@ public class User {
             dateOfBirth,
             countryCode,
             identityDocument,
+            googleId,
             role,
             status,
             termsAccepted,
             termsAcceptedAt,
             createdAt
         );
-}
+    }
 
+    public static User registerWithGoogle(GoogleUserInfo googleUserInfo) {
+        Instant now = Instant.now();
+        return new User(
+            UserId.newId(),
+            new Email(googleUserInfo.email()),
+            null,
+            null,
+            googleUserInfo.firstName(),
+            googleUserInfo.lastName(),
+            null,
+            null,
+            null,
+            null,
+            null,
+            googleUserInfo.googleId(),
+            UserRole.RIDER,
+            AccountStatus.PENDING_ONBOARDING,
+            true,
+            now,
+            now);
+    }
+
+    public void linkGoogleId(String googleId) {
+        this.googleId = googleId;
+    }
 }

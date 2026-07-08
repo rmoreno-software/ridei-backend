@@ -14,6 +14,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/users/register").permitAll()
+                .requestMatchers("/api/v1/auth/google").permitAll()
                 .anyRequest().authenticated()
             );
         return http.build();

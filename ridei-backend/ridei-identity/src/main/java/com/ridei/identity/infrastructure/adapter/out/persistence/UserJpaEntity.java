@@ -94,6 +94,9 @@ public class UserJpaEntity {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    @Column(name = "google_id", unique = true)
+    private String googleId;
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private RiderProfileJpaEntity riderProfile;
 
@@ -105,15 +108,16 @@ public class UserJpaEntity {
         .id(user.getId().value())
             .email(user.getEmail().value())
             .passwordHash(user.getPasswordHash())
-            .username(user.getUsername().value())
+            .username(user.getUsername() != null ? user.getUsername().value() : null)
             .firstName(user.getFirstName())
             .lastName(user.getLastName())
             .gender(user.getGender())
-            .phoneNumber(user.getPhoneNumber().value())
+            .phoneNumber(user.getPhoneNumber() != null ? user.getPhoneNumber().value() : null)
             .dateOfBirth(user.getDateOfBirth())
             .countryCode(user.getCountryCode())
-            .documentType(user.getIdentityDocument().type())
-            .documentNumber(user.getIdentityDocument().number())
+            .documentType(user.getIdentityDocument() != null ? user.getIdentityDocument().type() : null)
+            .documentNumber(user.getIdentityDocument() != null ? user.getIdentityDocument().number() : null)
+            .googleId(user.getGoogleId())
             .role(user.getRole())
             .accountStatus(user.getStatus())
             .termsAccepted(user.isTermsAccepted())
@@ -127,14 +131,15 @@ public class UserJpaEntity {
                 new UserId(this.id),
                 new Email(this.email),
                 this.passwordHash,
-                new Username(this.username),
+                this.username != null ? new Username(this.username) : null,
                 this.firstName,
                 this.lastName,
                 this.gender,
-                new PhoneNumber(this.phoneNumber),
+                this.phoneNumber != null ? new PhoneNumber(this.phoneNumber) : null,
                 this.dateOfBirth,
                 this.countryCode,
-                new IdentityDocument(this.documentType, this.documentNumber),
+                this.documentType != null ? new IdentityDocument(this.documentType, this.documentNumber) : null,
+                this.googleId,
                 this.role,
                 this.accountStatus,
                 this.termsAccepted,
