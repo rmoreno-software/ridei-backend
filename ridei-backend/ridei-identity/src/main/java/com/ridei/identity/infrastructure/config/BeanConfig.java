@@ -37,7 +37,7 @@ public class BeanConfig {
     }
 
     @Bean
-    public ValidateTokenUseCase validateTokenUseCase(JwtPort jwt) {
-        return new ValidateTokenService(jwt);
+    public ValidateTokenUseCase validateTokenUseCase(JwtPort jwt, UserRepositoryPort userRepositoryPort) {
+        return new ValidateTokenService(jwt, userRepositoryPort);
     }
 }
