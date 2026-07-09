@@ -6,4 +6,5 @@ import com.ridei.identity.domain.model.UserRole;
 public interface JwtPort {
     String generateAccessToken(UserId userId, UserRole role);
     String generateRefreshToken(UserId userId);
+    boolean validateToken(String token);
 }

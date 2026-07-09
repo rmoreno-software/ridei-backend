@@ -15,6 +15,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/users/register").permitAll()
                 .requestMatchers("/api/v1/auth/google").permitAll()
+                .requestMatchers("/api/v1/auth/validate").permitAll()
                 .anyRequest().authenticated()
             );
         return http.build();

@@ -54,5 +54,18 @@ public class JwtAdapter implements JwtPort {
                 .signWith(key)
                 .compact();
     }
+
+    @Override
+    public boolean validateToken(String token) {
+        try {
+            Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
     
 }

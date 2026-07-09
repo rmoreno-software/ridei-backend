@@ -5,8 +5,10 @@ import org.springframework.context.annotation.Configuration;
 
 import com.ridei.identity.application.LoginWithGoogleService;
 import com.ridei.identity.application.RegisterUserService;
+import com.ridei.identity.application.ValidateTokenService;
 import com.ridei.identity.domain.port.in.LoginWithGoogleUseCase;
 import com.ridei.identity.domain.port.in.RegisterUserUseCase;
+import com.ridei.identity.domain.port.in.ValidateTokenUseCase;
 import com.ridei.identity.domain.port.out.EventPublisherPort;
 import com.ridei.identity.domain.port.out.GoogleTokenVerifierPort;
 import com.ridei.identity.domain.port.out.JwtPort;
@@ -32,5 +34,10 @@ public class BeanConfig {
         JwtPort jwt
     ) {
         return new LoginWithGoogleService(googleVerifier, repository, jwt);
+    }
+
+    @Bean
+    public ValidateTokenUseCase validateTokenUseCase(JwtPort jwt) {
+        return new ValidateTokenService(jwt);
     }
 }
