@@ -67,5 +67,16 @@ public class JwtAdapter implements JwtPort {
             return false;
         }
     }
+
+    @Override
+    public UserId extractUserId(String token) {
+        String subject = Jwts.parser()
+            .verifyWith(key)
+            .build()
+            .parseSignedClaims(token)
+            .getPayload()
+            .getSubject();
+        return UserId.of(subject);
+    }
     
 }

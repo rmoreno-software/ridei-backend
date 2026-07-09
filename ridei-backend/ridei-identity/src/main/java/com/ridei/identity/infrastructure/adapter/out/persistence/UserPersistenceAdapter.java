@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 import com.ridei.identity.domain.model.Email;
 import com.ridei.identity.domain.model.User;
+import com.ridei.identity.domain.model.UserId;
 import com.ridei.identity.domain.model.Username;
 import com.ridei.identity.domain.port.out.UserRepositoryPort;
 
@@ -40,6 +41,11 @@ public class UserPersistenceAdapter implements UserRepositoryPort {
     @Override
     public Optional<User> findByGoogleId(String googleId) {
         return jpaRepository.findByGoogleId(googleId).map(UserJpaEntity::toDomain);
+    }
+
+    @Override
+    public Optional<User> findById(UserId id) {
+        return jpaRepository.findById(id.value()).map(UserJpaEntity::toDomain);
     }
 
 }
