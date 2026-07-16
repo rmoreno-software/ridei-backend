@@ -3,9 +3,11 @@ package com.ridei.identity.infrastructure.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.ridei.identity.application.GetCurrentUserService;
 import com.ridei.identity.application.LoginWithGoogleService;
 import com.ridei.identity.application.RegisterUserService;
 import com.ridei.identity.application.ValidateTokenService;
+import com.ridei.identity.domain.port.in.GetCurrentUserUseCase;
 import com.ridei.identity.domain.port.in.LoginWithGoogleUseCase;
 import com.ridei.identity.domain.port.in.RegisterUserUseCase;
 import com.ridei.identity.domain.port.in.ValidateTokenUseCase;
@@ -39,5 +41,10 @@ public class BeanConfig {
     @Bean
     public ValidateTokenUseCase validateTokenUseCase(JwtPort jwt, UserRepositoryPort userRepositoryPort) {
         return new ValidateTokenService(jwt, userRepositoryPort);
+    }
+
+    @Bean
+    public GetCurrentUserUseCase getCurrentUserUseCase(UserRepositoryPort userRepositoryPort) {
+        return new GetCurrentUserService(userRepositoryPort);
     }
 }

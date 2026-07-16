@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.ridei.identity.domain.exception.EmailAlreadyRegisteredException;
 import com.ridei.identity.domain.exception.InvalidGoogleTokenException;
 import com.ridei.identity.domain.exception.MinimumAgeNotMetException;
+import com.ridei.identity.domain.exception.UserNotFoundException;
+import com.ridei.identity.domain.exception.UserSuspendedException;
 import com.ridei.identity.domain.exception.UsernameAlreadyTakenException;
 import com.ridei.identity.infrastructure.adapter.in.rest.exception.ApiError;
 
@@ -80,6 +82,20 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleInvalidGoogleToken(InvalidGoogleTokenException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
             new ApiError(401, "Unaythorized", ex.getMessage())
+        );
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ApiError> handleUserNotFound(UserNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                new ApiError(401, "Unauthorized", ex.getMessage())
+        );
+    }
+
+    @ExceptionHandler(UserSuspendedException.class)
+    public ResponseEntity<ApiError> handleUserSuspended(UserSuspendedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                new ApiError(403, "Forbidden", ex.getMessage())
         );
     }
 }

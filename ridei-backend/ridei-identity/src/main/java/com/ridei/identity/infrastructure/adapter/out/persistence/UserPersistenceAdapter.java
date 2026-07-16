@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import com.ridei.identity.domain.model.Email;
 import com.ridei.identity.domain.model.User;
 import com.ridei.identity.domain.model.UserId;
+import com.ridei.identity.domain.model.UserProfile;
 import com.ridei.identity.domain.model.Username;
 import com.ridei.identity.domain.port.out.UserRepositoryPort;
 
@@ -46,6 +47,23 @@ public class UserPersistenceAdapter implements UserRepositoryPort {
     @Override
     public Optional<User> findById(UserId id) {
         return jpaRepository.findById(id.value()).map(UserJpaEntity::toDomain);
+    }
+
+    @Override
+    public Optional<UserProfile> findByIdWithProfile(UserId id) {
+        return jpaRepository.findById(id.value())
+            .map(entity -> new UserProfile(
+                new UserId(entity.getId()),
+                new Email(entity.getEmail()),
+                entity.getUsername() != null ? new Username(entity.getUsername()) : null,
+                entity.getFirstName(),
+                entity.getLastName(),
+                entity.getGender(),
+                entity.getRole(),
+                entity.getAccountStatus(),
+                entity.getRiderProfile() != null ? entity.getRiderProfile().getProfileType() : null,
+                entity.getRiderProfile() != null ? entity.getRiderProfile().getRacingLicenseNumber() : null
+            ));
     }
 
 }
