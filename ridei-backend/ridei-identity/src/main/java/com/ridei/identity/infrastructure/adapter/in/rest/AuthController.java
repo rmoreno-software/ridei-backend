@@ -39,7 +39,7 @@ public class AuthController {
         @RequestBody @Valid GoogleAuthRequestDTO dto
     ) {
         GoogleAuthResult result = loginWithGoogleUseCase.login(new LoginWithGoogleCommand(dto.getIdToken()));
-        log.info("[AUTH_CONTROLLER - /google] dto: {}", dto);
+        // log.info("[AUTH_CONTROLLER - /google] dto: {}", dto);
         return ResponseEntity.ok(new GoogleAuthResponseDTO(
             result.accessToken(),
             result.refreshToken(),

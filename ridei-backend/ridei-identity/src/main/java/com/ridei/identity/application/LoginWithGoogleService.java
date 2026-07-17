@@ -36,7 +36,7 @@ public class LoginWithGoogleService implements LoginWithGoogleUseCase{
     public GoogleAuthResult login(LoginWithGoogleCommand command) {
         GoogleUserInfo googleInfo = googleVerifier.verify(command.idToken());
 
-        log.info("[LoginWithGoogleService - login] - googleInfo: {}", googleInfo);
+        // log.info("[LoginWithGoogleService - login] - googleInfo: {}", googleInfo);
 
         // Cerca primer per googleId, després per email (conta preexistent)
         Optional<User> existing = repository.findByGoogleId(googleInfo.googleId())
