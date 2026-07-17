@@ -1,5 +1,7 @@
 package com.ridei.identity.infrastructure.adapter.in.rest;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,21 +17,29 @@ import com.ridei.identity.domain.port.in.LoginWithGoogleUseCase;
 import com.ridei.identity.domain.port.in.ValidateTokenUseCase;
 
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
 
 @RestController
 @RequestMapping("/api/v1/auth")
-@AllArgsConstructor
 public class AuthController {
     
     private final LoginWithGoogleUseCase loginWithGoogleUseCase;
     private final ValidateTokenUseCase validateTokenUseCase; 
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
+
+    public AuthController(
+        LoginWithGoogleUseCase loginWithGoogleUseCase,
+        ValidateTokenUseCase validateTokenUseCase) {
+
+        this.loginWithGoogleUseCase = loginWithGoogleUseCase;
+        this.validateTokenUseCase = validateTokenUseCase;
+    }
 
     @PostMapping("/google")
     public ResponseEntity<GoogleAuthResponseDTO> loginWithGoogle(
         @RequestBody @Valid GoogleAuthRequestDTO dto
     ) {
         GoogleAuthResult result = loginWithGoogleUseCase.login(new LoginWithGoogleCommand(dto.getIdToken()));
+        log.info("[AUTH_CONTROLLER - /google] dto: {}", dto);
         return ResponseEntity.ok(new GoogleAuthResponseDTO(
             result.accessToken(),
             result.refreshToken(),
