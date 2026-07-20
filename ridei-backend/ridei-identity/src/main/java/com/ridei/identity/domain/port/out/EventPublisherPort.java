@@ -1,7 +1,7 @@
 package com.ridei.identity.domain.port.out;
 
-import com.ridei.identity.domain.event.UserRegisteredEvent;
+import com.ridei.identity.domain.event.DomainEvent;
 
 public interface EventPublisherPort {
-    void publish(UserRegisteredEvent event);
+    void publish(DomainEvent event);
 }

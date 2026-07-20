@@ -3,10 +3,9 @@ package com.ridei.identity.domain.event;
 import java.time.Instant;
 
 import com.ridei.identity.domain.model.UserId;
-import com.ridei.identity.domain.model.UserRole;
 
-public record UserRegisteredEvent(
+public record UserGoogleAccountLinkedEvent(
     UserId userId,
-    UserRole userRole,
-    Instant ocurredAt
+    String googleId,
+    Instant occurredAt
 ) implements DomainEvent {}

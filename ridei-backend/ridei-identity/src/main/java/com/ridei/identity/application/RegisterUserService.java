@@ -29,7 +29,20 @@ public class RegisterUserService implements RegisterUserUseCase {
         if (userRepository.existsByUsername(command.username()))
             throw new UsernameAlreadyTakenException(command.username());
 
-        User user = User.register(command, passwordHasher.hash(command.password()));
+        User user = User.register(
+            command.email(),
+            passwordHasher.hash(command.password()),
+            command.username(),
+            command.firstName(),
+            command.lastName(),
+            command.gender(),
+            command.phoneNumber(),
+            command.dateOfBirth(),
+            command.countryCode(),
+            command.identityDocument(),
+            command.role(),
+            command.termsAccepted()
+        );
         userRepository.save(user);
         eventPublisher.publish(new UserRegisteredEvent(user.getId(), user.getRole(), Instant.now()));
         return user.getId();

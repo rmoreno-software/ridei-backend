@@ -1,6 +1,6 @@
 package com.ridei.identity.application;
 
-import com.ridei.identity.domain.model.AccountStatus;
+import com.ridei.identity.domain.model.User;
 import com.ridei.identity.domain.model.UserId;
 import com.ridei.identity.domain.port.in.ValidateTokenUseCase;
 import com.ridei.identity.domain.port.out.JwtPort;
@@ -21,9 +21,9 @@ public class ValidateTokenService implements ValidateTokenUseCase {
         try {
             UserId userId = jwt.extractUserId(token);
             return repositoryPort.findById(userId)
-                .map(user -> user.getStatus() == AccountStatus.ACTIVE)
+                .map(User::isActive)
                 .orElse(false);
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             return false;
         }
     }

@@ -2,7 +2,6 @@ package com.ridei.identity.application;
 
 import com.ridei.identity.domain.exception.UserNotFoundException;
 import com.ridei.identity.domain.exception.UserSuspendedException;
-import com.ridei.identity.domain.model.AccountStatus;
 import com.ridei.identity.domain.model.UserId;
 import com.ridei.identity.domain.model.UserProfile;
 import com.ridei.identity.domain.port.in.GetCurrentUserUseCase;
@@ -20,7 +19,7 @@ public class GetCurrentUserService implements GetCurrentUserUseCase {
         UserProfile profile = repository.findByIdWithProfile(userId)
             .orElseThrow(() -> new UserNotFoundException(userId));
 
-        if (profile.status() == AccountStatus.SUSPENDED)
+        if (profile.isSuspended())
             throw new UserSuspendedException();
 
         return profile;

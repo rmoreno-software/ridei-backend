@@ -22,20 +22,21 @@ public class BeanConfig {
 
     @Bean
     public RegisterUserUseCase registerUserUseCase(
-        UserRepositoryPort reporitory,
+        UserRepositoryPort repository,
         EventPublisherPort eventPublisher,
         PasswordHasherPort passwordHasher
     ) {
-        return new RegisterUserService(reporitory, eventPublisher, passwordHasher);
+        return new RegisterUserService(repository, eventPublisher, passwordHasher);
     }
 
     @Bean
     public LoginWithGoogleUseCase loginWithGoogleUseCase(
         GoogleTokenVerifierPort googleVerifier,
         UserRepositoryPort repository,
-        JwtPort jwt
+        JwtPort jwt,
+        EventPublisherPort eventPublisher
     ) {
-        return new LoginWithGoogleService(googleVerifier, repository, jwt);
+        return new LoginWithGoogleService(googleVerifier, repository, jwt, eventPublisher);
     }
 
     @Bean

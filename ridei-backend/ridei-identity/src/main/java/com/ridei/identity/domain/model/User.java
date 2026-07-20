@@ -3,13 +3,13 @@ package com.ridei.identity.domain.model;
 import java.time.Instant;
 import java.time.LocalDate;
 
-import com.ridei.identity.application.RegisterUserCommand;
 import com.ridei.identity.domain.exception.MinimumAgeNotMetException;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
 public class User {
     
@@ -31,26 +31,39 @@ public class User {
     private Instant termsAcceptedAt;
     private Instant createdAt;
 
-    public static User register(RegisterUserCommand cmd, String passwordHash) {
-        if (cmd.dateOfBirth().isAfter(LocalDate.now().minusYears(16)))
+    public static User register(
+        Email email,
+        String passwordHash,
+        Username username,
+        String firstName,
+        String lastName,
+        Gender gender,
+        PhoneNumber phoneNumber,
+        LocalDate dateOfBirth,
+        String countryCode,
+        IdentityDocument identityDocument,
+        UserRole role,
+        boolean termsAccepted
+    ) {
+        if (dateOfBirth.isAfter(LocalDate.now().minusYears(16)))
             throw new MinimumAgeNotMetException();
         Instant now = Instant.now();
         return new User(
             UserId.newId(),
-            cmd.email(),
+            email,
             passwordHash,
-            cmd.username(),
-            cmd.firstName(),
-            cmd.lastName(),
-            cmd.gender(),
-            cmd.phoneNumber(),
-            cmd.dateOfBirth(),
-            cmd.countryCode(),
-            cmd.identityDocument(),
+            username,
+            firstName,
+            lastName,
+            gender,
+            phoneNumber,
+            dateOfBirth,
+            countryCode,
+            identityDocument,
             null,
-            cmd.role(),
+            role,
             AccountStatus.PENDING_VERIFICATION,
-            cmd.termsAccepted(),
+            termsAccepted,
             now,
             now
         );
@@ -120,5 +133,17 @@ public class User {
 
     public void linkGoogleId(String googleId) {
         this.googleId = googleId;
+    }
+
+    public boolean isSuspended() {
+        return status == AccountStatus.SUSPENDED;
+    }
+
+    public boolean isActive() {
+        return status == AccountStatus.ACTIVE;
+    }
+
+    public boolean needsOnboarding() {
+        return status == AccountStatus.PENDING_ONBOARDING;
     }
 }
