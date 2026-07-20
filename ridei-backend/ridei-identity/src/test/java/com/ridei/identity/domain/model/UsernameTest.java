@@ -21,6 +21,7 @@ class UsernameTest {
     @ValueSource(strings = {
         "noatsign",
         "@ab",
+        "@abc",
         "@",
         "@this_username_is_way_too_long_to_be_valid",
         "@invalid name"
@@ -28,6 +29,25 @@ class UsernameTest {
     void shouldRejectInvalidUsername(String invalid) {
         assertThatIllegalArgumentException()
             .isThrownBy(() -> new Username(invalid));
+    }
+
+    @Test
+    @DisplayName("accepts the shortest valid length (4 characters after @)")
+    void shouldAcceptMinimumLength() {
+        assertThatNoException().isThrownBy(() -> new Username("@abcd"));
+    }
+
+    @Test
+    @DisplayName("accepts the longest valid length (19 characters after @)")
+    void shouldAcceptMaximumLength() {
+        assertThatNoException().isThrownBy(() -> new Username("@" + "a".repeat(19)));
+    }
+
+    @Test
+    @DisplayName("rejects one character over the maximum length")
+    void shouldRejectOneCharacterOverMaximumLength() {
+        assertThatIllegalArgumentException()
+            .isThrownBy(() -> new Username("@" + "a".repeat(20)));
     }
 
 }

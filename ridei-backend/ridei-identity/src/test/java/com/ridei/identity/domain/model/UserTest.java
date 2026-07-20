@@ -84,12 +84,12 @@ class UserTest {
     @DisplayName("reports suspended, active and onboarding status correctly")
     void shouldExposeStatusQueries() {
         User active = User.reconstitute(
-            UserId.newId(), new Email("a@ridei.com"), "hash", new Username("@aaa"),
+            UserId.newId(), new Email("a@ridei.com"), "hash", new Username("@aaaa"),
             "A", "A", Gender.MALE, null, LocalDate.of(1990, 1, 1), "ES", null,
             null, UserRole.RIDER, AccountStatus.ACTIVE, true, null, null
         );
         User suspended = User.reconstitute(
-            UserId.newId(), new Email("b@ridei.com"), "hash", new Username("@bbb"),
+            UserId.newId(), new Email("b@ridei.com"), "hash", new Username("@bbbb"),
             "B", "B", Gender.MALE, null, LocalDate.of(1990, 1, 1), "ES", null,
             null, UserRole.RIDER, AccountStatus.SUSPENDED, true, null, null
         );

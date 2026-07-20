@@ -21,7 +21,7 @@ public class RegisterRequestDTO {
     private String password;
 
     @NotBlank(message = "Username is required")
-    @Pattern(regexp = "^@[a-zA-Z0-9_.]{3,30}$", message = "Username must start with @ followed by 3-30 alphanumeric characters")
+    @Pattern(regexp = "^@[a-zA-Z0-9_.]{4,19}$", message = "Username must start with @ followed by 4-19 alphanumeric characters")
     private String username;
 
     @NotBlank(message = "First name is required")

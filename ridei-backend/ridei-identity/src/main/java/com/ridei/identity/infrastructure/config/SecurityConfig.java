@@ -26,6 +26,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     "/api/v1/users/register",
+                    "/api/v1/users/username-availability",
                     "/api/v1/auth/google",
                     "/api/v1/auth/validate"
                 ).permitAll()
