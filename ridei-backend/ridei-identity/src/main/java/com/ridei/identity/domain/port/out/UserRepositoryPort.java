@@ -16,4 +16,5 @@ public interface UserRepositoryPort {
     Optional<User> findByGoogleId(String googleId);
     Optional<User> findById(UserId id);
     Optional<UserProfile> findByIdWithProfile(UserId id);
+    void update(User user);
 }

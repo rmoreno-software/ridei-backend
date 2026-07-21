@@ -131,6 +131,20 @@ public class User {
             now);
     }
 
+    public void saveOnboardingStep1(String firstName, String lastName, Username username, Gender gender) {
+        if (firstName == null || firstName.isBlank())
+            throw new IllegalArgumentException("First name is required");
+        if (lastName == null || lastName.isBlank())
+            throw new IllegalArgumentException("Last name is required");
+        if (username == null)
+            throw new IllegalArgumentException("Username is required");
+
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.username = username;
+        this.gender = gender;
+    }
+
     public void linkGoogleId(String googleId) {
         this.googleId = googleId;
     }

@@ -66,4 +66,8 @@ public class UserPersistenceAdapter implements UserRepositoryPort {
             ));
     }
 
+    @Override
+    public void update(User user) {
+        jpaRepository.save(UserJpaEntity.fromDomain(user));
+    }
 }
