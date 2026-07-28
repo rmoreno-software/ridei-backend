@@ -155,9 +155,9 @@ public class User {
         if (dateOfBirth.isAfter(LocalDate.now().minusYears(16)))
             throw new MinimumAgeNotMetException();
         if (countryCode == null || countryCode.isBlank())
-            throw new IllegalArgumentException("Country Code is required");
-        if (phoneNumber == null) 
-            throw new IllegalArgumentException("Phone Number is required");
+            throw new IllegalArgumentException("Country code is required");
+        if (phoneNumber == null)
+            throw new IllegalArgumentException("Phone number is required");
 
         this.dateOfBirth = dateOfBirth;
         this.countryCode = countryCode;
