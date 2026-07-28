@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ridei.identity.application.SaveOnboardingStep1Command;
+import com.ridei.identity.application.SaveOnboardingStep2Command;
 import com.ridei.identity.application.UsernameAvailabilityResult;
+import com.ridei.identity.domain.model.PhoneNumber;
 import com.ridei.identity.domain.model.UserId;
 import com.ridei.identity.domain.model.UserProfile;
 import com.ridei.identity.domain.model.Username;
@@ -20,6 +22,7 @@ import com.ridei.identity.domain.port.in.CheckUsernameAvailabilityUseCase;
 import com.ridei.identity.domain.port.in.GetCurrentUserUseCase;
 import com.ridei.identity.domain.port.in.RegisterUserUseCase;
 import com.ridei.identity.domain.port.in.SaveOnboardingStep1UseCase;
+import com.ridei.identity.domain.port.in.SaveOnboardingStep2UseCase;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -33,6 +36,7 @@ public class UserController {
     private final GetCurrentUserUseCase getCurrentUserUseCase;
     private final CheckUsernameAvailabilityUseCase checkUsernameAvailabilityUseCase;
     private final SaveOnboardingStep1UseCase saveOnboardingStep1UseCase;
+    private final SaveOnboardingStep2UseCase saveOnboardingStep2UseCase;
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponseDTO> register(@RequestBody @Valid RegisterRequestDTO dto) {
@@ -48,7 +52,7 @@ public class UserController {
     }
 
     @PatchMapping("/me/onboarding-stepone")
-    public ResponseEntity<OnboardingStep1ResponseDTO> saveOnboardingStepOne(
+    public ResponseEntity<OnboardingResponseDTO> saveOnboardingStepOne(
         @RequestBody @Valid OnboardingStep1RequestDTO dto,
         Authentication authentication
     ) {
@@ -64,7 +68,26 @@ public class UserController {
 
         saveOnboardingStep1UseCase.complete(command);
 
-        return ResponseEntity.ok(OnboardingStep1ResponseDTO.success());
+        return ResponseEntity.ok(OnboardingResponseDTO.success());
+    }
+
+    @PatchMapping("/me/onboarding-steptwo")
+    public ResponseEntity<OnboardingResponseDTO> saveOnboardingStepTwo(
+        @RequestBody @Valid OnboardingStep2RequestDTO dto,
+        Authentication authentication
+    ) {
+        UserId userId = UserId.of(authentication.getName());
+
+        SaveOnboardingStep2Command command = new SaveOnboardingStep2Command(
+            userId,
+            dto.getDateOfBirth(),
+            dto.getCountryCode(),
+            new PhoneNumber(dto.getPhoneNumber())
+        );
+
+        saveOnboardingStep2UseCase.complete(command);
+
+        return ResponseEntity.ok(OnboardingResponseDTO.success());
     }
 
     @GetMapping("/username-availability")

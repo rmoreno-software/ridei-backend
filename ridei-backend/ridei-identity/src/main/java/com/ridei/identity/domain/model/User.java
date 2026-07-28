@@ -145,6 +145,25 @@ public class User {
         this.gender = gender;
     }
 
+    public void saveOnboardingStep2(
+        LocalDate dateOfBirth,
+        String countryCode,
+        PhoneNumber phoneNumber
+    ) {
+        if (dateOfBirth == null)
+            throw new IllegalArgumentException("Date of birth is required");
+        if (dateOfBirth.isAfter(LocalDate.now().minusYears(16)))
+            throw new MinimumAgeNotMetException();
+        if (countryCode == null || countryCode.isBlank())
+            throw new IllegalArgumentException("Country Code is required");
+        if (phoneNumber == null) 
+            throw new IllegalArgumentException("Phone Number is required");
+
+        this.dateOfBirth = dateOfBirth;
+        this.countryCode = countryCode;
+        this.phoneNumber = phoneNumber;
+    }
+
     public void linkGoogleId(String googleId) {
         this.googleId = googleId;
     }

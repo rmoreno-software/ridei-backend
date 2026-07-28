@@ -8,12 +8,14 @@ import com.ridei.identity.application.GetCurrentUserService;
 import com.ridei.identity.application.LoginWithGoogleService;
 import com.ridei.identity.application.RegisterUserService;
 import com.ridei.identity.application.SaveOnboardingStep1Service;
+import com.ridei.identity.application.SaveOnboardingStep2Service;
 import com.ridei.identity.application.ValidateTokenService;
 import com.ridei.identity.domain.port.in.CheckUsernameAvailabilityUseCase;
 import com.ridei.identity.domain.port.in.GetCurrentUserUseCase;
 import com.ridei.identity.domain.port.in.LoginWithGoogleUseCase;
 import com.ridei.identity.domain.port.in.RegisterUserUseCase;
 import com.ridei.identity.domain.port.in.SaveOnboardingStep1UseCase;
+import com.ridei.identity.domain.port.in.SaveOnboardingStep2UseCase;
 import com.ridei.identity.domain.port.in.ValidateTokenUseCase;
 import com.ridei.identity.domain.port.out.EventPublisherPort;
 import com.ridei.identity.domain.port.out.GoogleTokenVerifierPort;
@@ -61,5 +63,10 @@ public class BeanConfig {
     @Bean
     public SaveOnboardingStep1UseCase saveOnboardingStep1UseCase(UserRepositoryPort repository) {
         return new SaveOnboardingStep1Service(repository);
+    }
+
+    @Bean
+    public SaveOnboardingStep2UseCase saveOnboardingStep2UseCase(UserRepositoryPort repository) {
+        return new SaveOnboardingStep2Service(repository);
     }
 }
