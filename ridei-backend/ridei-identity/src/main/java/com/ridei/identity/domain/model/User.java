@@ -64,7 +64,7 @@ public class User {
             role,
             AccountStatus.PENDING_VERIFICATION,
             termsAccepted,
-            now,
+            termsAccepted == true ? now : null,
             now
         );
     }
@@ -126,8 +126,8 @@ public class User {
             googleUserInfo.googleId(),
             UserRole.RIDER,
             AccountStatus.PENDING_ONBOARDING,
-            true,
-            now,
+            false,
+            null,
             now);
     }
 

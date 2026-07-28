@@ -1,5 +1,6 @@
 package com.ridei.identity.application;
 
+import java.time.Instant;
 import java.time.LocalDate;
 
 import com.ridei.identity.domain.model.Email;
