@@ -1,5 +1,7 @@
 package com.ridei.identity.domain.model;
 
+import java.time.LocalDate;
+
 public record UserProfile(
     UserId id,
     Email email,
@@ -10,7 +12,10 @@ public record UserProfile(
     UserRole role,
     AccountStatus status,
     String profileType,
-    String racingLicenseNumber
+    String racingLicenseNumber,
+    LocalDate dateOfBirth,
+    String countryCode,
+    PhoneNumber phoneNumber
 ) {
     public boolean isSuspended() {
         return status == AccountStatus.SUSPENDED;

@@ -19,6 +19,9 @@ public class UserProfileResponseDTO {
     private AccountStatus status;
     private String profileType;
     private String racingLicenseNumber;
+    private String dateOfBirth;
+    private String countryCode;
+    private String phoneNumber;
 
     public static UserProfileResponseDTO fromDomain(UserProfile profile) {
         UserProfileResponseDTO dto = new UserProfileResponseDTO();
@@ -32,6 +35,9 @@ public class UserProfileResponseDTO {
         dto.setStatus(profile.status());
         dto.setProfileType(profile.profileType());
         dto.setRacingLicenseNumber(profile.racingLicenseNumber());
+        dto.setDateOfBirth(profile.dateOfBirth().toString());
+        dto.setCountryCode(profile.countryCode());
+        dto.setPhoneNumber(profile.phoneNumber().toString());
         return dto;
     }
 }
