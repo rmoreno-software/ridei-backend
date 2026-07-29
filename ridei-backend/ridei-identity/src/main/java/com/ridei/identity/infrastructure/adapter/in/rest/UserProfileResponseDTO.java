@@ -37,7 +37,7 @@ public class UserProfileResponseDTO {
         dto.setRacingLicenseNumber(profile.racingLicenseNumber());
         dto.setDateOfBirth(profile.dateOfBirth().toString());
         dto.setCountryCode(profile.countryCode());
-        dto.setPhoneNumber(profile.phoneNumber().toString());
+        dto.setPhoneNumber(profile.phoneNumber().value());
         return dto;
     }
 }
