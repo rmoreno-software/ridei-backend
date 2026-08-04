@@ -35,9 +35,9 @@ public class UserProfileResponseDTO {
         dto.setStatus(profile.status());
         dto.setProfileType(profile.profileType());
         dto.setRacingLicenseNumber(profile.racingLicenseNumber());
-        dto.setDateOfBirth(profile.dateOfBirth().toString());
+        dto.setDateOfBirth(profile.dateOfBirth() != null ? profile.dateOfBirth().toString() : null);
         dto.setCountryCode(profile.countryCode());
-        dto.setPhoneNumber(profile.phoneNumber().value());
+        dto.setPhoneNumber(profile.phoneNumber() != null ? profile.phoneNumber().value() : null);
         return dto;
     }
 }
