@@ -22,7 +22,7 @@ public class ConfirmProfilePictureService implements ConfirmProfilePictureUseCas
 
     @Override
     public void confirm(ConfirmProfilePictureCommand command) {
-        if (storage.belongsToUser(command.userId(), command.publicUrl())) {
+        if (!storage.belongsToUser(command.userId(), command.publicUrl())) {
             throw new InvalidProfilePictureUrlException(command.publicUrl());
         }
 
