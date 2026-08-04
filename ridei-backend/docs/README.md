@@ -7,6 +7,7 @@ Welcome to the Ridei Backend documentation. This index links to all available do
 | Document | Description |
 |---|---|
 | [Getting Started](getting-started.md) | Local environment setup, prerequisites, and first run |
+| [Deployment](deployment.md) | Server deployment, systemd service management, environment variables |
 | [Architecture Overview](architecture.md) | Hexagonal Architecture, DDD, module structure |
 | [Domain Layer](domain-layer.md) | Entities, Value Objects, Domain Events, Ports, Exceptions |
 | [Application Layer](application-layer.md) | Use Cases, Commands, Application Services |
