@@ -11,16 +11,20 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ridei.identity.application.RequestProfilePictureUploadCommand;
 import com.ridei.identity.application.SaveOnboardingStep1Command;
 import com.ridei.identity.application.SaveOnboardingStep2Command;
 import com.ridei.identity.application.UsernameAvailabilityResult;
+import com.ridei.identity.domain.model.ImageContentType;
 import com.ridei.identity.domain.model.PhoneNumber;
+import com.ridei.identity.domain.model.PresignedUpload;
 import com.ridei.identity.domain.model.UserId;
 import com.ridei.identity.domain.model.UserProfile;
 import com.ridei.identity.domain.model.Username;
 import com.ridei.identity.domain.port.in.CheckUsernameAvailabilityUseCase;
 import com.ridei.identity.domain.port.in.GetCurrentUserUseCase;
 import com.ridei.identity.domain.port.in.RegisterUserUseCase;
+import com.ridei.identity.domain.port.in.RequestProfilePictureUploadUseCase;
 import com.ridei.identity.domain.port.in.SaveOnboardingStep1UseCase;
 import com.ridei.identity.domain.port.in.SaveOnboardingStep2UseCase;
 
@@ -37,6 +41,7 @@ public class UserController {
     private final CheckUsernameAvailabilityUseCase checkUsernameAvailabilityUseCase;
     private final SaveOnboardingStep1UseCase saveOnboardingStep1UseCase;
     private final SaveOnboardingStep2UseCase saveOnboardingStep2UseCase;
+    private final RequestProfilePictureUploadUseCase requestProfilePictureUploadUseCase;
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponseDTO> register(@RequestBody @Valid RegisterRequestDTO dto) {
@@ -96,6 +101,23 @@ public class UserController {
     ) {
         UsernameAvailabilityResult result = checkUsernameAvailabilityUseCase.check(username);
         return ResponseEntity.ok(UsernameAvailabilityResponseDTO.fromResult(result));
+    }
+
+    @PostMapping("/me/profile-picture/upload-url")
+    public ResponseEntity<ProfilePictureUploadResponseDTO> requestProfilePictureUploadUrl(
+        @RequestBody @Valid ProfilePictureUploadRequestDTO dto,
+        Authentication authentication
+    ) {
+        UserId userId = UserId.of(authentication.getName());
+
+        RequestProfilePictureUploadCommand command = new RequestProfilePictureUploadCommand(
+            userId,
+            new ImageContentType(dto.getContentType())
+        );
+
+        PresignedUpload upload = requestProfilePictureUploadUseCase.request(command);
+
+        return ResponseEntity.ok(ProfilePictureUploadResponseDTO.fromDomain(upload));
     }
 
 }

@@ -30,3 +30,11 @@ jwt:
   secret: ${JWT_SECRET:your-256-bit-secret-key-change-in-production}
   expiration-ms: 86400000
   refresh-expiration-ms: 604800000
+
+cloudflare:
+  r2:
+    account-id: ${R2_ACCOUNT_ID}
+    access-key: ${R2_ACCESS_KEY}
+    secret-key: ${R2_SECRET_KEY}
+    bucket: ${R2_BUCKET:ridei-identity}
+    public-base-url: ${R2_PUBLIC_BASE_URL}
