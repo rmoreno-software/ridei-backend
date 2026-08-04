@@ -42,7 +42,7 @@ public class CloudflareR2StorageAdapter implements ProfilePictureStoragePort {
         this.publicBaseUrl = publicBaseUrl;
         this.presigner = S3Presigner.builder()
             .region(Region.of("auto"))
-            .endpointOverride(URI.create("https://" + accountId + "r2.cloudflarestorage.com"))
+            .endpointOverride(URI.create("https://" + accountId + ".r2.cloudflarestorage.com"))
             .credentialsProvider(StaticCredentialsProvider.create(
                 AwsBasicCredentials.create(accessKey, secretKey)))
             .serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(true).build())
@@ -54,7 +54,7 @@ public class CloudflareR2StorageAdapter implements ProfilePictureStoragePort {
         UserId userId,
         ImageContentType contentType
     ) {
-        String key = "profile-pictures/%s/%s./%s".formatted(
+        String key = "profile-pictures/%s/%s.%s".formatted(
             userId.value(), UUID.randomUUID(), contentType.extension()
         );
 
