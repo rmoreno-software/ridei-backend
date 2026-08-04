@@ -77,5 +77,12 @@ public class CloudflareR2StorageAdapter implements ProfilePictureStoragePort {
             Instant.now().plus(UPLOAD_URL_TTL)
         );
     }
+
+    @Override
+    public boolean belongsToUser(UserId userId, String publicUrl) {
+        if (publicUrl == null) return false;
+        String expectedPrefix = publicBaseUrl + "/profile-pictures/" + userId.value() + "/";
+        return publicUrl.startsWith(expectedPrefix);
+    }
     
 }

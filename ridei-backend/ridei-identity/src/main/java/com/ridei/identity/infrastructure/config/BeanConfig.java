@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.ridei.identity.application.CheckUsernameAvailabilityService;
+import com.ridei.identity.application.ConfirmProfilePictureService;
 import com.ridei.identity.application.GetCurrentUserService;
 import com.ridei.identity.application.LoginWithGoogleService;
 import com.ridei.identity.application.RegisterUserService;
@@ -12,6 +13,7 @@ import com.ridei.identity.application.SaveOnboardingStep1Service;
 import com.ridei.identity.application.SaveOnboardingStep2Service;
 import com.ridei.identity.application.ValidateTokenService;
 import com.ridei.identity.domain.port.in.CheckUsernameAvailabilityUseCase;
+import com.ridei.identity.domain.port.in.ConfirmProfilePictureUseCase;
 import com.ridei.identity.domain.port.in.GetCurrentUserUseCase;
 import com.ridei.identity.domain.port.in.LoginWithGoogleUseCase;
 import com.ridei.identity.domain.port.in.RegisterUserUseCase;
@@ -79,5 +81,13 @@ public class BeanConfig {
         ProfilePictureStoragePort storage
     ) {
         return new RequestProfilePictureUploadService(userRepository, storage);
+    }
+
+    @Bean
+    public ConfirmProfilePictureUseCase confirmProfilePictureUseCase(
+        UserRepositoryPort userRepository,
+        ProfilePictureStoragePort storage
+    ) {
+        return new ConfirmProfilePictureService(userRepository, storage);
     }
 }

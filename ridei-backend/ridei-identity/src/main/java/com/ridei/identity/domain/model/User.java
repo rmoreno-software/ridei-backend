@@ -30,6 +30,7 @@ public class User {
     private boolean termsAccepted;
     private Instant termsAcceptedAt;
     private Instant createdAt;
+    private String pictureUrl;
 
     public static User register(
         Email email,
@@ -65,7 +66,8 @@ public class User {
             AccountStatus.PENDING_VERIFICATION,
             termsAccepted,
             termsAccepted == true ? now : null,
-            now
+            now,
+            null
         );
     }
 
@@ -86,7 +88,8 @@ public class User {
         AccountStatus status,
         boolean termsAccepted,
         Instant termsAcceptedAt,
-        Instant createdAt
+        Instant createdAt,
+        String pictureUrl
     ) {
         return new User(
             id,
@@ -105,7 +108,8 @@ public class User {
             status,
             termsAccepted,
             termsAcceptedAt,
-            createdAt
+            createdAt,
+            pictureUrl
         );
     }
 
@@ -128,7 +132,8 @@ public class User {
             AccountStatus.PENDING_ONBOARDING,
             false,
             null,
-            now);
+            now,
+            null);
     }
 
     public void saveOnboardingStep1(String firstName, String lastName, Username username, Gender gender) {
@@ -162,6 +167,12 @@ public class User {
         this.dateOfBirth = dateOfBirth;
         this.countryCode = countryCode;
         this.phoneNumber = phoneNumber;
+    }
+
+    public void updateProfilePicture(String profilePictureUrl) {
+        if (profilePictureUrl == null || profilePictureUrl.isBlank())
+            throw new IllegalArgumentException("Profile Picture URL is required");
+        this.pictureUrl = profilePictureUrl;
     }
 
     public void linkGoogleId(String googleId) {

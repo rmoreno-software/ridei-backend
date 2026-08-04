@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.ridei.identity.domain.exception.EmailAlreadyRegisteredException;
 import com.ridei.identity.domain.exception.InvalidGoogleTokenException;
+import com.ridei.identity.domain.exception.InvalidProfilePictureUrlException;
 import com.ridei.identity.domain.exception.MinimumAgeNotMetException;
 import com.ridei.identity.domain.exception.UserNotFoundException;
 import com.ridei.identity.domain.exception.UserSuspendedException;
@@ -95,6 +96,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleUserSuspended(UserSuspendedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
                 new ApiError(403, "Forbidden", ex.getMessage())
+        );
+    }
+
+    @ExceptionHandler(InvalidProfilePictureUrlException.class)
+    public ResponseEntity<ApiError> handleInvalidProfilePictureUrl(InvalidProfilePictureUrlException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+            new ApiError(403, "Forbidden", ex.getMessage())
         );
     }
 }

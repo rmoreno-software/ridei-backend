@@ -66,7 +66,8 @@ public class UserPersistenceAdapter implements UserRepositoryPort {
                 entity.getRiderProfile() != null ? entity.getRiderProfile().getRacingLicenseNumber() : null,
                 entity.getDateOfBirth(),
                 entity.getCountryCode(),
-                entity.getPhoneNumber() != null ? new PhoneNumber(entity.getPhoneNumber()) : null
+                entity.getPhoneNumber() != null ? new PhoneNumber(entity.getPhoneNumber()) : null,
+                entity.getPictureUrl()
             ));
     }
 

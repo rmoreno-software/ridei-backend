@@ -15,7 +15,8 @@ public record UserProfile(
     String racingLicenseNumber,
     LocalDate dateOfBirth,
     String countryCode,
-    PhoneNumber phoneNumber
+    PhoneNumber phoneNumber,
+    String profilePictureUrl
 ) {
     public boolean isSuspended() {
         return status == AccountStatus.SUSPENDED;

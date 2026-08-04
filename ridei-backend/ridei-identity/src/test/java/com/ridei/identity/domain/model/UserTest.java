@@ -86,12 +86,12 @@ class UserTest {
         User active = User.reconstitute(
             UserId.newId(), new Email("a@ridei.com"), "hash", new Username("@aaaa"),
             "A", "A", Gender.MALE, null, LocalDate.of(1990, 1, 1), "ES", null,
-            null, UserRole.RIDER, AccountStatus.ACTIVE, true, null, null
+            null, UserRole.RIDER, AccountStatus.ACTIVE, true, null, null, null
         );
         User suspended = User.reconstitute(
             UserId.newId(), new Email("b@ridei.com"), "hash", new Username("@bbbb"),
             "B", "B", Gender.MALE, null, LocalDate.of(1990, 1, 1), "ES", null,
-            null, UserRole.RIDER, AccountStatus.SUSPENDED, true, null, null
+            null, UserRole.RIDER, AccountStatus.SUSPENDED, true, null, null, null
         );
         User pendingOnboarding = User.registerWithGoogle(
             new GoogleUserInfo("google-id", "c@ridei.com", "C", "C", null)

@@ -96,6 +96,9 @@ public class UserJpaEntity {
 
     @Column(name = "google_id", unique = true)
     private String googleId;
+    
+    @Column(name = "picture_url", unique = true)
+    private String pictureUrl;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private RiderProfileJpaEntity riderProfile;
@@ -123,6 +126,7 @@ public class UserJpaEntity {
             .termsAccepted(user.isTermsAccepted())
             .termsAcceptedAt(user.getTermsAcceptedAt())
             .createdAt(user.getCreatedAt())
+            .pictureUrl(user.getPictureUrl())
             .build();
     }
 
@@ -144,7 +148,8 @@ public class UserJpaEntity {
                 this.accountStatus,
                 this.termsAccepted,
                 this.termsAcceptedAt,
-                this.createdAt
+                this.createdAt,
+                this.pictureUrl
         );
     }
 }
