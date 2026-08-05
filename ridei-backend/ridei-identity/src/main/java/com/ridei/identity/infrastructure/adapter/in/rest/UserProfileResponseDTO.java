@@ -22,7 +22,7 @@ public class UserProfileResponseDTO {
     private String dateOfBirth;
     private String countryCode;
     private String phoneNumber;
-    private String profilePicrureUrl;
+    private String profilePictureUrl;
 
     public static UserProfileResponseDTO fromDomain(UserProfile profile) {
         UserProfileResponseDTO dto = new UserProfileResponseDTO();
@@ -39,7 +39,7 @@ public class UserProfileResponseDTO {
         dto.setDateOfBirth(profile.dateOfBirth() != null ? profile.dateOfBirth().toString() : null);
         dto.setCountryCode(profile.countryCode());
         dto.setPhoneNumber(profile.phoneNumber() != null ? profile.phoneNumber().value() : null);
-        dto.setProfilePicrureUrl(profile.profilePictureUrl());
+        dto.setProfilePictureUrl(profile.profilePictureUrl());
         return dto;
     }
 }
