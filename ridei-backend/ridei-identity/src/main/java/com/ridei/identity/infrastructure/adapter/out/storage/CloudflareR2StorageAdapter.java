@@ -15,8 +15,11 @@ import com.ridei.identity.domain.port.out.ProfilePictureStoragePort;
 
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
@@ -30,6 +33,7 @@ public class CloudflareR2StorageAdapter implements ProfilePictureStoragePort {
     private final S3Presigner presigner;
     private final String bucket;
     private final String publicBaseUrl;
+    private final S3Client s3Client;
 
     public CloudflareR2StorageAdapter(
         @Value("${cloudflare.r2.account-id}") String accountId,
@@ -47,6 +51,14 @@ public class CloudflareR2StorageAdapter implements ProfilePictureStoragePort {
                 AwsBasicCredentials.create(accessKey, secretKey)))
             .serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(true).build())
             .build();
+        this.s3Client = S3Client.builder()
+                .region(Region.of("auto"))
+                .endpointOverride(URI.create("https://" + accountId + ".r2.cloudflarestorage.com"))
+                .credentialsProvider(StaticCredentialsProvider.create(
+                    AwsBasicCredentials.create(accessKey, secretKey)))
+                .serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(true).build())
+                .httpClient(UrlConnectionHttpClient.create())
+                .build();
     }
 
     @Override
@@ -83,6 +95,15 @@ public class CloudflareR2StorageAdapter implements ProfilePictureStoragePort {
         if (publicUrl == null) return false;
         String expectedPrefix = publicBaseUrl + "/profile-pictures/" + userId.value() + "/";
         return publicUrl.startsWith(expectedPrefix);
+    }
+
+    @Override
+    public void delete(String publicUrl) {
+        String key = publicUrl.replace(publicBaseUrl + "/", "");
+        s3Client.deleteObject(DeleteObjectRequest.builder()
+            .bucket(bucket)
+            .key(key)
+            .build());
     }
     
 }

@@ -175,6 +175,10 @@ public class User {
         this.pictureUrl = profilePictureUrl;
     }
 
+    public void removePictureUrl() {
+        this.pictureUrl = null;
+    }
+
     public void linkGoogleId(String googleId) {
         this.googleId = googleId;
     }

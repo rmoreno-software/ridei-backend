@@ -7,4 +7,5 @@ import com.ridei.identity.domain.model.UserId;
 public interface ProfilePictureStoragePort {
     PresignedUpload createUploadUrl(UserId userId, ImageContentType contentType);
     boolean belongsToUser(UserId userId, String publicUrl);
+    void delete(String publicUrl);
 }
