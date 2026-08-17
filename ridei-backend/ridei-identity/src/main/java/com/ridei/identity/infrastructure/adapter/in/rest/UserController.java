@@ -17,7 +17,9 @@ import com.ridei.identity.application.RemoveProfilePictureCommand;
 import com.ridei.identity.application.RequestProfilePictureUploadCommand;
 import com.ridei.identity.application.SaveOnboardingStep1Command;
 import com.ridei.identity.application.SaveOnboardingStep2Command;
+import com.ridei.identity.application.SaveOnboardingStep4Command;
 import com.ridei.identity.application.UsernameAvailabilityResult;
+import com.ridei.identity.domain.model.IdentityDocument;
 import com.ridei.identity.domain.model.ImageContentType;
 import com.ridei.identity.domain.model.PhoneNumber;
 import com.ridei.identity.domain.model.PresignedUpload;
@@ -32,6 +34,7 @@ import com.ridei.identity.domain.port.in.RemoveProfilePictureUseCase;
 import com.ridei.identity.domain.port.in.RequestProfilePictureUploadUseCase;
 import com.ridei.identity.domain.port.in.SaveOnboardingStep1UseCase;
 import com.ridei.identity.domain.port.in.SaveOnboardingStep2UseCase;
+import com.ridei.identity.domain.port.in.SaveOnboardingStep4UseCase;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -49,6 +52,7 @@ public class UserController {
     private final RequestProfilePictureUploadUseCase requestProfilePictureUploadUseCase;
     private final ConfirmProfilePictureUseCase confirmProfilePictureUseCase;
     private final RemoveProfilePictureUseCase removeProfilePictureUseCase;
+    private final SaveOnboardingStep4UseCase saveOnboardingStep4UseCase;
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponseDTO> register(@RequestBody @Valid RegisterRequestDTO dto) {
@@ -150,6 +154,23 @@ public class UserController {
         removeProfilePictureUseCase.remove(command);
 
         return ResponseEntity.ok(ProfilePictureConfirmationResponseDTO.removed());
+    }
+
+    @PatchMapping("/me/onboarding-stepfour")
+    public ResponseEntity<OnboardingResponseDTO> saveOnboardingStepFour(
+        @RequestBody @Valid OnboardingStep4RequestDTO dto,
+        Authentication authentication
+    ) {
+        UserId userId = UserId.of(authentication.getName());
+
+        SaveOnboardingStep4Command command = new SaveOnboardingStep4Command(
+            userId,
+            new IdentityDocument(DocumentTypeCodec.decode(dto.getDocumentType()), dto.getDocumentNumber())
+        );
+
+        saveOnboardingStep4UseCase.complete(command);
+
+        return ResponseEntity.ok(OnboardingResponseDTO.success());
     }
 
 }

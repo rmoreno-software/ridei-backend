@@ -179,6 +179,12 @@ public class User {
         this.pictureUrl = null;
     }
 
+    public void saveOnboardingStep4(IdentityDocument identityDocument) {
+        if (identityDocument == null)
+            throw new IllegalArgumentException("Identity document is required");
+        this.identityDocument = identityDocument;
+    }
+
     public void linkGoogleId(String googleId) {
         this.googleId = googleId;
     }
