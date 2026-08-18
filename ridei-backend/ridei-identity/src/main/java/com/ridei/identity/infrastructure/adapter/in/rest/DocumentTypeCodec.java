@@ -16,5 +16,14 @@ final class DocumentTypeCodec {
             default -> throw new IllegalArgumentException("Unknown document type: " + code);
         };
     }
+
+    static String encode(DocumentType type) {
+        return switch (type) {
+            case NATIONAL_ID -> "dni";
+            case PASSPORT -> "passport";
+            case RESIDENCE_PERMIT -> "residencePermit";
+            case DRIVER_LICENSE -> "drivingLicense";
+        };
+    }
     
 }

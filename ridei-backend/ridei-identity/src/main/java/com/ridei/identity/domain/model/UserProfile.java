@@ -16,7 +16,8 @@ public record UserProfile(
     LocalDate dateOfBirth,
     String countryCode,
     PhoneNumber phoneNumber,
-    String profilePictureUrl
+    String profilePictureUrl,
+    IdentityDocument identityDocument
 ) {
     public boolean isSuspended() {
         return status == AccountStatus.SUSPENDED;

@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 import com.ridei.identity.domain.model.Email;
+import com.ridei.identity.domain.model.IdentityDocument;
 import com.ridei.identity.domain.model.PhoneNumber;
 import com.ridei.identity.domain.model.User;
 import com.ridei.identity.domain.model.UserId;
@@ -67,7 +68,8 @@ public class UserPersistenceAdapter implements UserRepositoryPort {
                 entity.getDateOfBirth(),
                 entity.getCountryCode(),
                 entity.getPhoneNumber() != null ? new PhoneNumber(entity.getPhoneNumber()) : null,
-                entity.getPictureUrl()
+                entity.getPictureUrl(),
+                entity.getDocumentType() != null ? new IdentityDocument(entity.getDocumentType(), entity.getDocumentNumber()) : null
             ));
     }
 

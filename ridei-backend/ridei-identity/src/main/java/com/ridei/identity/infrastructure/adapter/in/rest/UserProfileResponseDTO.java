@@ -23,6 +23,8 @@ public class UserProfileResponseDTO {
     private String countryCode;
     private String phoneNumber;
     private String profilePictureUrl;
+    private String documentType;
+    private String documentNumber;
 
     public static UserProfileResponseDTO fromDomain(UserProfile profile) {
         UserProfileResponseDTO dto = new UserProfileResponseDTO();
@@ -40,6 +42,8 @@ public class UserProfileResponseDTO {
         dto.setCountryCode(profile.countryCode());
         dto.setPhoneNumber(profile.phoneNumber() != null ? profile.phoneNumber().value() : null);
         dto.setProfilePictureUrl(profile.profilePictureUrl());
+        dto.setDocumentType(DocumentTypeCodec.encode(profile.identityDocument().type()));
+        dto.setDocumentNumber(profile.identityDocument().number());
         return dto;
     }
 }
