@@ -200,4 +200,12 @@ public class User {
     public boolean needsOnboarding() {
         return status == AccountStatus.PENDING_ONBOARDING;
     }
+
+    public void acceptTerms() {
+        this.termsAccepted = true;
+        this.termsAcceptedAt = Instant.now();
+        if (this.status == AccountStatus.PENDING_ONBOARDING) {
+            this.status = AccountStatus.ACTIVE;
+        }
+    }
 }

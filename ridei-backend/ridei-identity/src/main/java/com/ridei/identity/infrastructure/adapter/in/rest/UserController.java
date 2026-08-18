@@ -11,13 +11,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.ridei.identity.application.ConfirmProfilePictureCommand;
 import com.ridei.identity.application.RemoveProfilePictureCommand;
 import com.ridei.identity.application.RequestProfilePictureUploadCommand;
 import com.ridei.identity.application.SaveOnboardingStep1Command;
 import com.ridei.identity.application.SaveOnboardingStep2Command;
 import com.ridei.identity.application.SaveOnboardingStep4Command;
+import com.ridei.identity.application.SaveOnboardingStep5Command;
 import com.ridei.identity.application.UsernameAvailabilityResult;
 import com.ridei.identity.domain.model.IdentityDocument;
 import com.ridei.identity.domain.model.ImageContentType;
@@ -35,6 +35,7 @@ import com.ridei.identity.domain.port.in.RequestProfilePictureUploadUseCase;
 import com.ridei.identity.domain.port.in.SaveOnboardingStep1UseCase;
 import com.ridei.identity.domain.port.in.SaveOnboardingStep2UseCase;
 import com.ridei.identity.domain.port.in.SaveOnboardingStep4UseCase;
+import com.ridei.identity.domain.port.in.SaveOnboardingStep5UseCase;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -53,6 +54,7 @@ public class UserController {
     private final ConfirmProfilePictureUseCase confirmProfilePictureUseCase;
     private final RemoveProfilePictureUseCase removeProfilePictureUseCase;
     private final SaveOnboardingStep4UseCase saveOnboardingStep4UseCase;
+    private final SaveOnboardingStep5UseCase saveOnboardingStep5UseCase;
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponseDTO> register(@RequestBody @Valid RegisterRequestDTO dto) {
@@ -169,6 +171,20 @@ public class UserController {
         );
 
         saveOnboardingStep4UseCase.complete(command);
+
+        return ResponseEntity.ok(OnboardingResponseDTO.success());
+    }
+
+    @PatchMapping("/me/onboarding-stepfive")
+    public ResponseEntity<OnboardingResponseDTO> saveOnboardingStep5(
+        @RequestBody @Valid OnboardingStep5RequestDTO dto,
+        Authentication authentication
+    ) {
+        UserId userId = UserId.of(authentication.getName());
+
+        SaveOnboardingStep5Command command = new SaveOnboardingStep5Command(userId);
+
+        saveOnboardingStep5UseCase.complete(command);
 
         return ResponseEntity.ok(OnboardingResponseDTO.success());
     }

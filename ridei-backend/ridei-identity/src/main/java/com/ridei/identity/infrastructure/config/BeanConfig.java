@@ -13,6 +13,7 @@ import com.ridei.identity.application.RequestProfilePictureUploadService;
 import com.ridei.identity.application.SaveOnboardingStep1Service;
 import com.ridei.identity.application.SaveOnboardingStep2Service;
 import com.ridei.identity.application.SaveOnboardingStep4Service;
+import com.ridei.identity.application.SaveOnboardingStep5Service;
 import com.ridei.identity.application.ValidateTokenService;
 import com.ridei.identity.domain.port.in.CheckUsernameAvailabilityUseCase;
 import com.ridei.identity.domain.port.in.ConfirmProfilePictureUseCase;
@@ -24,6 +25,7 @@ import com.ridei.identity.domain.port.in.RequestProfilePictureUploadUseCase;
 import com.ridei.identity.domain.port.in.SaveOnboardingStep1UseCase;
 import com.ridei.identity.domain.port.in.SaveOnboardingStep2UseCase;
 import com.ridei.identity.domain.port.in.SaveOnboardingStep4UseCase;
+import com.ridei.identity.domain.port.in.SaveOnboardingStep5UseCase;
 import com.ridei.identity.domain.port.in.ValidateTokenUseCase;
 import com.ridei.identity.domain.port.out.EventPublisherPort;
 import com.ridei.identity.domain.port.out.GoogleTokenVerifierPort;
@@ -110,4 +112,10 @@ public class BeanConfig {
         return new SaveOnboardingStep4Service(repositoryPort);
     }
     
+    @Bean
+    public SaveOnboardingStep5UseCase saveOnboardingStep5UseCase(
+        UserRepositoryPort repositoryPort
+    ) {
+        return new SaveOnboardingStep5Service(repositoryPort);
+    }
 }
