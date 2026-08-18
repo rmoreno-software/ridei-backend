@@ -8,5 +8,6 @@ import lombok.Data;
 public class GoogleAuthResponseDTO {
     private String accessToken;
     private String refreshToken;
+    private String email;
     private boolean needsOnboarding;
 }

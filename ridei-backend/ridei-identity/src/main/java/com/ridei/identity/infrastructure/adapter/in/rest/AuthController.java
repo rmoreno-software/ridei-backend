@@ -39,6 +39,7 @@ public class AuthController {
         return ResponseEntity.ok(new GoogleAuthResponseDTO(
             result.accessToken(),
             result.refreshToken(),
+            result.email(),
             result.needsOnboarding()
         ));
     }
