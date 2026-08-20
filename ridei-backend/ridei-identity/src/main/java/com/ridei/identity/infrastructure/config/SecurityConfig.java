@@ -27,6 +27,7 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/api/v1/users/register",
                     "/api/v1/users/username-availability",
+                    "/api/v1/users/email-availability",
                     "/api/v1/auth/google",
                     "/api/v1/auth/validate"
                 ).permitAll()

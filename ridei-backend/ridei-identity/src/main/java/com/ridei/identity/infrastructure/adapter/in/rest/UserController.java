@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.ridei.identity.application.ConfirmProfilePictureCommand;
+import com.ridei.identity.application.EmailAvailabilityResult;
 import com.ridei.identity.application.RemoveProfilePictureCommand;
 import com.ridei.identity.application.RequestProfilePictureUploadCommand;
 import com.ridei.identity.application.SaveOnboardingStep1Command;
@@ -26,6 +27,7 @@ import com.ridei.identity.domain.model.PresignedUpload;
 import com.ridei.identity.domain.model.UserId;
 import com.ridei.identity.domain.model.UserProfile;
 import com.ridei.identity.domain.model.Username;
+import com.ridei.identity.domain.port.in.CheckEmailAvailabilityUseCase;
 import com.ridei.identity.domain.port.in.CheckUsernameAvailabilityUseCase;
 import com.ridei.identity.domain.port.in.ConfirmProfilePictureUseCase;
 import com.ridei.identity.domain.port.in.GetCurrentUserUseCase;
@@ -55,6 +57,7 @@ public class UserController {
     private final RemoveProfilePictureUseCase removeProfilePictureUseCase;
     private final SaveOnboardingStep4UseCase saveOnboardingStep4UseCase;
     private final SaveOnboardingStep5UseCase saveOnboardingStep5UseCase;
+    private final CheckEmailAvailabilityUseCase checkEmailAvailabilityUseCase;
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponseDTO> register(@RequestBody @Valid RegisterRequestDTO dto) {
@@ -187,6 +190,14 @@ public class UserController {
         saveOnboardingStep5UseCase.complete(command);
 
         return ResponseEntity.ok(OnboardingResponseDTO.success());
+    }
+
+    @GetMapping("/email-availability")
+    public ResponseEntity<EmailAvailabilityResponseDTO> checkEmailAvailability(
+        @RequestParam String email
+    ) {
+        EmailAvailabilityResult result = checkEmailAvailabilityUseCase.check(email);
+        return ResponseEntity.ok(EmailAvailabilityResponseDTO.fromResult(result));
     }
 
 }

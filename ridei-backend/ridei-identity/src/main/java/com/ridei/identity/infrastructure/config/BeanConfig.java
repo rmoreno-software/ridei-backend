@@ -3,6 +3,7 @@ package com.ridei.identity.infrastructure.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.ridei.identity.application.CheckEmailAvailabilityService;
 import com.ridei.identity.application.CheckUsernameAvailabilityService;
 import com.ridei.identity.application.ConfirmProfilePictureService;
 import com.ridei.identity.application.GetCurrentUserService;
@@ -15,6 +16,7 @@ import com.ridei.identity.application.SaveOnboardingStep2Service;
 import com.ridei.identity.application.SaveOnboardingStep4Service;
 import com.ridei.identity.application.SaveOnboardingStep5Service;
 import com.ridei.identity.application.ValidateTokenService;
+import com.ridei.identity.domain.port.in.CheckEmailAvailabilityUseCase;
 import com.ridei.identity.domain.port.in.CheckUsernameAvailabilityUseCase;
 import com.ridei.identity.domain.port.in.ConfirmProfilePictureUseCase;
 import com.ridei.identity.domain.port.in.GetCurrentUserUseCase;
@@ -117,5 +119,12 @@ public class BeanConfig {
         UserRepositoryPort repositoryPort
     ) {
         return new SaveOnboardingStep5Service(repositoryPort);
+    }
+
+    @Bean
+    public CheckEmailAvailabilityUseCase checkEmailAvailabilityUseCase(
+        UserRepositoryPort repositoryPort
+    ) {
+        return new CheckEmailAvailabilityService(repositoryPort);
     }
 }
