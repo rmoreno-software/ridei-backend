@@ -9,8 +9,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.time.LocalDate;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,14 +18,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.ridei.identity.domain.exception.EmailAlreadyRegisteredException;
 import com.ridei.identity.domain.exception.UsernameAlreadyTakenException;
-import com.ridei.identity.domain.model.DocumentType;
 import com.ridei.identity.domain.model.Email;
-import com.ridei.identity.domain.model.Gender;
-import com.ridei.identity.domain.model.IdentityDocument;
-import com.ridei.identity.domain.model.PhoneNumber;
 import com.ridei.identity.domain.model.UserId;
-import com.ridei.identity.domain.model.UserRole;
-import com.ridei.identity.domain.model.Username;
 import com.ridei.identity.domain.port.out.EventPublisherPort;
 import com.ridei.identity.domain.port.out.PasswordHasherPort;
 import com.ridei.identity.domain.port.out.UserRepositoryPort;
@@ -50,17 +42,7 @@ class RegisterUserServiceTest {
     private RegisterUserCommand validCommand() {
         return new RegisterUserCommand(
             new Email("test@ridei.com"),
-            "Secure1234",
-            new Username("@crazyRider69"),
-            "Marc",
-            "Marquez",
-            Gender.MALE,
-            new PhoneNumber("+34612345678"),
-            LocalDate.of(1993, 2, 17),
-            "ES",
-            new IdentityDocument(DocumentType.NATIONAL_ID, "12345678A"),
-            UserRole.RIDER,
-            true
+            "Secure1234"
         );
     }
 

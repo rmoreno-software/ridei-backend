@@ -12,15 +12,5 @@ import com.ridei.identity.domain.model.Username;
 
 public record RegisterUserCommand (
     Email email,
-    String password,
-    Username username,
-    String firstName,
-    String lastName,
-    Gender gender,
-    PhoneNumber phoneNumber,
-    LocalDate dateOfBirth,
-    String countryCode,
-    IdentityDocument identityDocument,
-    UserRole role,
-    boolean termsAccepted
+    String password
 ) {}

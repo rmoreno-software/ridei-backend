@@ -4,7 +4,6 @@ import java.time.Instant;
 
 import com.ridei.identity.domain.event.UserRegisteredEvent;
 import com.ridei.identity.domain.exception.EmailAlreadyRegisteredException;
-import com.ridei.identity.domain.exception.UsernameAlreadyTakenException;
 import com.ridei.identity.domain.model.User;
 import com.ridei.identity.domain.model.UserId;
 import com.ridei.identity.domain.port.in.RegisterUserUseCase;
@@ -26,23 +25,11 @@ public class RegisterUserService implements RegisterUserUseCase {
         if (userRepository.existsByEmail(command.email()))
             throw new EmailAlreadyRegisteredException(command.email());
 
-        if (userRepository.existsByUsername(command.username()))
-            throw new UsernameAlreadyTakenException(command.username());
-
         User user = User.register(
             command.email(),
-            passwordHasher.hash(command.password()),
-            command.username(),
-            command.firstName(),
-            command.lastName(),
-            command.gender(),
-            command.phoneNumber(),
-            command.dateOfBirth(),
-            command.countryCode(),
-            command.identityDocument(),
-            command.role(),
-            command.termsAccepted()
+            passwordHasher.hash(command.password())
         );
+
         userRepository.save(user);
         eventPublisher.publish(new UserRegisteredEvent(user.getId(), user.getRole(), Instant.now()));
         return user.getId();

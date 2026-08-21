@@ -18,17 +18,7 @@ class UserTest {
     void shouldRegisterValidUser() {
         User user = User.register(
             new Email("test@ridei.com"),
-            "hashed_password",
-            new Username("@crazyRider69"),
-            "Marc",
-            "Marquez",
-            Gender.MALE,
-            new PhoneNumber("+34612345678"),
-            LocalDate.of(1993, 2, 17),
-            "ES",
-            new IdentityDocument(DocumentType.NATIONAL_ID, "12345678A"),
-            UserRole.RIDER,
-            true
+            "hashed_password"
         );
 
         assertThat(user.getId()).isNotNull();
@@ -44,17 +34,7 @@ class UserTest {
         assertThatExceptionOfType(MinimumAgeNotMetException.class)
             .isThrownBy(() -> User.register(
                 new Email("young@ridei.com"),
-                "hashed_password",
-                new Username("@youngRider"),
-                "Young",
-                "Rider",
-                Gender.MALE,
-                new PhoneNumber("+34612345678"),
-                LocalDate.now().minusYears(15),  // 15 años
-                "ES",
-                new IdentityDocument(DocumentType.NATIONAL_ID, "12345678A"),
-                UserRole.RIDER,
-                true
+                "hashed_password"
             ));
     }
 
@@ -63,17 +43,7 @@ class UserTest {
     void shouldStoreHashedPassword() {
         User user = User.register(
             new Email("test@ridei.com"),
-            "bcrypt_hashed_value",
-            new Username("@crazyRider69"),
-            "Marc",
-            "Marquez",
-            Gender.MALE,
-            new PhoneNumber("+34612345678"),
-            LocalDate.of(1993, 2, 17),
-            "ES",
-            new IdentityDocument(DocumentType.NATIONAL_ID, "12345678A"),
-            UserRole.RIDER,
-            true
+            "bcrypt_hashed_value"
         );
 
         assertThat(user.getPasswordHash()).isEqualTo("bcrypt_hashed_value");

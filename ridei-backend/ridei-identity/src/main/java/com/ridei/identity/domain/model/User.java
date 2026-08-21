@@ -34,38 +34,26 @@ public class User {
 
     public static User register(
         Email email,
-        String passwordHash,
-        Username username,
-        String firstName,
-        String lastName,
-        Gender gender,
-        PhoneNumber phoneNumber,
-        LocalDate dateOfBirth,
-        String countryCode,
-        IdentityDocument identityDocument,
-        UserRole role,
-        boolean termsAccepted
+        String passwordHash
     ) {
-        if (dateOfBirth.isAfter(LocalDate.now().minusYears(16)))
-            throw new MinimumAgeNotMetException();
         Instant now = Instant.now();
         return new User(
             UserId.newId(),
             email,
             passwordHash,
-            username,
-            firstName,
-            lastName,
-            gender,
-            phoneNumber,
-            dateOfBirth,
-            countryCode,
-            identityDocument,
             null,
-            role,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            UserRole.RIDER,
             AccountStatus.PENDING_VERIFICATION,
-            termsAccepted,
-            termsAccepted == true ? now : null,
+            false,
+            null,
             now,
             null
         );
