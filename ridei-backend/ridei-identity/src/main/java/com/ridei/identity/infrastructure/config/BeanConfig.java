@@ -43,9 +43,10 @@ public class BeanConfig {
     public RegisterUserUseCase registerUserUseCase(
         UserRepositoryPort repository,
         EventPublisherPort eventPublisher,
-        PasswordHasherPort passwordHasher
+        PasswordHasherPort passwordHasher,
+        JwtPort jwt
     ) {
-        return new RegisterUserService(repository, eventPublisher, passwordHasher);
+        return new RegisterUserService(repository, eventPublisher, passwordHasher, jwt);
     }
 
     @Bean

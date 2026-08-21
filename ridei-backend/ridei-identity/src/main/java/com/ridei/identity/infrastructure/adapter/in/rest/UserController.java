@@ -24,6 +24,7 @@ import com.ridei.identity.domain.model.IdentityDocument;
 import com.ridei.identity.domain.model.ImageContentType;
 import com.ridei.identity.domain.model.PhoneNumber;
 import com.ridei.identity.domain.model.PresignedUpload;
+import com.ridei.identity.domain.model.RegisterResult;
 import com.ridei.identity.domain.model.UserId;
 import com.ridei.identity.domain.model.UserProfile;
 import com.ridei.identity.domain.model.Username;
@@ -61,8 +62,18 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponseDTO> register(@RequestBody @Valid RegisterRequestDTO dto) {
-        UserId id = registerUserUseCase.register(dto.toCommand());
-        return ResponseEntity.status(HttpStatus.CREATED).body(new RegisterResponseDTO(id.value().toString()));
+        RegisterResult result = registerUserUseCase.register(dto.toCommand());
+        return ResponseEntity.status(
+            HttpStatus.CREATED
+        ).body(
+            new RegisterResponseDTO(
+                result.userId().value().toString(),
+                result.email(),
+                result.accessToken(),
+                result.refreshToken(),
+                result.needsOnboarding()
+            )
+        );
     }
 
     @GetMapping("/me")

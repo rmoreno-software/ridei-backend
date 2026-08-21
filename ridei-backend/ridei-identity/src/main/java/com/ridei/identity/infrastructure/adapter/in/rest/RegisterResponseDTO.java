@@ -7,10 +7,8 @@ import lombok.Data;
 @AllArgsConstructor
 public class RegisterResponseDTO {
     private String userId;
-    private String message;
-
-    public RegisterResponseDTO(String userId) {
-        this.userId = userId;
-        this.message = "User registered successfully. Please verify your email.";
-    }
+    private String email;
+    private String accessToken;
+    private String refreshToken;
+    private boolean needsOnboarding;
 }
