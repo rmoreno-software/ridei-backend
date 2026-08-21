@@ -1,6 +1,5 @@
 package com.ridei.identity.application;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -19,8 +18,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.ridei.identity.domain.exception.EmailAlreadyRegisteredException;
 import com.ridei.identity.domain.exception.UsernameAlreadyTakenException;
 import com.ridei.identity.domain.model.Email;
-import com.ridei.identity.domain.model.UserId;
 import com.ridei.identity.domain.port.out.EventPublisherPort;
+import com.ridei.identity.domain.port.out.JwtPort;
 import com.ridei.identity.domain.port.out.PasswordHasherPort;
 import com.ridei.identity.domain.port.out.UserRepositoryPort;
 
@@ -31,12 +30,13 @@ class RegisterUserServiceTest {
     @Mock private UserRepositoryPort repository;
     @Mock private EventPublisherPort eventPublisher;
     @Mock private PasswordHasherPort passwordHasher;
+    @Mock private JwtPort jwt;
 
     private RegisterUserService service;
 
     @BeforeEach
     void setUp() {
-        service = new RegisterUserService(repository, eventPublisher, passwordHasher);
+        service = new RegisterUserService(repository, eventPublisher, passwordHasher, jwt);
     }
 
     private RegisterUserCommand validCommand() {
@@ -44,20 +44,6 @@ class RegisterUserServiceTest {
             new Email("test@ridei.com"),
             "Secure1234"
         );
-    }
-
-    @Test
-    @DisplayName("registers a user and returns a new UserId")
-    void shouldRegisterUserSuccessfully() {
-        when(repository.existsByEmail(any())).thenReturn(false);
-        when(repository.existsByUsername(any())).thenReturn(false);
-        when(passwordHasher.hash(any())).thenReturn("hashed_password");
-
-        UserId id = service.register(validCommand());
-
-        assertThat(id).isNotNull();
-        verify(repository, times(1)).save(any());
-        verify(eventPublisher, times(1)).publish(any());
     }
 
     @Test

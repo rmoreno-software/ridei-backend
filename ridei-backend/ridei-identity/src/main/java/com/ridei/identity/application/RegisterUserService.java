@@ -6,7 +6,6 @@ import com.ridei.identity.domain.event.UserRegisteredEvent;
 import com.ridei.identity.domain.exception.EmailAlreadyRegisteredException;
 import com.ridei.identity.domain.model.RegisterResult;
 import com.ridei.identity.domain.model.User;
-import com.ridei.identity.domain.model.UserId;
 import com.ridei.identity.domain.port.in.RegisterUserUseCase;
 import com.ridei.identity.domain.port.out.EventPublisherPort;
 import com.ridei.identity.domain.port.out.JwtPort;
