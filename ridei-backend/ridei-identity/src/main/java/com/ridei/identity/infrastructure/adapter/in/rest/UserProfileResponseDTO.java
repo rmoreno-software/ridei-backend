@@ -42,8 +42,10 @@ public class UserProfileResponseDTO {
         dto.setCountryCode(profile.countryCode());
         dto.setPhoneNumber(profile.phoneNumber() != null ? profile.phoneNumber().value() : null);
         dto.setProfilePictureUrl(profile.profilePictureUrl());
-        dto.setDocumentType(DocumentTypeCodec.encode(profile.identityDocument().type()));
-        dto.setDocumentNumber(profile.identityDocument().number());
+        if (profile.identityDocument() != null) {
+            dto.setDocumentType(DocumentTypeCodec.encode(profile.identityDocument().type()));
+            dto.setDocumentNumber(profile.identityDocument().number());
+        }
         return dto;
     }
 }
