@@ -7,6 +7,7 @@ import com.ridei.identity.application.CheckEmailAvailabilityService;
 import com.ridei.identity.application.CheckUsernameAvailabilityService;
 import com.ridei.identity.application.ConfirmProfilePictureService;
 import com.ridei.identity.application.GetCurrentUserService;
+import com.ridei.identity.application.LoginService;
 import com.ridei.identity.application.LoginWithGoogleService;
 import com.ridei.identity.application.RegisterUserService;
 import com.ridei.identity.application.RemoveProfilePictureService;
@@ -20,6 +21,7 @@ import com.ridei.identity.domain.port.in.CheckEmailAvailabilityUseCase;
 import com.ridei.identity.domain.port.in.CheckUsernameAvailabilityUseCase;
 import com.ridei.identity.domain.port.in.ConfirmProfilePictureUseCase;
 import com.ridei.identity.domain.port.in.GetCurrentUserUseCase;
+import com.ridei.identity.domain.port.in.LoginUseCase;
 import com.ridei.identity.domain.port.in.LoginWithGoogleUseCase;
 import com.ridei.identity.domain.port.in.RegisterUserUseCase;
 import com.ridei.identity.domain.port.in.RemoveProfilePictureUseCase;
@@ -127,5 +129,14 @@ public class BeanConfig {
         UserRepositoryPort repositoryPort
     ) {
         return new CheckEmailAvailabilityService(repositoryPort);
+    }
+
+    @Bean
+    public LoginUseCase loginUseCase(
+        UserRepositoryPort repositoryPort,
+        PasswordHasherPort passwordHasherPort,
+        JwtPort jwt
+    ) {
+        return new LoginService(repositoryPort, passwordHasherPort, jwt);
     }
 }

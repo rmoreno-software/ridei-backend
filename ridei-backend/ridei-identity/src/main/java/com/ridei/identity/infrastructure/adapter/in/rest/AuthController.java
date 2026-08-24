@@ -10,7 +10,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ridei.identity.application.GoogleAuthResult;
+import com.ridei.identity.application.LoginCommand;
+import com.ridei.identity.application.LoginResult;
 import com.ridei.identity.application.LoginWithGoogleCommand;
+import com.ridei.identity.domain.model.Email;
+import com.ridei.identity.domain.port.in.LoginUseCase;
 import com.ridei.identity.domain.port.in.LoginWithGoogleUseCase;
 import com.ridei.identity.domain.port.in.ValidateTokenUseCase;
 
@@ -22,13 +26,17 @@ public class AuthController {
     
     private final LoginWithGoogleUseCase loginWithGoogleUseCase;
     private final ValidateTokenUseCase validateTokenUseCase;
+    private final LoginUseCase loginUseCase;
 
     public AuthController(
         LoginWithGoogleUseCase loginWithGoogleUseCase,
-        ValidateTokenUseCase validateTokenUseCase) {
+        ValidateTokenUseCase validateTokenUseCase,
+        LoginUseCase loginUseCase
+    ) {
 
         this.loginWithGoogleUseCase = loginWithGoogleUseCase;
         this.validateTokenUseCase = validateTokenUseCase;
+        this.loginUseCase = loginUseCase;
     }
 
     @PostMapping("/google")
@@ -56,5 +64,25 @@ public class AuthController {
         return valid
             ? ResponseEntity.ok().build()
             : ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponseDTO> login(
+        @RequestBody @Valid LoginRequestDTO dto
+    ) {
+        LoginResult result = loginUseCase.login(
+            new LoginCommand(
+                new Email(dto.getEmail()),
+                dto.getPassword()
+            )
+        );
+
+        return ResponseEntity.ok(new LoginResponseDTO(
+            result.userId().value().toString(),
+            result.email(),
+            result.accessToken(),
+            result.refreshToken(),
+            result.needsOnboarding()
+        ));
     }
 }
