@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.ridei.identity.domain.exception.EmailAlreadyRegisteredException;
+import com.ridei.identity.domain.exception.InvalidCredentialException;
 import com.ridei.identity.domain.exception.InvalidGoogleTokenException;
 import com.ridei.identity.domain.exception.InvalidProfilePictureUrlException;
 import com.ridei.identity.domain.exception.MinimumAgeNotMetException;
@@ -103,6 +104,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleInvalidProfilePictureUrl(InvalidProfilePictureUrlException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
             new ApiError(403, "Forbidden", ex.getMessage())
+        );
+    }
+
+    @ExceptionHandler(InvalidCredentialException.class)
+    public ResponseEntity<ApiError> handleInvalidCredential(InvalidCredentialException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+            new ApiError(401, "Unauthorized", ex.getMessage())
         );
     }
 }
