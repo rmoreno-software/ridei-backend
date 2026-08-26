@@ -28,19 +28,35 @@ public class LoginService implements LoginUseCase {
     public LoginResult login(LoginCommand command) {
         User user = userRepositoryPort.findByEmail(command.email())
             .orElseThrow(InvalidCredentialException::new);
-        
-        if(user.getPasswordHash() == null || !passwordHasherPort.matches(command.password(), user.getPasswordHash()))
+
+        boolean passwordMatches = user.getPasswordHash() != null
+            && passwordHasherPort.matches(command.password(), user.getTemporaryPasswordHash());
+
+        boolean usingTemporaryPassword = false;
+        if (!passwordMatches && user.hasValidTemporaryPassword()
+                && passwordHasherPort.matches(command.password(), user.getTemporaryPasswordHash())) {
+            passwordMatches = true;
+            usingTemporaryPassword = true;
+        }
+
+        if (!passwordMatches)
             throw new InvalidCredentialException();
 
         if (user.isSuspended())
             throw new UserSuspendedException();
+        
+        if (usingTemporaryPassword) {
+            user.clearTemporaryPassword();;
+            userRepositoryPort.update(user);
+        }
 
         return new LoginResult(
             user.getId(),
             user.getEmail().value(),
             jwt.generateAccessToken(user.getId(), user.getRole()),
             jwt.generateRefreshToken(user.getId()),
-            user.needsOnboarding()
+            user.needsOnboarding(),
+            usingTemporaryPassword
         );
     }
     

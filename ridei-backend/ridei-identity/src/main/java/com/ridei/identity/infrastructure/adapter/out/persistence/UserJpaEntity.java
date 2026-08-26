@@ -100,6 +100,12 @@ public class UserJpaEntity {
     @Column(name = "picture_url", unique = true)
     private String pictureUrl;
 
+    @Column(name = "temporary_password_hash")
+    private String temporaryPasswordHash;
+
+    @Column(name = "temporary_password_expires_at")
+    private Instant temporaryPasswordExpiresAt;
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private RiderProfileJpaEntity riderProfile;
 
@@ -127,6 +133,8 @@ public class UserJpaEntity {
             .termsAcceptedAt(user.getTermsAcceptedAt())
             .createdAt(user.getCreatedAt())
             .pictureUrl(user.getPictureUrl())
+            .temporaryPasswordHash(user.getTemporaryPasswordHash())
+            .temporaryPasswordExpiresAt(user.getTemporaryPasswordHashExpiresAt())
             .build();
     }
 
@@ -149,7 +157,9 @@ public class UserJpaEntity {
                 this.termsAccepted,
                 this.termsAcceptedAt,
                 this.createdAt,
-                this.pictureUrl
+                this.pictureUrl,
+                this.temporaryPasswordHash,
+                this.temporaryPasswordExpiresAt
         );
     }
 }

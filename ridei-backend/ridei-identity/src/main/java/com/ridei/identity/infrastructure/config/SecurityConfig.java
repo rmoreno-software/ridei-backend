@@ -30,7 +30,8 @@ public class SecurityConfig {
                     "/api/v1/users/email-availability",
                     "/api/v1/auth/google",
                     "/api/v1/auth/login",
-                    "/api/v1/auth/validate"
+                    "/api/v1/auth/validate",
+                    "/api/v1/auth/forgot-password"
                 ).permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/users/me").authenticated()
                 .anyRequest().authenticated()

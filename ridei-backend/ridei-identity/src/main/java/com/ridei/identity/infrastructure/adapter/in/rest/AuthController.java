@@ -13,9 +13,11 @@ import com.ridei.identity.application.GoogleAuthResult;
 import com.ridei.identity.application.LoginCommand;
 import com.ridei.identity.application.LoginResult;
 import com.ridei.identity.application.LoginWithGoogleCommand;
+import com.ridei.identity.application.RequestTemporaryPasswordCommand;
 import com.ridei.identity.domain.model.Email;
 import com.ridei.identity.domain.port.in.LoginUseCase;
 import com.ridei.identity.domain.port.in.LoginWithGoogleUseCase;
+import com.ridei.identity.domain.port.in.RequestTemporaryPasswordUseCase;
 import com.ridei.identity.domain.port.in.ValidateTokenUseCase;
 
 import jakarta.validation.Valid;
@@ -27,16 +29,19 @@ public class AuthController {
     private final LoginWithGoogleUseCase loginWithGoogleUseCase;
     private final ValidateTokenUseCase validateTokenUseCase;
     private final LoginUseCase loginUseCase;
+    private final RequestTemporaryPasswordUseCase requestTemporaryPasswordUseCase;
 
     public AuthController(
         LoginWithGoogleUseCase loginWithGoogleUseCase,
         ValidateTokenUseCase validateTokenUseCase,
-        LoginUseCase loginUseCase
+        LoginUseCase loginUseCase,
+        RequestTemporaryPasswordUseCase requestTemporaryPasswordUseCase
     ) {
 
         this.loginWithGoogleUseCase = loginWithGoogleUseCase;
         this.validateTokenUseCase = validateTokenUseCase;
         this.loginUseCase = loginUseCase;
+        this.requestTemporaryPasswordUseCase = requestTemporaryPasswordUseCase;
     }
 
     @PostMapping("/google")
@@ -84,5 +89,13 @@ public class AuthController {
             result.refreshToken(),
             result.needsOnboarding()
         ));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(
+        @RequestBody @Valid ForgotPasswordRequestDTO dto
+    ) {
+        requestTemporaryPasswordUseCase.request(new RequestTemporaryPasswordCommand(dto.getEmail()));
+        return ResponseEntity.accepted().build();
     }
 }

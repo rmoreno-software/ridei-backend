@@ -31,6 +31,8 @@ public class User {
     private Instant termsAcceptedAt;
     private Instant createdAt;
     private String pictureUrl;
+    private String temporaryPasswordHash;
+    private Instant temporaryPasswordHashExpiresAt;
 
     public static User register(
         Email email,
@@ -55,6 +57,8 @@ public class User {
             false,
             null,
             now,
+            null,
+            null,
             null
         );
     }
@@ -77,7 +81,9 @@ public class User {
         boolean termsAccepted,
         Instant termsAcceptedAt,
         Instant createdAt,
-        String pictureUrl
+        String pictureUrl,
+        String temporaryPasswordHash,
+        Instant temporaryPasswordHashExpiresAt
     ) {
         return new User(
             id,
@@ -97,7 +103,9 @@ public class User {
             termsAccepted,
             termsAcceptedAt,
             createdAt,
-            pictureUrl
+            pictureUrl,
+            temporaryPasswordHash,
+            temporaryPasswordHashExpiresAt
         );
     }
 
@@ -121,7 +129,10 @@ public class User {
             false,
             null,
             now,
-            null);
+            null,
+            null,
+            null
+        );
     }
 
     public void saveOnboardingStep1(String firstName, String lastName, Username username, Gender gender) {
@@ -195,5 +206,33 @@ public class User {
         if (this.status == AccountStatus.PENDING_ONBOARDING) {
             this.status = AccountStatus.ACTIVE;
         }
+    }
+
+    public void issueTemporaryPassword(
+        String temporaryPasswordHash,
+        Instant expiresAt
+    ) {
+        if (temporaryPasswordHash == null || temporaryPasswordHash.isBlank())
+            throw new IllegalArgumentException("Temporary password hash is required");
+        this.temporaryPasswordHash = temporaryPasswordHash;
+        this.temporaryPasswordHashExpiresAt = expiresAt;
+    }
+
+    public boolean hasValidTemporaryPassword() {
+        return temporaryPasswordHash != null
+            && temporaryPasswordHashExpiresAt != null
+            && Instant.now().isBefore(temporaryPasswordHashExpiresAt);
+    }
+
+    public void clearTemporaryPassword() {
+        this.temporaryPasswordHash = null;
+        this.temporaryPasswordHashExpiresAt = null;
+    }
+
+    public void changePassword(String passwordHash) {
+        if (passwordHash == null || passwordHash.isBlank())
+            throw new IllegalArgumentException("Password hash is required");
+        this.passwordHash = passwordHash;
+        clearTemporaryPassword();
     }
 }

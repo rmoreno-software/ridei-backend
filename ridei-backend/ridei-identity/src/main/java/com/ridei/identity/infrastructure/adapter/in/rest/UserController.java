@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.ridei.identity.application.ChangePasswordCommand;
 import com.ridei.identity.application.ConfirmProfilePictureCommand;
 import com.ridei.identity.application.EmailAvailabilityResult;
 import com.ridei.identity.application.RemoveProfilePictureCommand;
@@ -28,6 +30,7 @@ import com.ridei.identity.domain.model.RegisterResult;
 import com.ridei.identity.domain.model.UserId;
 import com.ridei.identity.domain.model.UserProfile;
 import com.ridei.identity.domain.model.Username;
+import com.ridei.identity.domain.port.in.ChangePasswordUseCase;
 import com.ridei.identity.domain.port.in.CheckEmailAvailabilityUseCase;
 import com.ridei.identity.domain.port.in.CheckUsernameAvailabilityUseCase;
 import com.ridei.identity.domain.port.in.ConfirmProfilePictureUseCase;
@@ -59,6 +62,7 @@ public class UserController {
     private final SaveOnboardingStep4UseCase saveOnboardingStep4UseCase;
     private final SaveOnboardingStep5UseCase saveOnboardingStep5UseCase;
     private final CheckEmailAvailabilityUseCase checkEmailAvailabilityUseCase;
+    private final ChangePasswordUseCase changePasswordUseCase;
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponseDTO> register(@RequestBody @Valid RegisterRequestDTO dto) {
@@ -209,6 +213,16 @@ public class UserController {
     ) {
         EmailAvailabilityResult result = checkEmailAvailabilityUseCase.check(email);
         return ResponseEntity.ok(EmailAvailabilityResponseDTO.fromResult(result));
+    }
+
+    @PatchMapping("/me/password")
+    public ResponseEntity<Void> changePassword(
+        @RequestBody @Valid ChangePasswordRequestDTO dto,
+        Authentication authentication
+    ) {
+        UserId userId = UserId.of(authentication.getName());
+        changePasswordUseCase.change(new ChangePasswordCommand(userId, dto.getNewPassword()));
+        return ResponseEntity.noContent().build();
     }
 
 }

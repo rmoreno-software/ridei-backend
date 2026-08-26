@@ -7,5 +7,6 @@ public record LoginResult(
     String email,
     String accessToken,
     String refreshToken,
-    boolean needsOnboarding
+    boolean needsOnboarding,
+    boolean mustChangePassword
 ) {}

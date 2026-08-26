@@ -19,6 +19,17 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
     repair-on-migrate: true
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
 server:
   port: 8081
@@ -38,3 +49,6 @@ cloudflare:
     secret-key: ${R2_SECRET_KEY}
     bucket: ${R2_BUCKET:ridei-identity}
     public-base-url: ${R2_PUBLIC_BASE_URL}
+
+mail:
+  from-address: ${MAIL_FROM_ADDRESS:no-reply@rideiapp.com}
