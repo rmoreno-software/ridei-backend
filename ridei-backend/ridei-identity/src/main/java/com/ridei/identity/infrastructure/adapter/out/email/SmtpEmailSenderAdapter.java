@@ -1,24 +1,35 @@
 package com.ridei.identity.infrastructure.adapter.out.email;
 
+import java.nio.charset.StandardCharsets;
+
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
+import org.thymeleaf.ITemplateEngine;
+import org.thymeleaf.context.Context;
 
 import com.ridei.identity.domain.model.Email;
 import com.ridei.identity.domain.port.out.EmailSenderPort;
+
+import jakarta.mail.internet.MimeMessage;
 
 @Component
 public class SmtpEmailSenderAdapter implements EmailSenderPort {
 
     private final JavaMailSender mailSender;
+    private final ITemplateEngine templateEngine;
     private final String fromAddress;
 
     public SmtpEmailSenderAdapter(
         JavaMailSender mailSender,
+        ITemplateEngine templateEngine,
         @Value("${mail.from-address}") String fromAddress
     ) {
         this.mailSender = mailSender;
+        this.templateEngine = templateEngine;
         this.fromAddress = fromAddress;
     }
 
@@ -27,16 +38,21 @@ public class SmtpEmailSenderAdapter implements EmailSenderPort {
         Email to,
         String temporaryPassword
     ) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(fromAddress);
-        message.setTo(to.value());
-        message.setSubject("Tu contraseña temporal de Ridei");
-        message.setText(
-            "Hemos generado una contraseña temporal para tu cuenta:\n\n" +
-            temporaryPassword + "\n\n" +
-            "Es válida durante 15 minutos. Úsala para iniciar sesión y cámbiala en cuanto entres. \n\n" +
-            "Si no has solicitado esto, ignora este correo."
-        );
-        mailSender.send(message);
+        Context context = new Context();
+        context.setVariable("temporaryPassword", temporaryPassword);
+        String html = templateEngine.process("email/temporary-password", context);
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
+            helper.setFrom(fromAddress);
+            helper.setTo(to.value());
+            helper.setSubject("Tu contraseña temporal de Ridei");
+            helper.setText(html, true);
+            helper.addInline("logo", new ClassPathResource("email/ridei_logo_black.png"));
+            mailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("No se pudo enviar el email de contraseña temporal", e);
+        }
     }
 }
