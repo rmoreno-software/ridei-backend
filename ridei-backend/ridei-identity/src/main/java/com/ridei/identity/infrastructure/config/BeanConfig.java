@@ -30,6 +30,8 @@ import com.ridei.identity.domain.port.in.RegisterUserUseCase;
 import com.ridei.identity.domain.port.in.RemoveProfilePictureUseCase;
 import com.ridei.identity.domain.port.in.RequestProfilePictureUploadUseCase;
 import com.ridei.identity.domain.port.in.RequestTemporaryPasswordUseCase;
+import com.ridei.identity.domain.port.in.ResetPasswordService;
+import com.ridei.identity.domain.port.in.ResetPasswordUseCase;
 import com.ridei.identity.domain.port.in.SaveOnboardingStep1UseCase;
 import com.ridei.identity.domain.port.in.SaveOnboardingStep2UseCase;
 import com.ridei.identity.domain.port.in.SaveOnboardingStep4UseCase;
@@ -67,27 +69,38 @@ public class BeanConfig {
     }
 
     @Bean
-    public ValidateTokenUseCase validateTokenUseCase(JwtPort jwt, UserRepositoryPort userRepositoryPort) {
-        return new ValidateTokenService(jwt, userRepositoryPort);
+    public ValidateTokenUseCase validateTokenUseCase(
+        JwtPort jwt,
+        UserRepositoryPort userRepository
+    ) {
+        return new ValidateTokenService(jwt, userRepository);
     }
 
     @Bean
-    public GetCurrentUserUseCase getCurrentUserUseCase(UserRepositoryPort userRepositoryPort) {
-        return new GetCurrentUserService(userRepositoryPort);
+    public GetCurrentUserUseCase getCurrentUserUseCase(
+        UserRepositoryPort userRepository
+    ) {
+        return new GetCurrentUserService(userRepository);
     }
 
     @Bean
-    public CheckUsernameAvailabilityUseCase checkUsernameAvailabilityUseCase(UserRepositoryPort repository) {
+    public CheckUsernameAvailabilityUseCase checkUsernameAvailabilityUseCase(
+        UserRepositoryPort repository
+    ) {
         return new CheckUsernameAvailabilityService(repository);
     }
 
     @Bean
-    public SaveOnboardingStep1UseCase saveOnboardingStep1UseCase(UserRepositoryPort repository) {
+    public SaveOnboardingStep1UseCase saveOnboardingStep1UseCase(
+        UserRepositoryPort repository
+    ) {
         return new SaveOnboardingStep1Service(repository);
     }
 
     @Bean
-    public SaveOnboardingStep2UseCase saveOnboardingStep2UseCase(UserRepositoryPort repository) {
+    public SaveOnboardingStep2UseCase saveOnboardingStep2UseCase(
+        UserRepositoryPort repository
+    ) {
         return new SaveOnboardingStep2Service(repository);
     }
 
@@ -117,48 +130,56 @@ public class BeanConfig {
 
     @Bean
     public SaveOnboardingStep4UseCase saveOnboardingStep4UseCase(
-        UserRepositoryPort repositoryPort
+        UserRepositoryPort repository
     ) {
-        return new SaveOnboardingStep4Service(repositoryPort);
+        return new SaveOnboardingStep4Service(repository);
     }
     
     @Bean
     public SaveOnboardingStep5UseCase saveOnboardingStep5UseCase(
-        UserRepositoryPort repositoryPort
+        UserRepositoryPort repository
     ) {
-        return new SaveOnboardingStep5Service(repositoryPort);
+        return new SaveOnboardingStep5Service(repository);
     }
 
     @Bean
     public CheckEmailAvailabilityUseCase checkEmailAvailabilityUseCase(
-        UserRepositoryPort repositoryPort
+        UserRepositoryPort repository
     ) {
-        return new CheckEmailAvailabilityService(repositoryPort);
+        return new CheckEmailAvailabilityService(repository);
     }
 
     @Bean
     public LoginUseCase loginUseCase(
-        UserRepositoryPort repositoryPort,
-        PasswordHasherPort passwordHasherPort,
+        UserRepositoryPort repository,
+        PasswordHasherPort passwordHasher,
         JwtPort jwt
     ) {
-        return new LoginService(repositoryPort, passwordHasherPort, jwt);
+        return new LoginService(repository, passwordHasher, jwt);
     }
 
     @Bean
     public RequestTemporaryPasswordUseCase requestTemporaryPasswordUseCase(
-        UserRepositoryPort repositoryPort,
-        PasswordHasherPort passwordHasherPort,
-        EmailSenderPort emailSenderPort
+        UserRepositoryPort repository,
+        PasswordHasherPort passwordHasher,
+        EmailSenderPort emailSender
     ) {
-        return new RequestTemporaryPasswordService(repositoryPort, passwordHasherPort, emailSenderPort);
+        return new RequestTemporaryPasswordService(repository, passwordHasher, emailSender);
     }
 
     @Bean
     public ChangePasswordUseCase changePasswordUseCase(
-        UserRepositoryPort repositoryPort,
-        PasswordHasherPort passwordHasherPort
+        UserRepositoryPort repository,
+        PasswordHasherPort passwordHasher
     ) {
-        return new ChangePasswordService(repositoryPort, passwordHasherPort);
+        return new ChangePasswordService(repository, passwordHasher);
+    }
+
+    @Bean
+    public ResetPasswordUseCase resetPasswordUseCase(
+        UserRepositoryPort repository,
+        PasswordHasherPort passwordHasher
+    ) {
+        return new ResetPasswordService(repository, passwordHasher);
     }
 }

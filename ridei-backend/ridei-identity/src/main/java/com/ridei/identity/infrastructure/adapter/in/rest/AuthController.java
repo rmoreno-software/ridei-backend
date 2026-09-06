@@ -14,10 +14,12 @@ import com.ridei.identity.application.LoginCommand;
 import com.ridei.identity.application.LoginResult;
 import com.ridei.identity.application.LoginWithGoogleCommand;
 import com.ridei.identity.application.RequestTemporaryPasswordCommand;
+import com.ridei.identity.application.ResetPasswordCommand;
 import com.ridei.identity.domain.model.Email;
 import com.ridei.identity.domain.port.in.LoginUseCase;
 import com.ridei.identity.domain.port.in.LoginWithGoogleUseCase;
 import com.ridei.identity.domain.port.in.RequestTemporaryPasswordUseCase;
+import com.ridei.identity.domain.port.in.ResetPasswordUseCase;
 import com.ridei.identity.domain.port.in.ValidateTokenUseCase;
 
 import jakarta.validation.Valid;
@@ -30,18 +32,21 @@ public class AuthController {
     private final ValidateTokenUseCase validateTokenUseCase;
     private final LoginUseCase loginUseCase;
     private final RequestTemporaryPasswordUseCase requestTemporaryPasswordUseCase;
+    private final ResetPasswordUseCase resetPasswordUseCase;
 
     public AuthController(
         LoginWithGoogleUseCase loginWithGoogleUseCase,
         ValidateTokenUseCase validateTokenUseCase,
         LoginUseCase loginUseCase,
-        RequestTemporaryPasswordUseCase requestTemporaryPasswordUseCase
+        RequestTemporaryPasswordUseCase requestTemporaryPasswordUseCase,
+        ResetPasswordUseCase resetPasswordUseCase
     ) {
 
         this.loginWithGoogleUseCase = loginWithGoogleUseCase;
         this.validateTokenUseCase = validateTokenUseCase;
         this.loginUseCase = loginUseCase;
         this.requestTemporaryPasswordUseCase = requestTemporaryPasswordUseCase;
+        this.resetPasswordUseCase = resetPasswordUseCase;
     }
 
     @PostMapping("/google")
@@ -97,5 +102,15 @@ public class AuthController {
     ) {
         requestTemporaryPasswordUseCase.request(new RequestTemporaryPasswordCommand(dto.getEmail()));
         return ResponseEntity.accepted().build();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@RequestBody @Valid ResetPasswordRequestDTO dto) {
+        resetPasswordUseCase.reset(new ResetPasswordCommand(
+            new Email(dto.getEmail()), 
+            dto.getTemporaryPassword(),
+            dto.getNewPassword()
+        ));
+        return ResponseEntity.noContent().build();
     }
 }
