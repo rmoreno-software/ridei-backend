@@ -1,5 +1,6 @@
 package com.ridei.identity.infrastructure.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -20,6 +21,7 @@ import com.ridei.identity.application.SaveOnboardingStep2Service;
 import com.ridei.identity.application.SaveOnboardingStep4Service;
 import com.ridei.identity.application.SaveOnboardingStep5Service;
 import com.ridei.identity.application.ValidateTokenService;
+import com.ridei.identity.application.VerifyEmailService;
 import com.ridei.identity.domain.port.in.ChangePasswordUseCase;
 import com.ridei.identity.domain.port.in.CheckEmailAvailabilityUseCase;
 import com.ridei.identity.domain.port.in.CheckUsernameAvailabilityUseCase;
@@ -37,6 +39,7 @@ import com.ridei.identity.domain.port.in.SaveOnboardingStep2UseCase;
 import com.ridei.identity.domain.port.in.SaveOnboardingStep4UseCase;
 import com.ridei.identity.domain.port.in.SaveOnboardingStep5UseCase;
 import com.ridei.identity.domain.port.in.ValidateTokenUseCase;
+import com.ridei.identity.domain.port.in.VerifyEmailUseCase;
 import com.ridei.identity.domain.port.out.EmailSenderPort;
 import com.ridei.identity.domain.port.out.EventPublisherPort;
 import com.ridei.identity.domain.port.out.GoogleTokenVerifierPort;
@@ -53,9 +56,18 @@ public class BeanConfig {
         UserRepositoryPort repository,
         EventPublisherPort eventPublisher,
         PasswordHasherPort passwordHasher,
-        JwtPort jwt
+        JwtPort jwt,
+        EmailSenderPort emailSender,
+        @Value("${app.public-api-url}") String publicApiUrl
     ) {
-        return new RegisterUserService(repository, eventPublisher, passwordHasher, jwt);
+        return new RegisterUserService(
+            repository,
+            eventPublisher,
+            passwordHasher,
+            jwt,
+            emailSender,
+            publicApiUrl
+        );
     }
 
     @Bean
@@ -181,5 +193,10 @@ public class BeanConfig {
         PasswordHasherPort passwordHasher
     ) {
         return new ResetPasswordService(repository, passwordHasher);
+    }
+
+    @Bean
+    public VerifyEmailUseCase verifyEmailUseCase(UserRepositoryPort userRepository) {
+        return new VerifyEmailService(userRepository);
     }
 }

@@ -54,4 +54,24 @@ public class SmtpEmailSenderAdapter implements EmailSenderPort {
             throw new RuntimeException("No se pudo enviar el email de contraseña temporal", e);
         }
     }
+
+    @Override
+    public void sendEmailVerificationLink(Email to, String verificationLink) {
+        Context context = new Context();
+        context.setVariable("verificationLink", verificationLink);
+        String html = templateEngine.process("email/verify-email", context);
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
+            helper.setFrom(fromAddress);
+            helper.setTo(to.value());
+            helper.setSubject("Verifica tu email de Ridei");
+            helper.setText(html, true);
+            helper.addInline("logo", new ClassPathResource("email/ridei_logo_black.png"));
+            mailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("No se pudo enviar el email de verificación", e);
+        }
+    }
 }

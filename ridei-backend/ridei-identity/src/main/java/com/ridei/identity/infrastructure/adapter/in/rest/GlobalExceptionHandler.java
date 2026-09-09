@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.ridei.identity.domain.exception.EmailAlreadyRegisteredException;
 import com.ridei.identity.domain.exception.InvalidCredentialException;
 import com.ridei.identity.domain.exception.InvalidGoogleTokenException;
+import com.ridei.identity.domain.exception.InvalidOrExpiredVerificationTokenException;
 import com.ridei.identity.domain.exception.InvalidProfilePictureUrlException;
 import com.ridei.identity.domain.exception.MinimumAgeNotMetException;
 import com.ridei.identity.domain.exception.UserNotFoundException;
@@ -111,6 +112,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleInvalidCredential(InvalidCredentialException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
             new ApiError(401, "Unauthorized", ex.getMessage())
+        );
+    }
+
+    @ExceptionHandler(InvalidOrExpiredVerificationTokenException.class)
+    public ResponseEntity<ApiError> handleInvalidOrExpiredVerificationTokenException(InvalidOrExpiredVerificationTokenException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+            new ApiError(400, "Bad Request", ex.getMessage())
         );
     }
 }

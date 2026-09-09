@@ -33,6 +33,8 @@ public class User {
     private String pictureUrl;
     private String temporaryPasswordHash;
     private Instant temporaryPasswordHashExpiresAt;
+    private String emailVerificationTokenHash;
+    private Instant emailVerificationTokenExpiresAt;
 
     public static User register(
         Email email,
@@ -59,6 +61,8 @@ public class User {
             now,
             null,
             null,
+            null,
+            null,
             null
         );
     }
@@ -83,7 +87,9 @@ public class User {
         Instant createdAt,
         String pictureUrl,
         String temporaryPasswordHash,
-        Instant temporaryPasswordHashExpiresAt
+        Instant temporaryPasswordHashExpiresAt,
+        String emailVerificationTokenHash,
+        Instant emailVerificationTokenExpiresAt
     ) {
         return new User(
             id,
@@ -105,7 +111,9 @@ public class User {
             createdAt,
             pictureUrl,
             temporaryPasswordHash,
-            temporaryPasswordHashExpiresAt
+            temporaryPasswordHashExpiresAt,
+            emailVerificationTokenHash,
+            emailVerificationTokenExpiresAt
         );
     }
 
@@ -129,6 +137,8 @@ public class User {
             false,
             null,
             now,
+            null,
+            null,
             null,
             null,
             null
@@ -234,5 +244,27 @@ public class User {
             throw new IllegalArgumentException("Password hash is required");
         this.passwordHash = passwordHash;
         clearTemporaryPassword();
+    }
+
+    public void issueEmailVerificationToken(String tokenHash, Instant expiresAt) {
+        if (tokenHash == null || tokenHash.isBlank())
+            throw new IllegalArgumentException("Email verification token hash is required");
+
+        this.emailVerificationTokenHash = tokenHash;
+        this.emailVerificationTokenExpiresAt = expiresAt;
+    }
+
+    public boolean hasValidEmailVerificationToken() {
+        return emailVerificationTokenHash != null
+            && emailVerificationTokenExpiresAt != null
+            && Instant.now().isBefore(emailVerificationTokenExpiresAt);
+    }
+
+    public void verifyEmail() {
+        this.emailVerificationTokenHash = null;
+        this.emailVerificationTokenExpiresAt = null;
+        if (this.status == AccountStatus.PENDING_VERIFICATION) {
+            this.status = AccountStatus.PENDING_ONBOARDING;
+        }
     }
 }

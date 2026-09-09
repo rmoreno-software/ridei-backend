@@ -52,3 +52,6 @@ cloudflare:
 
 mail:
   from-address: ${MAIL_FROM_ADDRESS:no-reply@rideiapp.com}
+
+app:
+  public-api-url: ${PUBLIC_API_URL:http://localhost:8081}

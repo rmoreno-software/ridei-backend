@@ -16,5 +16,6 @@ public interface UserRepositoryPort {
     Optional<User> findByGoogleId(String googleId);
     Optional<User> findById(UserId id);
     Optional<UserProfile> findByIdWithProfile(UserId id);
+    Optional<User> findByEmailVerificationTokenHash(String hash);
     void update(User user);
 }

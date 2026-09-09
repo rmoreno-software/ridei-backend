@@ -106,6 +106,12 @@ public class UserJpaEntity {
     @Column(name = "temporary_password_expires_at")
     private Instant temporaryPasswordExpiresAt;
 
+    @Column(name = "email_verification_token_hash")
+    private String emailVerificationTokenHash;
+
+    @Column(name = "email_verification_token_expires_at")
+    private Instant emailVerificationTokenExpiresAt;
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private RiderProfileJpaEntity riderProfile;
 
@@ -135,6 +141,8 @@ public class UserJpaEntity {
             .pictureUrl(user.getPictureUrl())
             .temporaryPasswordHash(user.getTemporaryPasswordHash())
             .temporaryPasswordExpiresAt(user.getTemporaryPasswordHashExpiresAt())
+            .emailVerificationTokenHash(user.getEmailVerificationTokenHash())
+            .emailVerificationTokenExpiresAt(user.getEmailVerificationTokenExpiresAt())
             .build();
     }
 
@@ -159,7 +167,9 @@ public class UserJpaEntity {
                 this.createdAt,
                 this.pictureUrl,
                 this.temporaryPasswordHash,
-                this.temporaryPasswordExpiresAt
+                this.temporaryPasswordExpiresAt,
+                this.emailVerificationTokenHash,
+                this.emailVerificationTokenExpiresAt
         );
     }
 }

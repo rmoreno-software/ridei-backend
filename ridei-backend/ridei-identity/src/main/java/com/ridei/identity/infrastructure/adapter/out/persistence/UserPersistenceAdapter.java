@@ -77,4 +77,9 @@ public class UserPersistenceAdapter implements UserRepositoryPort {
     public void update(User user) {
         jpaRepository.save(UserJpaEntity.fromDomain(user));
     }
+
+    @Override
+    public Optional<User> findByEmailVerificationTokenHash(String hash) {
+        return jpaRepository.findByEmailVerificationTokenHash(hash).map(UserJpaEntity::toDomain);
+    }
 }

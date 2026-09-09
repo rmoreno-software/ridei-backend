@@ -40,6 +40,7 @@ public class SecurityConfig {
                     "/api/v1/auth/validate",
                     "/api/v1/auth/forgot-password",
                     "/api/v1/auth/reset-password",
+                    "/api/v1/auth/verify-email",
                     "/api/v1/waitlist"
                 ).permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/users/me").authenticated()
