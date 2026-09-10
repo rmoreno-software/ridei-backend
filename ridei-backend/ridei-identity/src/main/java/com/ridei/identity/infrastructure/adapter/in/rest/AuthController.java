@@ -18,6 +18,7 @@ import com.ridei.identity.application.LoginCommand;
 import com.ridei.identity.application.LoginResult;
 import com.ridei.identity.application.LoginWithGoogleCommand;
 import com.ridei.identity.application.RequestTemporaryPasswordCommand;
+import com.ridei.identity.application.ResendVerificationEmailCommand;
 import com.ridei.identity.application.ResetPasswordCommand;
 import com.ridei.identity.application.VerifyEmailCommand;
 import com.ridei.identity.domain.exception.InvalidOrExpiredVerificationTokenException;
@@ -25,6 +26,7 @@ import com.ridei.identity.domain.model.Email;
 import com.ridei.identity.domain.port.in.LoginUseCase;
 import com.ridei.identity.domain.port.in.LoginWithGoogleUseCase;
 import com.ridei.identity.domain.port.in.RequestTemporaryPasswordUseCase;
+import com.ridei.identity.domain.port.in.ResendVerificationEmailUseCase;
 import com.ridei.identity.domain.port.in.ResetPasswordUseCase;
 import com.ridei.identity.domain.port.in.ValidateTokenUseCase;
 import com.ridei.identity.domain.port.in.VerifyEmailUseCase;
@@ -41,6 +43,7 @@ public class AuthController {
     private final RequestTemporaryPasswordUseCase requestTemporaryPasswordUseCase;
     private final ResetPasswordUseCase resetPasswordUseCase;
     private final VerifyEmailUseCase verifyEmailUseCase;
+    private final ResendVerificationEmailUseCase resendVerificationEmailUseCase;
     private final ITemplateEngine templateEngine;
 
     public AuthController(
@@ -50,6 +53,7 @@ public class AuthController {
         RequestTemporaryPasswordUseCase requestTemporaryPasswordUseCase,
         ResetPasswordUseCase resetPasswordUseCase,
         VerifyEmailUseCase verifyEmailUseCase,
+        ResendVerificationEmailUseCase resendVerificationEmailUseCase,
         ITemplateEngine templateEngine
     ) {
 
@@ -59,6 +63,7 @@ public class AuthController {
         this.requestTemporaryPasswordUseCase = requestTemporaryPasswordUseCase;
         this.resetPasswordUseCase = resetPasswordUseCase;
         this.verifyEmailUseCase = verifyEmailUseCase;
+        this.resendVerificationEmailUseCase = resendVerificationEmailUseCase;
         this.templateEngine = templateEngine;
     }
 
@@ -150,4 +155,11 @@ public class AuthController {
                 .body(templateEngine.process("verification/error", new Context()));
         }
     }
+
+    @PostMapping("/resend-verification-email")
+    public ResponseEntity<Void> resendVerificationEmail(@RequestBody @Valid ResendVerificationEmailRequestDTO dto) {
+        resendVerificationEmailUseCase.resend(new ResendVerificationEmailCommand(new Email(dto.getEmail())));
+        return ResponseEntity.accepted().build();
+    }
+
 }

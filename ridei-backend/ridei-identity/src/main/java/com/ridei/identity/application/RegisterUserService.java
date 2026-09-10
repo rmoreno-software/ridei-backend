@@ -1,10 +1,6 @@
 package com.ridei.identity.application;
 
-import java.security.SecureRandom;
-import java.time.Duration;
 import java.time.Instant;
-import java.util.Base64;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +17,6 @@ import com.ridei.identity.domain.port.out.UserRepositoryPort;
 
 public class RegisterUserService implements RegisterUserUseCase {
 
-    private static final Duration VERIFICATION_TOKEN_TTL = Duration.ofHours(24);
     private static final Logger log = LoggerFactory.getLogger(RegisterUserService.class);
     
     private final UserRepositoryPort userRepository;
@@ -30,7 +25,7 @@ public class RegisterUserService implements RegisterUserUseCase {
     private final JwtPort jwt;
     private final EmailSenderPort emailSender;
     private final String publicApiUrl;
-    private final SecureRandom random = new SecureRandom();
+    private final EmailVerificationTokenFactory tokenFactory = new EmailVerificationTokenFactory();
 
     public RegisterUserService(
         UserRepositoryPort userRepository,
@@ -62,11 +57,8 @@ public class RegisterUserService implements RegisterUserUseCase {
 
         log.debug("Register: user object created with id {}", user.getId().value());
 
-        String verificationToken = generateVerificationToken();
-        user.issueEmailVerificationToken(
-            TokenHasher.sha256(verificationToken), 
-            Instant.now().plus(VERIFICATION_TOKEN_TTL)
-        );
+        EmailVerificationTokenFactory.IssuedToken token = tokenFactory.issue();
+        user.issueEmailVerificationToken(token.hashToken(), token.expiresAt());
 
         log.debug("Register: verification token hash issued on user {}", user.getId().value());
 
@@ -76,7 +68,7 @@ public class RegisterUserService implements RegisterUserUseCase {
         eventPublisher.publish(new UserRegisteredEvent(user.getId(), user.getRole(), Instant.now()));
         log.debug("Register: UserRegisteredEvent published for user {}", user.getId().value());
 
-        String verificationLink = publicApiUrl + "/api/v1/auth/verify-email?token=" + verificationToken;
+        String verificationLink =  tokenFactory.buildVerificationLink(publicApiUrl, token.rawToken());
         log.debug("Register: verification link built: {}", verificationLink);
 
         log.debug("Register: about to send verification email to user {}", user.getId().value());
@@ -91,11 +83,4 @@ public class RegisterUserService implements RegisterUserUseCase {
             user.needsOnboarding()
         );
     }
-
-    private String generateVerificationToken() {
-        byte[] bytes = new byte[32];
-        random.nextBytes(bytes);
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-    }
-
 }

@@ -15,6 +15,7 @@ import com.ridei.identity.application.RegisterUserService;
 import com.ridei.identity.application.RemoveProfilePictureService;
 import com.ridei.identity.application.RequestProfilePictureUploadService;
 import com.ridei.identity.application.RequestTemporaryPasswordService;
+import com.ridei.identity.application.ResendVerificationEmailService;
 import com.ridei.identity.application.ResetPasswordService;
 import com.ridei.identity.application.SaveOnboardingStep1Service;
 import com.ridei.identity.application.SaveOnboardingStep2Service;
@@ -33,6 +34,7 @@ import com.ridei.identity.domain.port.in.RegisterUserUseCase;
 import com.ridei.identity.domain.port.in.RemoveProfilePictureUseCase;
 import com.ridei.identity.domain.port.in.RequestProfilePictureUploadUseCase;
 import com.ridei.identity.domain.port.in.RequestTemporaryPasswordUseCase;
+import com.ridei.identity.domain.port.in.ResendVerificationEmailUseCase;
 import com.ridei.identity.domain.port.in.ResetPasswordUseCase;
 import com.ridei.identity.domain.port.in.SaveOnboardingStep1UseCase;
 import com.ridei.identity.domain.port.in.SaveOnboardingStep2UseCase;
@@ -198,5 +200,14 @@ public class BeanConfig {
     @Bean
     public VerifyEmailUseCase verifyEmailUseCase(UserRepositoryPort userRepository) {
         return new VerifyEmailService(userRepository);
+    }
+
+    @Bean 
+    public ResendVerificationEmailUseCase resendVerificationEmailUseCase(
+        UserRepositoryPort userRepository,
+        EmailSenderPort emailSender,
+        @Value("${app.public-api-url}") String publicApiUrl
+    ) {
+        return new ResendVerificationEmailService(userRepository, emailSender, publicApiUrl);
     }
 }
