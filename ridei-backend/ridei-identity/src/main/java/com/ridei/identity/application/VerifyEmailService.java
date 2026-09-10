@@ -38,5 +38,13 @@ public class VerifyEmailService implements VerifyEmailUseCase {
         userRepository.update(user);
         log.debug("VerifyEmail: user {} verified successfully, status updated", user.getId().value());
     }
+
+    @Override
+    public boolean isTokenValid(String token) {
+        String tokenHash = TokenHasher.sha256(token);
+        return userRepository.findByEmailVerificationTokenHash(tokenHash)
+            .map(User::hasValidEmailVerificationToken)
+            .orElse(false);
+    }
     
 }

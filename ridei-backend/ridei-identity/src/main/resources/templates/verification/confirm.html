@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Confirmar verificación</title></head>
+<body style="margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:#f4f4f7; display:flex; align-items:center; justify-content:center; height:100vh;">
+  <div style="text-align:center; background:#fff; padding:40px; border-radius:12px;">
+    <h1 style="color:#111827;">Confirma tu email</h1>
+    <p style="color:#4b5563; margin-bottom:24px;">Pulsa el botón para terminar de verificar tu cuenta de Ridei.</p>
+    <form method="POST" action="/api/v1/auth/verify-email">
+      <input type="hidden" name="token" th:value="${token}">
+      <button type="submit" style="background:#0f1115; color:#fff; border:none; padding:14px 28px; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
+        Confirmar verificación
+      </button>
+    </form>
+  </div>
+</body>
+</html>
