@@ -1,10 +1,6 @@
 package com.ridei.identity.application;
 
-import java.util.Optional;
-
-import com.ridei.identity.domain.exception.UserNotFoundException;
 import com.ridei.identity.domain.model.AccountStatus;
-import com.ridei.identity.domain.model.Email;
 import com.ridei.identity.domain.model.User;
 import com.ridei.identity.domain.port.in.ResendVerificationEmailUseCase;
 import com.ridei.identity.domain.port.out.EmailSenderPort;
