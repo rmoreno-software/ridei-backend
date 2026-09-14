@@ -10,31 +10,31 @@ import com.ridei.identity.domain.port.out.UserRepositoryPort;
 
 public class LoginService implements LoginUseCase {
 
-    private final UserRepositoryPort userRepositoryPort;
-    private final PasswordHasherPort passwordHasherPort;
+    private final UserRepositoryPort userRepository;
+    private final PasswordHasherPort passwordHasher;
     private final JwtPort jwt;
 
     public LoginService(
-        UserRepositoryPort userRepositoryPort,
-        PasswordHasherPort passwordHasherPort,
+        UserRepositoryPort userRepository,
+        PasswordHasherPort passwordHasher,
         JwtPort jwt
     ) {
-        this.userRepositoryPort = userRepositoryPort;
-        this.passwordHasherPort = passwordHasherPort;
+        this.userRepository = userRepository;
+        this.passwordHasher = passwordHasher;
         this.jwt = jwt;
     }
 
     @Override
     public LoginResult login(LoginCommand command) {
-        User user = userRepositoryPort.findByEmail(command.email())
+        User user = userRepository.findByEmail(command.email())
             .orElseThrow(InvalidCredentialException::new);
 
         boolean passwordMatches = user.getPasswordHash() != null
-            && passwordHasherPort.matches(command.password(), user.getTemporaryPasswordHash());
+            && passwordHasher.matches(command.password(), user.getTemporaryPasswordHash());
 
         boolean usingTemporaryPassword = false;
         if (!passwordMatches && user.hasValidTemporaryPassword()
-                && passwordHasherPort.matches(command.password(), user.getTemporaryPasswordHash())) {
+                && passwordHasher.matches(command.password(), user.getTemporaryPasswordHash())) {
             passwordMatches = true;
             usingTemporaryPassword = true;
         }
@@ -46,8 +46,8 @@ public class LoginService implements LoginUseCase {
             throw new UserSuspendedException();
         
         if (usingTemporaryPassword) {
-            user.clearTemporaryPassword();;
-            userRepositoryPort.update(user);
+            user.clearTemporaryPassword();
+            userRepository.update(user);
         }
 
         return new LoginResult(

@@ -1,4 +1,4 @@
-package com.ridei.landing.domain.port.in;
+package com.ridei.landing.domain.port.out;
 
 import com.ridei.landing.domain.model.Email;
 import com.ridei.landing.domain.model.WaitlistEntry;

@@ -15,13 +15,11 @@ import com.ridei.identity.domain.model.UserId;
 import com.ridei.identity.domain.model.UserRole;
 import com.ridei.identity.domain.model.Username;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -97,7 +95,7 @@ public class UserJpaEntity {
     @Column(name = "google_id", unique = true)
     private String googleId;
     
-    @Column(name = "picture_url", unique = true)
+    @Column(name = "picture_url")
     private String pictureUrl;
 
     @Column(name = "temporary_password_hash")
@@ -111,12 +109,6 @@ public class UserJpaEntity {
 
     @Column(name = "email_verification_token_expires_at")
     private Instant emailVerificationTokenExpiresAt;
-
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private RiderProfileJpaEntity riderProfile;
-
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private OrganizerAccountJpaEntity organizerAccount;
 
     public static UserJpaEntity fromDomain(User user) {
         return UserJpaEntity.builder()

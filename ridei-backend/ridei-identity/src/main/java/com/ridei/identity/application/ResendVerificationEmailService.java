@@ -6,7 +6,7 @@ import com.ridei.identity.domain.port.in.ResendVerificationEmailUseCase;
 import com.ridei.identity.domain.port.out.EmailSenderPort;
 import com.ridei.identity.domain.port.out.UserRepositoryPort;
 
-public class ResendVerificationEmailService implements  ResendVerificationEmailUseCase {
+public class ResendVerificationEmailService implements ResendVerificationEmailUseCase {
 
     private final UserRepositoryPort userRepository;
     private final EmailSenderPort emailSender;

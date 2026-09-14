@@ -44,7 +44,7 @@ public class RequestTemporaryPasswordService implements RequestTemporaryPassword
         String temporaryPassword = generateTemporaryPassword();
 
         user.issueTemporaryPassword(passwordHasherPort.hash(temporaryPassword), Instant.now().plus(TTL));
-        userRepositoryPort.save(user);
+        userRepositoryPort.update(user);
 
         emailSenderPort.sendTemporaryPassword(user.getEmail(), temporaryPassword);
     }

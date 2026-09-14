@@ -36,8 +36,6 @@ public class UserProfileResponseDTO {
         dto.setGender(profile.gender());
         dto.setRole(profile.role());
         dto.setStatus(profile.status());
-        dto.setProfileType(profile.profileType());
-        dto.setRacingLicenseNumber(profile.racingLicenseNumber());
         dto.setDateOfBirth(profile.dateOfBirth() != null ? profile.dateOfBirth().toString() : null);
         dto.setCountryCode(profile.countryCode());
         dto.setPhoneNumber(profile.phoneNumber() != null ? profile.phoneNumber().value() : null);

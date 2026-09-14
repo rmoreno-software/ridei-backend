@@ -1,4 +1,6 @@
-package com.ridei.identity.domain.model;
+package com.ridei.identity.application;
+
+import com.ridei.identity.domain.model.UserId;
 
 public record RegisterResult(
     UserId userId,

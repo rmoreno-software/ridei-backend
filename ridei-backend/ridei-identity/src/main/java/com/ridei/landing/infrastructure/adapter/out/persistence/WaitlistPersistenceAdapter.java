@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 
 import com.ridei.landing.domain.model.Email;
 import com.ridei.landing.domain.model.WaitlistEntry;
-import com.ridei.landing.domain.port.in.WaitlistRepositoryPort;
+import com.ridei.landing.domain.port.out.WaitlistRepositoryPort;
 
 @Component
 public class WaitlistPersistenceAdapter implements WaitlistRepositoryPort {

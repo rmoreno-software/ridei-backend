@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration;
 
 import com.ridei.landing.application.JoinWaitlistService;
 import com.ridei.landing.domain.port.in.JoinWaitlistUseCase;
-import com.ridei.landing.domain.port.in.WaitlistRepositoryPort;
+import com.ridei.landing.domain.port.out.WaitlistRepositoryPort;
 
 @Configuration
 public class LandingBeanConfig {

@@ -11,8 +11,6 @@ public record UserProfile(
     Gender gender,
     UserRole role,
     AccountStatus status,
-    String profileType,
-    String racingLicenseNumber,
     LocalDate dateOfBirth,
     String countryCode,
     PhoneNumber phoneNumber,
