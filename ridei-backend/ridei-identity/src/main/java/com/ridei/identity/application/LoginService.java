@@ -30,7 +30,7 @@ public class LoginService implements LoginUseCase {
             .orElseThrow(InvalidCredentialException::new);
 
         boolean passwordMatches = user.getPasswordHash() != null
-            && passwordHasher.matches(command.password(), user.getTemporaryPasswordHash());
+            && passwordHasher.matches(command.password(), user.getPasswordHash());
 
         boolean usingTemporaryPassword = false;
         if (!passwordMatches && user.hasValidTemporaryPassword()
