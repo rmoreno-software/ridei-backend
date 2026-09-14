@@ -3,9 +3,9 @@ package com.ridei.identity.domain.model;
 public record Email(String value) {
     public Email {
         if (value == null || value.isBlank())
-            throw new IllegalArgumentException("Email cannot be empty");
+            throw new IllegalArgumentException("error.email_empty");
         if (!isValid(value))
-            throw new IllegalArgumentException("Invalid email: " + value);
+            throw new IllegalArgumentException("error.email_invalid");
     }
 
     private static boolean isValid(String email) {

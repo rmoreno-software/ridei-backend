@@ -5,6 +5,6 @@ import lombok.Data;
 
 @Data 
 public class ResendVerificationEmailRequestDTO {
-    @NotBlank(message = "Email is required")
+    @NotBlank(message = "{validation.email.required}")
     private String email;
 }

@@ -1,3 +1,5 @@
 package com.ridei.identity.application;
 
-public record RequestTemporaryPasswordCommand(String email) {}
+import java.util.Locale;
+
+public record RequestTemporaryPasswordCommand(String email, Locale locale) {}

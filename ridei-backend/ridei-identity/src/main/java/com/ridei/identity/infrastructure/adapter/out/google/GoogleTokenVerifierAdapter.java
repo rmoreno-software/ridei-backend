@@ -35,7 +35,7 @@ public class GoogleTokenVerifierAdapter implements GoogleTokenVerifierPort {
             GoogleIdToken token = verifier.verify(idToken);
             if (token == null) {
                 log.error("Google returned null - token invalid or expired");
-                throw new InvalidGoogleTokenException("Invalid or expired Google token");
+                throw new InvalidGoogleTokenException("error.invalid_google_token");
             }      
             
             GoogleIdToken.Payload payload = token.getPayload();
@@ -50,7 +50,7 @@ public class GoogleTokenVerifierAdapter implements GoogleTokenVerifierPort {
             throw e;
         } catch (Exception e) {
             log.error("Exception verifying token: {}", e.getMessage(), e);
-            throw new InvalidGoogleTokenException("Failed to verify Google token: " + e.getMessage());
+            throw new InvalidGoogleTokenException("error.invalid_google_token");
         }
     }
     

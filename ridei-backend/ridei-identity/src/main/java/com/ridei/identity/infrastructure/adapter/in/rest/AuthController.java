@@ -1,5 +1,7 @@
 package com.ridei.identity.infrastructure.adapter.in.rest;
 
+import java.util.Locale;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -116,9 +118,10 @@ public class AuthController {
 
     @PostMapping("/forgot-password")
     public ResponseEntity<Void> forgotPassword(
-        @RequestBody @Valid ForgotPasswordRequestDTO dto
+        @RequestBody @Valid ForgotPasswordRequestDTO dto,
+        Locale locale
     ) {
-        requestTemporaryPasswordUseCase.request(new RequestTemporaryPasswordCommand(dto.getEmail()));
+        requestTemporaryPasswordUseCase.request(new RequestTemporaryPasswordCommand(dto.getEmail(), locale));
         return ResponseEntity.accepted().build();
     }
 
@@ -157,8 +160,11 @@ public class AuthController {
     }
 
     @PostMapping("/resend-verification-email")
-    public ResponseEntity<Void> resendVerificationEmail(@RequestBody @Valid ResendVerificationEmailRequestDTO dto) {
-        resendVerificationEmailUseCase.resend(new ResendVerificationEmailCommand(new Email(dto.getEmail())));
+    public ResponseEntity<Void> resendVerificationEmail(
+        @RequestBody @Valid ResendVerificationEmailRequestDTO dto,
+        Locale locale
+    ) {
+        resendVerificationEmailUseCase.resend(new ResendVerificationEmailCommand(new Email(dto.getEmail()), locale));
         return ResponseEntity.accepted().build();
     }
 

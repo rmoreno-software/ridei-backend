@@ -7,7 +7,7 @@ public record ImageContentType(String value) {
 
      public ImageContentType {
         if (value == null || !ALLOWED.contains(value)) {
-            throw new IllegalArgumentException("Unsupported image content type: " + value);
+            throw new IllegalArgumentException("error.unsupported_image_content_type");
         }
      }
 

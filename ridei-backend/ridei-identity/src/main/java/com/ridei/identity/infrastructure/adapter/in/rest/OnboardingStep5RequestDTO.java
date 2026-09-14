@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 public class OnboardingStep5RequestDTO {
     
-    @AssertTrue(message = "You must accept the terms and conditions")
+    @AssertTrue(message = "{validation.terms.required}")
     private boolean termsAccepted;
     
 }

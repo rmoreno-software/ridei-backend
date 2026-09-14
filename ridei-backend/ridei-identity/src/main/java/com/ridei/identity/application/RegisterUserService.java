@@ -71,7 +71,7 @@ public class RegisterUserService implements RegisterUserUseCase {
         log.debug("Register: verification link built: {}", verificationLink);
 
         log.debug("Register: about to send verification email to user {}", user.getId().value());
-        emailSender.sendEmailVerificationLink(user.getEmail(), verificationLink);
+        emailSender.sendEmailVerificationLink(user.getEmail(), verificationLink, command.locale());
         log.debug("Register: verification email sent successfully to user {}", user.getId().value());
 
         return new RegisterResult(

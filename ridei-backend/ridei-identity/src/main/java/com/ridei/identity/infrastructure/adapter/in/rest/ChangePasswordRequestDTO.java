@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 public class ChangePasswordRequestDTO {
-    @NotBlank
-    @Size(min = 8, max = 72)
+    @NotBlank(message = "{validation.new_password.required}")
+    @Size(min = 8, max = 72, message = "{validation.password.size_range}")
     String newPassword;
 }

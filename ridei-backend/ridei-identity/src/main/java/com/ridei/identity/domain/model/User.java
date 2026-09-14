@@ -147,11 +147,11 @@ public class User {
 
     public void saveOnboardingStep1(String firstName, String lastName, Username username, Gender gender) {
         if (firstName == null || firstName.isBlank())
-            throw new IllegalArgumentException("First name is required");
+            throw new IllegalArgumentException("error.first_name_required");
         if (lastName == null || lastName.isBlank())
-            throw new IllegalArgumentException("Last name is required");
+            throw new IllegalArgumentException("error.last_name_required");
         if (username == null)
-            throw new IllegalArgumentException("Username is required");
+            throw new IllegalArgumentException("error.username_required");
 
         this.firstName = firstName;
         this.lastName = lastName;
@@ -165,13 +165,13 @@ public class User {
         PhoneNumber phoneNumber
     ) {
         if (dateOfBirth == null)
-            throw new IllegalArgumentException("Date of birth is required");
+            throw new IllegalArgumentException("error.date_of_birth_required");
         if (dateOfBirth.isAfter(LocalDate.now().minusYears(16)))
             throw new MinimumAgeNotMetException();
         if (countryCode == null || countryCode.isBlank())
-            throw new IllegalArgumentException("Country code is required");
+            throw new IllegalArgumentException("error.country_code_required");
         if (phoneNumber == null)
-            throw new IllegalArgumentException("Phone number is required");
+            throw new IllegalArgumentException("error.phone_number_required");
 
         this.dateOfBirth = dateOfBirth;
         this.countryCode = countryCode;
@@ -180,7 +180,7 @@ public class User {
 
     public void updateProfilePicture(String profilePictureUrl) {
         if (profilePictureUrl == null || profilePictureUrl.isBlank())
-            throw new IllegalArgumentException("Profile Picture URL is required");
+            throw new IllegalArgumentException("error.profile_picture_url_required");
         this.pictureUrl = profilePictureUrl;
     }
 
@@ -190,7 +190,7 @@ public class User {
 
     public void saveOnboardingStep4(IdentityDocument identityDocument) {
         if (identityDocument == null)
-            throw new IllegalArgumentException("Identity document is required");
+            throw new IllegalArgumentException("error.identity_document_required");
         this.identityDocument = identityDocument;
     }
 
@@ -223,7 +223,7 @@ public class User {
         Instant expiresAt
     ) {
         if (temporaryPasswordHash == null || temporaryPasswordHash.isBlank())
-            throw new IllegalArgumentException("Temporary password hash is required");
+            throw new IllegalArgumentException("error.temporary_password_hash_required");
         this.temporaryPasswordHash = temporaryPasswordHash;
         this.temporaryPasswordHashExpiresAt = expiresAt;
     }
@@ -241,14 +241,14 @@ public class User {
 
     public void changePassword(String passwordHash) {
         if (passwordHash == null || passwordHash.isBlank())
-            throw new IllegalArgumentException("Password hash is required");
+            throw new IllegalArgumentException("error.password_hash_required");
         this.passwordHash = passwordHash;
         clearTemporaryPassword();
     }
 
     public void issueEmailVerificationToken(String tokenHash, Instant expiresAt) {
         if (tokenHash == null || tokenHash.isBlank())
-            throw new IllegalArgumentException("Email verification token hash is required");
+            throw new IllegalArgumentException("error.email_verification_token_hash_required");
 
         this.emailVerificationTokenHash = tokenHash;
         this.emailVerificationTokenExpiresAt = expiresAt;

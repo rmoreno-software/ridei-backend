@@ -30,6 +30,10 @@ spring:
           auth: true
           starttls:
             enable: true
+  messages:
+    basename: messages
+    encoding: UTF-8
+    fallback-to-system-locale: false
 
 server:
   port: 8081

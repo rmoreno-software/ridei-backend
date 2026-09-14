@@ -4,6 +4,6 @@ import com.ridei.identity.domain.model.Email;
 
 public class EmailAlreadyRegisteredException extends RuntimeException{
     public EmailAlreadyRegisteredException(Email email) {
-        super("Email already registered: " + email.value());
+        super("error.email_already_registered");
     }
 }

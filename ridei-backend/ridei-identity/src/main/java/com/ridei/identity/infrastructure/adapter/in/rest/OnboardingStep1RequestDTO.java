@@ -9,18 +9,18 @@ import lombok.Data;
 
 @Data
 public class OnboardingStep1RequestDTO {
-    @NotBlank(message = "First name is required")
-    @Size(max = 100, message = "First name must not exceed 100 characters")
+    @NotBlank(message = "{validation.first_name.required}")
+    @Size(max = 100, message = "{validation.first_name.size}")
     private String firstName;
 
-    @NotBlank(message = "Last name is required")
-    @Size(max = 100, message = "Last name must not exceed 100 characters")
+    @NotBlank(message = "{validation.last_name.required}")
+    @Size(max = 100, message = "{validation.last_name.size}")
     private String lastName;
 
-    @NotBlank(message = "Username is required")
+    @NotBlank(message = "{validation.username.required}")
     @Pattern(
         regexp = "^@[a-zA-Z0-9_.]{3,30}$",
-        message = "Username must start with @ followed by 3-30 alphanumeric characters"
+        message = "{validation.username.pattern}"
     )
     private String username;
 

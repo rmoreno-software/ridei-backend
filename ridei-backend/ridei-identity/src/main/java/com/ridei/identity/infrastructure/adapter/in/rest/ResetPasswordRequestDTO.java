@@ -8,15 +8,15 @@ import lombok.Data;
 @Data
 public class ResetPasswordRequestDTO {
     
-    @NotBlank(message = "Email is required")
-    @Email(message = "Invalid email format")
+    @NotBlank(message = "{validation.email.required}")
+    @Email(message = "{validation.email.invalid}")
     private String email;
 
-    @NotBlank(message = "Temporary password is required")
+    @NotBlank(message = "{validation.temporary_password.required}")
     private String temporaryPassword;
 
-    @NotBlank(message = "New password is required")
-    @Size(min = 8, max = 72, message = "Password must be between 8 and 72 characters")
+    @NotBlank(message = "{validation.new_password.required}")
+    @Size(min = 8, max = 72, message = "{validation.password.size_range}")
     private String newPassword;
     
 }

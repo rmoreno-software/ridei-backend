@@ -7,7 +7,7 @@ import lombok.Data;
 @Data
 public class ConfirmProfilePictureRequestDTO {
     
-    @NotBlank(message = "Public URL is required")
-    @Pattern(regexp = "^https://.+", message = "Must be a valid HTTPS URL")
+    @NotBlank(message = "{validation.public_url.required}")
+    @Pattern(regexp = "^https://.+", message = "{validation.public_url.invalid}")
     private String publicUrl;
 }

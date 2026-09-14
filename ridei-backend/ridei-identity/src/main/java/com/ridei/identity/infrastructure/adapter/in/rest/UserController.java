@@ -1,5 +1,7 @@
 package com.ridei.identity.infrastructure.adapter.in.rest;
 
+import java.util.Locale;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -65,8 +67,8 @@ public class UserController {
     private final ChangePasswordUseCase changePasswordUseCase;
 
     @PostMapping("/register")
-    public ResponseEntity<RegisterResponseDTO> register(@RequestBody @Valid RegisterRequestDTO dto) {
-        RegisterResult result = registerUserUseCase.register(dto.toCommand());
+    public ResponseEntity<RegisterResponseDTO> register(@RequestBody @Valid RegisterRequestDTO dto, Locale locale) {
+        RegisterResult result = registerUserUseCase.register(dto.toCommand(locale));
         return ResponseEntity.status(
             HttpStatus.CREATED
         ).body(

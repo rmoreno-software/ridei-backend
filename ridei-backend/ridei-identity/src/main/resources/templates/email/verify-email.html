@@ -12,21 +12,21 @@
         </tr>
         <tr>
           <td style="padding: 32px;">
-            <h1 style="margin: 0 0 16px; font-size: 20px; color:#111827;">Confirma tu email</h1>
-            <p style="margin: 0 0 24px; font-size: 15px; line-height: 1.5; color:#4b5563;">
+            <h1 style="margin: 0 0 16px; font-size: 20px; color:#111827;" th:text="#{email.verify.title}">Confirma tu email</h1>
+            <p style="margin: 0 0 24px; font-size: 15px; line-height: 1.5; color:#4b5563;" th:text="#{email.verify.body}">
               Gracias por registrarte en Ridei. Confirma tu dirección de email para poder continuar.
             </p>
             <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto 24px;">
               <tr>
                 <td style="border-radius: 8px; background-color:#0f1115;">
-                  <a th:href="${verificationLink}" href="#" style="display:inline-block; padding: 14px 28px; font-size: 15px; font-weight: 600; color:#ffffff; text-decoration:none;">
+                  <a th:href="${verificationLink}" href="#" th:text="#{email.verify.button}" style="display:inline-block; padding: 14px 28px; font-size: 15px; font-weight: 600; color:#ffffff; text-decoration:none;">
                     Verificar mi email
                   </a>
                 </td>
               </tr>
             </table>
-            <p style="margin: 0 0 8px; font-size: 13px; color:#9ca3af;">Este enlace caduca en 24 horas.</p>
-            <p style="margin: 0; font-size: 13px; color:#9ca3af;">Si no has creado una cuenta en Ridei, ignora este correo.</p>
+            <p style="margin: 0 0 8px; font-size: 13px; color:#9ca3af;" th:text="#{email.verify.expiry}">Este enlace caduca en 24 horas.</p>
+            <p style="margin: 0; font-size: 13px; color:#9ca3af;" th:text="#{email.verify.ignore}">Si no has creado una cuenta en Ridei, ignora este correo.</p>
           </td>
         </tr>
         <tr>

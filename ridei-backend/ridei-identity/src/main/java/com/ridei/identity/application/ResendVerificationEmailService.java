@@ -1,5 +1,7 @@
 package com.ridei.identity.application;
 
+import java.util.Locale;
+
 import com.ridei.identity.domain.model.AccountStatus;
 import com.ridei.identity.domain.model.User;
 import com.ridei.identity.domain.port.in.ResendVerificationEmailUseCase;
@@ -27,16 +29,16 @@ public class ResendVerificationEmailService implements ResendVerificationEmailUs
     public void resend(ResendVerificationEmailCommand command) {
         userRepository.findByEmail(command.email())
             .filter(user -> user.getStatus() == AccountStatus.PENDING_VERIFICATION)
-            .ifPresent(this::issueAndSend);
+            .ifPresent(user -> issueAndSend(user, command.locale()));
     }
 
-    private void issueAndSend(User user) {
+    private void issueAndSend(User user, Locale locale) {
         EmailVerificationTokenFactory.IssuedToken token = tokenFactory.issue();
 
         user.issueEmailVerificationToken(token.hashToken(), token.expiresAt());
         userRepository.update(user);
 
         String verificationLink = tokenFactory.buildVerificationLink(publicApiUrl, token.rawToken());
-        emailSender.sendEmailVerificationLink(user.getEmail(), verificationLink);
+        emailSender.sendEmailVerificationLink(user.getEmail(), verificationLink, locale);
     }
 }

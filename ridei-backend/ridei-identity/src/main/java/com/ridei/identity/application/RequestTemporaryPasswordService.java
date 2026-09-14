@@ -3,6 +3,7 @@ package com.ridei.identity.application;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Locale;
 import java.util.Optional;
 
 import com.ridei.identity.domain.model.Email;
@@ -37,16 +38,16 @@ public class RequestTemporaryPasswordService implements RequestTemporaryPassword
     public void request(RequestTemporaryPasswordCommand command) {
         parseEmail(command.email())
             .flatMap(userRepositoryPort::findByEmail)
-            .ifPresent(this::issueAndSend);
+            .ifPresent(user -> issueAndSend(user, command.locale()));
     }
 
-    private void issueAndSend(User user) {
+    private void issueAndSend(User user, Locale locale) {
         String temporaryPassword = generateTemporaryPassword();
 
         user.issueTemporaryPassword(passwordHasherPort.hash(temporaryPassword), Instant.now().plus(TTL));
         userRepositoryPort.update(user);
 
-        emailSenderPort.sendTemporaryPassword(user.getEmail(), temporaryPassword);
+        emailSenderPort.sendTemporaryPassword(user.getEmail(), temporaryPassword, locale);
     }
 
     private String generateTemporaryPassword() {

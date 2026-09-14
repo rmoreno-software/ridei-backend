@@ -1,9 +1,11 @@
 package com.ridei.identity.infrastructure.adapter.in.rest;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -27,6 +29,16 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    private final MessageSource messageSource;
+
+    public GlobalExceptionHandler(MessageSource messageSource) {
+        this.messageSource = messageSource;
+    }
+
+    private String translate(String code, Locale locale) {
+        return messageSource.getMessage(code, null, code, locale);
+    }
+
     // -- Errores de validación (@Valid)------------------------------------------------
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidationErrors(MethodArgumentNotValidException ex){
@@ -43,31 +55,31 @@ public class GlobalExceptionHandler {
 
     // -- Errores de dominio -----------------------------------------------------------
     @ExceptionHandler(EmailAlreadyRegisteredException.class)
-    public ResponseEntity<ApiError> handleEmailAlreadyRegistered(EmailAlreadyRegisteredException ex) {
+    public ResponseEntity<ApiError> handleEmailAlreadyRegistered(EmailAlreadyRegisteredException ex, Locale locale) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(
-            new ApiError(409, "Conflict", ex.getMessage())
+            new ApiError(409, "Conflict", translate(ex.getMessage(), locale))
         );
     }
 
     @ExceptionHandler(UsernameAlreadyTakenException.class)
-    public ResponseEntity<ApiError> handleUsernameAlreadyTaken(UsernameAlreadyTakenException ex) {
+    public ResponseEntity<ApiError> handleUsernameAlreadyTaken(UsernameAlreadyTakenException ex, Locale locale) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(
-            new ApiError(409, "Conflict", ex.getMessage())
+            new ApiError(409, "Conflict", translate(ex.getMessage(), locale))
         );
     }
 
     @ExceptionHandler(MinimumAgeNotMetException.class)
-    public ResponseEntity<ApiError> handleMinimumAge(MinimumAgeNotMetException ex) {
+    public ResponseEntity<ApiError> handleMinimumAge(MinimumAgeNotMetException ex, Locale locale) {
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(
-            new ApiError(422, "Unprocessable Entity", ex.getMessage())
+            new ApiError(422, "Unprocessable Entity", translate(ex.getMessage(), locale))
         );
     }
 
     // -- Errores de value objects (IllegalArgumentException) --------------------------
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ApiError> handleIllegalArgument(IllegalArgumentException ex) {
+    public ResponseEntity<ApiError> handleIllegalArgument(IllegalArgumentException ex, Locale locale) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-            new ApiError(400, "Bad Request", ex.getMessage())
+            new ApiError(400, "Bad Request", translate(ex.getMessage(), locale))
         );
     }
 
@@ -81,44 +93,44 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(InvalidGoogleTokenException.class)
-    public ResponseEntity<ApiError> handleInvalidGoogleToken(InvalidGoogleTokenException ex) {
+    public ResponseEntity<ApiError> handleInvalidGoogleToken(InvalidGoogleTokenException ex, Locale locale) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-            new ApiError(401, "Unaythorized", ex.getMessage())
+            new ApiError(401, "Unauthorized", translate(ex.getMessage(), locale))
         );
     }
 
     @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ApiError> handleUserNotFound(UserNotFoundException ex) {
+    public ResponseEntity<ApiError> handleUserNotFound(UserNotFoundException ex, Locale locale) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-                new ApiError(401, "Unauthorized", ex.getMessage())
+                new ApiError(401, "Unauthorized", translate(ex.getMessage(), locale))
         );
     }
 
     @ExceptionHandler(UserSuspendedException.class)
-    public ResponseEntity<ApiError> handleUserSuspended(UserSuspendedException ex) {
+    public ResponseEntity<ApiError> handleUserSuspended(UserSuspendedException ex, Locale locale) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
-                new ApiError(403, "Forbidden", ex.getMessage())
+                new ApiError(403, "Forbidden", translate(ex.getMessage(), locale))
         );
     }
 
     @ExceptionHandler(InvalidProfilePictureUrlException.class)
-    public ResponseEntity<ApiError> handleInvalidProfilePictureUrl(InvalidProfilePictureUrlException ex) {
+    public ResponseEntity<ApiError> handleInvalidProfilePictureUrl(InvalidProfilePictureUrlException ex, Locale locale) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
-            new ApiError(403, "Forbidden", ex.getMessage())
+            new ApiError(403, "Forbidden", translate(ex.getMessage(), locale))
         );
     }
 
     @ExceptionHandler(InvalidCredentialException.class)
-    public ResponseEntity<ApiError> handleInvalidCredential(InvalidCredentialException ex) {
+    public ResponseEntity<ApiError> handleInvalidCredential(InvalidCredentialException ex, Locale locale) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-            new ApiError(401, "Unauthorized", ex.getMessage())
+            new ApiError(401, "Unauthorized", translate(ex.getMessage(), locale))
         );
     }
 
     @ExceptionHandler(InvalidOrExpiredVerificationTokenException.class)
-    public ResponseEntity<ApiError> handleInvalidOrExpiredVerificationTokenException(InvalidOrExpiredVerificationTokenException ex) {
+    public ResponseEntity<ApiError> handleInvalidOrExpiredVerificationTokenException(InvalidOrExpiredVerificationTokenException ex, Locale locale) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-            new ApiError(400, "Bad Request", ex.getMessage())
+            new ApiError(400, "Bad Request", translate(ex.getMessage(), locale))
         );
     }
 }

@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 public class ProfilePictureUploadRequestDTO {
-    @NotBlank(message = "Content type is required")
-    @Pattern(regexp = "^image/(jpeg|png|webp)$", message = "Unsupported image content type")
+    @NotBlank(message = "{validation.content_type.required}")
+    @Pattern(regexp = "^image/(jpeg|png|webp)$", message = "{validation.content_type.unsupported}")
     private String contentType;
 }

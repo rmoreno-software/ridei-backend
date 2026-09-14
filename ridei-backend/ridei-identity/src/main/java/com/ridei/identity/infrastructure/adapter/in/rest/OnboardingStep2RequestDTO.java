@@ -11,21 +11,21 @@ import lombok.Data;
 @Data
 public class OnboardingStep2RequestDTO {
     
-    @NotNull(message = "Date of birth is required")
-    @Past(message = "Date of birth must be in the past")
+    @NotNull(message = "{validation.date_of_birth.required}")
+    @Past(message = "{validation.date_of_birth.past}")
     private LocalDate dateOfBirth;
-    
-    @NotBlank(message = "Country code is required")
+
+    @NotBlank(message = "{validation.country_code.required}")
     @Pattern(
         regexp = "^\\+?[1-9]\\d{0,3}$",
-        message = "Invalid country code. Use numeric format (e.g. 34, 1, 44)"
+        message = "{validation.country_code.pattern}"
     )
     private String countryCode;
-    
-    @NotBlank(message = "Phone number is required")
+
+    @NotBlank(message = "{validation.phone_number.required}")
     @Pattern(
         regexp = "^\\+?[1-9]\\d{6,14}$",
-        message = "Invalid phone number format"
+        message = "{validation.phone_number.pattern}"
     )
     private String phoneNumber;
 }
