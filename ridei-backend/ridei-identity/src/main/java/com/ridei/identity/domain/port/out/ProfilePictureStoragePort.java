@@ -8,4 +8,7 @@ public interface ProfilePictureStoragePort {
     PresignedUpload createUploadUrl(UserId userId, ImageContentType contentType);
     boolean belongsToUser(UserId userId, String publicUrl);
     void delete(String publicUrl);
+    long getContentLength(String publicUrl);
+    byte[] download(String publicUrl);
+    String uploadProcessed(UserId userId, byte[] imageBytes, String extension, String contentType);
 }

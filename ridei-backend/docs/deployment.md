@@ -184,3 +184,10 @@ sudo journalctl -u spring-app -f
 - Keep `.env` files at `chmod 600`, owned by the `spring` user that runs the process.
 - If a secret is ever pasted somewhere outside these files (chat, ticket, shared doc), rotate it — assume it's compromised.
 - Never give a real secret a default value in `application.yml`. A missing required variable should crash the app loudly at startup, not silently fall back to an insecure default.
+
+---
+
+## 7. Pending — known gaps
+
+- **No database backups (added 2026-09-15).** There is currently no automated backup of the production Postgres database — if the server fails or data is deleted by mistake, it's unrecoverable. Decided to defer implementation for now; **must be resolved before relying on this for real user data.**
+  Planned approach when picked back up: a daily `pg_dump` cron job uploading a compressed dump to a dedicated Cloudflare R2 bucket (`ridei-backups`, separate from the profile-pictures bucket, with its own scoped API token and an object lifecycle rule to auto-expire old dumps), plus enabling Hetzner's automatic server snapshots as a coarser secondary safety net. Test the restore procedure once set up — an untested backup isn't a real backup.

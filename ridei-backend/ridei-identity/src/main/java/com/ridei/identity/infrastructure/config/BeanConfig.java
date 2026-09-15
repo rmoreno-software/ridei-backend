@@ -47,6 +47,7 @@ import com.ridei.identity.domain.port.in.VerifyEmailUseCase;
 import com.ridei.identity.domain.port.out.EmailSenderPort;
 import com.ridei.identity.domain.port.out.EventPublisherPort;
 import com.ridei.identity.domain.port.out.GoogleTokenVerifierPort;
+import com.ridei.identity.domain.port.out.ImageProcessorPort;
 import com.ridei.identity.domain.port.out.JwtPort;
 import com.ridei.identity.domain.port.out.PasswordHasherPort;
 import com.ridei.identity.domain.port.out.ProfilePictureStoragePort;
@@ -131,9 +132,10 @@ public class BeanConfig {
     @Bean
     public ConfirmProfilePictureUseCase confirmProfilePictureUseCase(
         UserRepositoryPort userRepository,
-        ProfilePictureStoragePort storage
+        ProfilePictureStoragePort storage,
+        ImageProcessorPort imageProcessor
     ) {
-        return new ConfirmProfilePictureService(userRepository, storage);
+        return new ConfirmProfilePictureService(userRepository, storage, imageProcessor);
     }
 
     @Bean

@@ -15,15 +15,20 @@ import com.ridei.identity.domain.port.out.ProfilePictureStoragePort;
 
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 
 @Component
 public class CloudflareR2StorageAdapter implements ProfilePictureStoragePort {
@@ -104,6 +109,42 @@ public class CloudflareR2StorageAdapter implements ProfilePictureStoragePort {
             .bucket(bucket)
             .key(key)
             .build());
+    }
+
+    @Override
+    public long getContentLength(String publicUrl) {
+        String key = publicUrl.replace(publicBaseUrl + "/", "");
+        return s3Client.headObject(HeadObjectRequest.builder()
+            .bucket(bucket)
+            .key(key)
+            .build())
+            .contentLength();
+    }
+
+    @Override
+    public byte[] download(String publicUrl) {
+        String key = publicUrl.replace(publicBaseUrl + "/", "");
+        ResponseBytes<GetObjectResponse> response = s3Client.getObjectAsBytes(GetObjectRequest.builder()
+            .bucket(key)
+            .key(key)
+            .build());
+        return response.asByteArray();
+    }
+
+    @Override
+    public String uploadProcessed(UserId userId, byte[] imageBytes, String extension, String contentType) {
+        String key = "profile-pictures/%s/%s.%s".formatted(userId.value(), UUID.randomUUID(), extension);
+
+        s3Client.putObject(
+            PutObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .contentType(contentType)
+                .build(),
+            RequestBody.fromBytes(imageBytes)
+        );
+
+        return publicBaseUrl + "/" + key;
     }
     
 }

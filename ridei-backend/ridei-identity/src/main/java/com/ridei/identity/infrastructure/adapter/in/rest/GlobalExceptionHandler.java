@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -19,6 +20,7 @@ import com.ridei.identity.domain.exception.InvalidGoogleTokenException;
 import com.ridei.identity.domain.exception.InvalidOrExpiredVerificationTokenException;
 import com.ridei.identity.domain.exception.InvalidProfilePictureUrlException;
 import com.ridei.identity.domain.exception.MinimumAgeNotMetException;
+import com.ridei.identity.domain.exception.ProfilePictureTooLargeException;
 import com.ridei.identity.domain.exception.UserNotFoundException;
 import com.ridei.identity.domain.exception.UserSuspendedException;
 import com.ridei.identity.domain.exception.UsernameAlreadyTakenException;
@@ -131,6 +133,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleInvalidOrExpiredVerificationTokenException(InvalidOrExpiredVerificationTokenException ex, Locale locale) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
             new ApiError(400, "Bad Request", translate(ex.getMessage(), locale))
+        );
+    }
+
+    @ExceptionHandler(ProfilePictureTooLargeException.class)
+    public ResponseEntity<ApiError> handleProfilePictureTooLargeException(ProfilePictureTooLargeException ex, Locale locale) {
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(
+            new ApiError(413, "Payload Too Large", translate(ex.getMessage(), locale))
         );
     }
 }
