@@ -148,13 +148,17 @@ public class AuthController {
     // GET solo comprueba el token, sin efectos secundarios — así un escáner de seguridad de
     // correo (Safe Links, antivirus corporativos) puede visitarlo sin invalidarlo antes de tiempo.
     @GetMapping(value = "/verify-email", produces = MediaType.TEXT_HTML_VALUE)
-    public ResponseEntity<String> showVerifyEmailConfirmation(@RequestParam String token) {
+    public ResponseEntity<String> showVerifyEmailConfirmation(
+        @RequestParam String token,
+        @RequestParam(required = false) String lang
+    ) {
         if (!verifyEmailUseCase.isTokenValid(token)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(templateEngine.process("verification/error", new Context()));
         }
         Context context = new Context();
         context.setVariable("token", token);
+        context.setVariable("lang", lang);
         return ResponseEntity.ok(templateEngine.process("verification/confirm", context));
     }
 

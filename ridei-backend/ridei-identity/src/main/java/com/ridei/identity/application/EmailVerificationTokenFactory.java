@@ -4,6 +4,7 @@ import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
+import java.util.Locale;
 
 class EmailVerificationTokenFactory {
 
@@ -20,8 +21,8 @@ class EmailVerificationTokenFactory {
         return new IssuedToken(rawToken, TokenHasher.sha256(rawToken), Instant.now().plus(TTL));
     }
 
-    String buildVerificationLink(String publicApiUrl, String rawToken) {
-        return publicApiUrl + "/api/v1/auth/verify-email?token=" + rawToken;
+    String buildVerificationLink(String publicApiUrl, String rawToken, Locale locale) {
+        return publicApiUrl + "/api/v1/auth/verify-email?token=" + rawToken + "&lang=" + locale.getLanguage();
     }
     
 }

@@ -38,7 +38,7 @@ public class ResendVerificationEmailService implements ResendVerificationEmailUs
         user.issueEmailVerificationToken(token.hashToken(), token.expiresAt());
         userRepository.update(user);
 
-        String verificationLink = tokenFactory.buildVerificationLink(publicApiUrl, token.rawToken());
+        String verificationLink = tokenFactory.buildVerificationLink(publicApiUrl, token.rawToken(), locale);
         emailSender.sendEmailVerificationLink(user.getEmail(), verificationLink, locale);
     }
 }
