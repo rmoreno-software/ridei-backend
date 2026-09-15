@@ -68,7 +68,6 @@ public class RegisterUserService implements RegisterUserUseCase {
         log.debug("Register: UserRegisteredEvent published for user {}", user.getId().value());
 
         String verificationLink =  tokenFactory.buildVerificationLink(publicApiUrl, token.rawToken());
-        log.debug("Register: verification link built: {}", verificationLink);
 
         log.debug("Register: about to send verification email to user {}", user.getId().value());
         emailSender.sendEmailVerificationLink(user.getEmail(), verificationLink, command.locale());
