@@ -13,6 +13,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.ridei.identity.domain.port.out.JwtPort;
+import com.ridei.identity.domain.port.out.UserRepositoryPort;
 
 import lombok.AllArgsConstructor;
 
@@ -21,13 +22,14 @@ import lombok.AllArgsConstructor;
 public class SecurityConfig {
 
     private final JwtPort jwt;
+    private final UserRepositoryPort userRepository;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
-            .addFilterBefore(new JwtAuthenticationFilter(jwt),
+            .addFilterBefore(new JwtAuthenticationFilter(jwt, userRepository),
                 UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()

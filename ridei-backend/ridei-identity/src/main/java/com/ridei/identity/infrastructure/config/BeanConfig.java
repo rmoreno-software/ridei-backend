@@ -189,12 +189,14 @@ public class BeanConfig {
     public ChangePasswordUseCase changePasswordUseCase(
         UserRepositoryPort repository,
         PasswordHasherPort passwordHasher,
-        EmailSenderPort emailSender
+        EmailSenderPort emailSender,
+        JwtPort jwt
     ) {
         return new ChangePasswordService(
             repository,
             passwordHasher,
-            emailSender
+            emailSender,
+            jwt
         );
     }
 

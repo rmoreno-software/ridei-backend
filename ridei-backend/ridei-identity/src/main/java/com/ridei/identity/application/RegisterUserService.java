@@ -76,8 +76,8 @@ public class RegisterUserService implements RegisterUserUseCase {
         return new RegisterResult(
             user.getId(),
             user.getEmail().value(),
-            jwt.generateAccessToken(user.getId(), user.getRole()),
-            jwt.generateRefreshToken(user.getId()),
+            jwt.generateAccessToken(user.getId(), user.getRole(), user.getTokenVersion()),
+            jwt.generateRefreshToken(user.getId(), user.getTokenVersion()),
             user.needsOnboarding()
         );
     }

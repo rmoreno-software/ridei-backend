@@ -53,8 +53,8 @@ public class LoginService implements LoginUseCase {
         return new LoginResult(
             user.getId(),
             user.getEmail().value(),
-            jwt.generateAccessToken(user.getId(), user.getRole()),
-            jwt.generateRefreshToken(user.getId()),
+            jwt.generateAccessToken(user.getId(), user.getRole(), user.getTokenVersion()),
+            jwt.generateRefreshToken(user.getId(), user.getTokenVersion()),
             user.needsOnboarding(),
             usingTemporaryPassword
         );

@@ -110,6 +110,9 @@ public class UserJpaEntity {
     @Column(name = "email_verification_token_expires_at")
     private Instant emailVerificationTokenExpiresAt;
 
+    @Column(name = "token_version", nullable = false)
+    private int tokenVersion;
+
     public static UserJpaEntity fromDomain(User user) {
         return UserJpaEntity.builder()
         .id(user.getId().value())
@@ -135,6 +138,7 @@ public class UserJpaEntity {
             .temporaryPasswordExpiresAt(user.getTemporaryPasswordHashExpiresAt())
             .emailVerificationTokenHash(user.getEmailVerificationTokenHash())
             .emailVerificationTokenExpiresAt(user.getEmailVerificationTokenExpiresAt())
+            .tokenVersion(user.getTokenVersion())
             .build();
     }
 
@@ -161,7 +165,8 @@ public class UserJpaEntity {
                 this.temporaryPasswordHash,
                 this.temporaryPasswordExpiresAt,
                 this.emailVerificationTokenHash,
-                this.emailVerificationTokenExpiresAt
+                this.emailVerificationTokenExpiresAt,
+                this.tokenVersion
         );
     }
 }

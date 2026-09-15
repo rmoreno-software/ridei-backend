@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ridei.identity.application.ChangePasswordCommand;
+import com.ridei.identity.application.ChangePasswordResult;
 import com.ridei.identity.application.ConfirmProfilePictureCommand;
 import com.ridei.identity.application.EmailAvailabilityResult;
 import com.ridei.identity.application.RegisterResult;
@@ -218,21 +219,21 @@ public class UserController {
     }
 
     @PatchMapping("/me/password")
-    public ResponseEntity<Void> changePassword(
+    public ResponseEntity<ChangePasswordResponseDTO> changePassword(
         @RequestBody @Valid ChangePasswordRequestDTO dto,
         Authentication authentication,
         Locale locale
     ) {
         UserId userId = UserId.of(authentication.getName());
-        changePasswordUseCase.change(
+        ChangePasswordResult result = changePasswordUseCase.change(
             new ChangePasswordCommand(
                 userId,
                 dto.getNewPassword(),
                 locale
             )
         );
-        
-        return ResponseEntity.noContent().build();
+
+        return ResponseEntity.ok(new ChangePasswordResponseDTO(result.accessToken(), result.refreshToken()));
     }
 
 }

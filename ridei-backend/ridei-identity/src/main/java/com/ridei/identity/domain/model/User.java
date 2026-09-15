@@ -35,6 +35,7 @@ public class User {
     private Instant temporaryPasswordHashExpiresAt;
     private String emailVerificationTokenHash;
     private Instant emailVerificationTokenExpiresAt;
+    private int tokenVersion;
 
     public static User register(
         Email email,
@@ -63,7 +64,8 @@ public class User {
             null,
             null,
             null,
-            null
+            null,
+            0
         );
     }
 
@@ -89,7 +91,8 @@ public class User {
         String temporaryPasswordHash,
         Instant temporaryPasswordHashExpiresAt,
         String emailVerificationTokenHash,
-        Instant emailVerificationTokenExpiresAt
+        Instant emailVerificationTokenExpiresAt,
+        int tokenVersion
     ) {
         return new User(
             id,
@@ -113,7 +116,8 @@ public class User {
             temporaryPasswordHash,
             temporaryPasswordHashExpiresAt,
             emailVerificationTokenHash,
-            emailVerificationTokenExpiresAt
+            emailVerificationTokenExpiresAt,
+            tokenVersion
         );
     }
 
@@ -141,7 +145,8 @@ public class User {
             null,
             null,
             null,
-            null
+            null,
+            0
         );
     }
 
@@ -243,6 +248,7 @@ public class User {
         if (passwordHash == null || passwordHash.isBlank())
             throw new IllegalArgumentException("error.password_hash_required");
         this.passwordHash = passwordHash;
+        this.tokenVersion++;
         clearTemporaryPassword();
     }
 

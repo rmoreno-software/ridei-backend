@@ -54,8 +54,8 @@ public class LoginWithGoogleService implements LoginWithGoogleUseCase{
         }
 
         return new GoogleAuthResult(
-            jwt.generateAccessToken(user.getId(), user.getRole()),
-            jwt.generateRefreshToken(user.getId()),
+            jwt.generateAccessToken(user.getId(), user.getRole(), user.getTokenVersion()),
+            jwt.generateRefreshToken(user.getId(), user.getTokenVersion()),
             user.getEmail().value(),
             user.needsOnboarding()
         );

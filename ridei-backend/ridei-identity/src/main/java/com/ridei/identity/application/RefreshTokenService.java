@@ -27,18 +27,21 @@ public class RefreshTokenService implements RefreshTokenUseCase {
 
         if (!jwt.validateToken(token) || !jwt.isRefreshToken(token))
             throw new InvalidCredentialException();
-        
+
         UserId userId = jwt.extractUserId(token);
+        int tokenVersion = jwt.extractTokenVersion(token);
 
         User user = userRepository.findById(userId)
             .orElseThrow(InvalidCredentialException::new);
 
+        if (user.getTokenVersion() != tokenVersion)
+            throw new InvalidCredentialException();
+
         if (user.isSuspended())
             throw new UserSuspendedException();
 
-        String accessToken = jwt.generateAccessToken(user.getId(), user.getRole());
+        String accessToken = jwt.generateAccessToken(user.getId(), user.getRole(), user.getTokenVersion());
 
         return new RefreshTokenResult(accessToken);
     }
-    
 }

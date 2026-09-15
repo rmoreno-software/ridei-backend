@@ -33,11 +33,16 @@ public class JwtAdapter implements JwtPort {
     }
 
     @Override
-    public String generateAccessToken(UserId userId, UserRole role) {
+    public String generateAccessToken(
+        UserId userId,
+        UserRole role,
+        int tokenVersion
+    ) {
         return Jwts.builder()
                 .subject(userId.value().toString())
                 .claim("role", role.name())
                 .claim("type", "access")
+                .claim("tv", tokenVersion)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(key)
@@ -45,10 +50,14 @@ public class JwtAdapter implements JwtPort {
     }
 
     @Override
-    public String generateRefreshToken(UserId userId) {
+    public String generateRefreshToken(
+        UserId userId,
+        int tokenVersion
+    ) {
         return Jwts.builder()
                 .subject(userId.value().toString())
                 .claim("type", "refresh")
+                .claim("tv", tokenVersion)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + refreshExpirationMs))
                 .signWith(key)
@@ -98,6 +107,17 @@ public class JwtAdapter implements JwtPort {
             .getPayload()
             .get("type");
         return "refresh".equals(type);
+    }
+
+    @Override
+    public int extractTokenVersion(String token) {
+        Object tv = Jwts.parser()
+            .verifyWith(key)
+            .build()
+            .parseSignedClaims(token)
+            .getPayload()
+            .get("tv");
+        return tv == null ? 0 : ((Number) tv).intValue();
     }
     
 }
