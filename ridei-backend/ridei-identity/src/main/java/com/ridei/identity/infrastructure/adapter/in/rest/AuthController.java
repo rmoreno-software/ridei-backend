@@ -152,21 +152,28 @@ public class AuthController {
         @RequestParam String token,
         @RequestParam(required = false) String lang
     ) {
+        Locale locale = resolveLocale(lang);
+
         if (!verifyEmailUseCase.isTokenValid(token)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(templateEngine.process("verification/error", new Context()));
         }
-        Context context = new Context();
+        Context context = new Context(locale);
         context.setVariable("token", token);
         context.setVariable("lang", lang);
         return ResponseEntity.ok(templateEngine.process("verification/confirm", context));
     }
 
     @PostMapping(value = "/verify-email", produces = MediaType.TEXT_HTML_VALUE)
-    public ResponseEntity<String> confirmVerifyEmail(@RequestParam String token) {
+    public ResponseEntity<String> confirmVerifyEmail(
+        @RequestParam String token,
+        @RequestParam (required = false) String lang
+    ) {
+        Locale locale = resolveLocale(lang);
+
         try {
             verifyEmailUseCase.verify(new VerifyEmailCommand(token));
-            return ResponseEntity.ok(templateEngine.process("verification/success", new Context()));
+            return ResponseEntity.ok(templateEngine.process("verification/success", new Context(locale)));
         } catch (InvalidOrExpiredVerificationTokenException ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(templateEngine.process("verification/error", new Context()));
@@ -186,5 +193,9 @@ public class AuthController {
     public ResponseEntity<RefreshTokenResponseDTO> refresh(@RequestBody @Valid RefreshTokenRequestDTO dto) {
         RefreshTokenResult result = refreshTokenUseCase.refresh(new RefreshTokenCommand(dto.getRefreshToken()));
         return ResponseEntity.ok(new RefreshTokenResponseDTO(result.accessToken()));
+    }
+
+    private Locale resolveLocale(String lang) {
+        return (lang == null || lang.isBlank()) ? Locale.ENGLISH : Locale.of(lang);
     }
 }
