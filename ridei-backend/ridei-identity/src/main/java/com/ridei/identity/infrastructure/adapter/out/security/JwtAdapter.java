@@ -88,5 +88,16 @@ public class JwtAdapter implements JwtPort {
             .getPayload()
             .get("role");
     }
+
+    @Override
+    public boolean isRefreshToken(String token) {
+        String type = (String) Jwts.parser()
+            .verifyWith(key)
+            .build()
+            .parseSignedClaims(token)
+            .getPayload()
+            .get("type");
+        return "refresh".equals(type);
+    }
     
 }

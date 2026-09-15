@@ -11,6 +11,7 @@ import com.ridei.identity.application.ConfirmProfilePictureService;
 import com.ridei.identity.application.GetCurrentUserService;
 import com.ridei.identity.application.LoginService;
 import com.ridei.identity.application.LoginWithGoogleService;
+import com.ridei.identity.application.RefreshTokenService;
 import com.ridei.identity.application.RegisterUserService;
 import com.ridei.identity.application.RemoveProfilePictureService;
 import com.ridei.identity.application.RequestProfilePictureUploadService;
@@ -30,6 +31,7 @@ import com.ridei.identity.domain.port.in.ConfirmProfilePictureUseCase;
 import com.ridei.identity.domain.port.in.GetCurrentUserUseCase;
 import com.ridei.identity.domain.port.in.LoginUseCase;
 import com.ridei.identity.domain.port.in.LoginWithGoogleUseCase;
+import com.ridei.identity.domain.port.in.RefreshTokenUseCase;
 import com.ridei.identity.domain.port.in.RegisterUserUseCase;
 import com.ridei.identity.domain.port.in.RemoveProfilePictureUseCase;
 import com.ridei.identity.domain.port.in.RequestProfilePictureUploadUseCase;
@@ -209,5 +211,10 @@ public class BeanConfig {
         @Value("${app.public-api-url}") String publicApiUrl
     ) {
         return new ResendVerificationEmailService(userRepository, emailSender, publicApiUrl);
+    }
+
+    @Bean 
+    public RefreshTokenUseCase refreshTokenUseCase(JwtPort jwt, UserRepositoryPort userRepository) {
+        return new RefreshTokenService(jwt, userRepository);
     }
 }

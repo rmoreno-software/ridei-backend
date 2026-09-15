@@ -9,4 +9,5 @@ public interface JwtPort {
     boolean validateToken(String token);
     UserId extractUserId(String token);
     String extractRole(String token);
+    boolean isRefreshToken(String token);
 }

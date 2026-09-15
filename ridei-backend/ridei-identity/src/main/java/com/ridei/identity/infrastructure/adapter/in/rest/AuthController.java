@@ -19,6 +19,8 @@ import com.ridei.identity.application.GoogleAuthResult;
 import com.ridei.identity.application.LoginCommand;
 import com.ridei.identity.application.LoginResult;
 import com.ridei.identity.application.LoginWithGoogleCommand;
+import com.ridei.identity.application.RefreshTokenCommand;
+import com.ridei.identity.application.RefreshTokenResult;
 import com.ridei.identity.application.RequestTemporaryPasswordCommand;
 import com.ridei.identity.application.ResendVerificationEmailCommand;
 import com.ridei.identity.application.ResetPasswordCommand;
@@ -27,6 +29,7 @@ import com.ridei.identity.domain.exception.InvalidOrExpiredVerificationTokenExce
 import com.ridei.identity.domain.model.Email;
 import com.ridei.identity.domain.port.in.LoginUseCase;
 import com.ridei.identity.domain.port.in.LoginWithGoogleUseCase;
+import com.ridei.identity.domain.port.in.RefreshTokenUseCase;
 import com.ridei.identity.domain.port.in.RequestTemporaryPasswordUseCase;
 import com.ridei.identity.domain.port.in.ResendVerificationEmailUseCase;
 import com.ridei.identity.domain.port.in.ResetPasswordUseCase;
@@ -47,6 +50,7 @@ public class AuthController {
     private final VerifyEmailUseCase verifyEmailUseCase;
     private final ResendVerificationEmailUseCase resendVerificationEmailUseCase;
     private final ITemplateEngine templateEngine;
+    private final RefreshTokenUseCase refreshTokenUseCase;
 
     public AuthController(
         LoginWithGoogleUseCase loginWithGoogleUseCase,
@@ -56,7 +60,8 @@ public class AuthController {
         ResetPasswordUseCase resetPasswordUseCase,
         VerifyEmailUseCase verifyEmailUseCase,
         ResendVerificationEmailUseCase resendVerificationEmailUseCase,
-        ITemplateEngine templateEngine
+        ITemplateEngine templateEngine,
+        RefreshTokenUseCase refreshTokenUseCase
     ) {
 
         this.loginWithGoogleUseCase = loginWithGoogleUseCase;
@@ -67,6 +72,7 @@ public class AuthController {
         this.verifyEmailUseCase = verifyEmailUseCase;
         this.resendVerificationEmailUseCase = resendVerificationEmailUseCase;
         this.templateEngine = templateEngine;
+        this.refreshTokenUseCase = refreshTokenUseCase;
     }
 
     @PostMapping("/google")
@@ -168,4 +174,9 @@ public class AuthController {
         return ResponseEntity.accepted().build();
     }
 
+    @PostMapping("/refresh")
+    public ResponseEntity<RefreshTokenResponseDTO> refresh(@RequestBody @Valid RefreshTokenRequestDTO dto) {
+        RefreshTokenResult result = refreshTokenUseCase.refresh(new RefreshTokenCommand(dto.getRefreshToken()));
+        return ResponseEntity.ok(new RefreshTokenResponseDTO(result.accessToken()));
+    }
 }
