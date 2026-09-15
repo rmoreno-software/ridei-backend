@@ -84,4 +84,25 @@ public class SmtpEmailSenderAdapter implements EmailSenderPort {
             throw new RuntimeException("No se pudo enviar el email de verificación", e);
         }
     }
+
+    @Override
+    public void sendPasswordChangedNotification(Email to, Locale locale) {
+        Context context = new Context(locale);
+        String html = templateEngine.process("email/password-changed", context);
+
+        String subject = messageSource.getMessage("email.password_changed.subject", null, locale);
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
+            helper.setFrom(fromAddress);
+            helper.setTo(to.value());
+            helper.setSubject(subject);
+            helper.setText(html, true);
+            helper.addInline("logo",  new ClassPathResource("email/ridei_logo_black.png"));
+            mailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("No se pudo enviar el email de aviso de cambio de contraseña", e);
+        }
+    }
 }

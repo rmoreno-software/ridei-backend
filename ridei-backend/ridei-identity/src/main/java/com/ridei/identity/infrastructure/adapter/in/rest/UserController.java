@@ -220,10 +220,18 @@ public class UserController {
     @PatchMapping("/me/password")
     public ResponseEntity<Void> changePassword(
         @RequestBody @Valid ChangePasswordRequestDTO dto,
-        Authentication authentication
+        Authentication authentication,
+        Locale locale
     ) {
         UserId userId = UserId.of(authentication.getName());
-        changePasswordUseCase.change(new ChangePasswordCommand(userId, dto.getNewPassword()));
+        changePasswordUseCase.change(
+            new ChangePasswordCommand(
+                userId,
+                dto.getNewPassword(),
+                locale
+            )
+        );
+        
         return ResponseEntity.noContent().build();
     }
 

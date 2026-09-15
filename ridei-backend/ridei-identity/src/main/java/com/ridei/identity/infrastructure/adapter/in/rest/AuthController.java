@@ -132,11 +132,15 @@ public class AuthController {
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<Void> resetPassword(@RequestBody @Valid ResetPasswordRequestDTO dto) {
+    public ResponseEntity<Void> resetPassword(
+        @RequestBody @Valid ResetPasswordRequestDTO dto,
+        Locale locale
+    ) {
         resetPasswordUseCase.reset(new ResetPasswordCommand(
             new Email(dto.getEmail()), 
             dto.getTemporaryPassword(),
-            dto.getNewPassword()
+            dto.getNewPassword(),
+            locale
         ));
         return ResponseEntity.noContent().build();
     }

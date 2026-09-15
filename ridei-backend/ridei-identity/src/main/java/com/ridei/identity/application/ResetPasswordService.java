@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import com.ridei.identity.domain.exception.InvalidCredentialException;
 import com.ridei.identity.domain.model.User;
 import com.ridei.identity.domain.port.in.ResetPasswordUseCase;
+import com.ridei.identity.domain.port.out.EmailSenderPort;
 import com.ridei.identity.domain.port.out.PasswordHasherPort;
 import com.ridei.identity.domain.port.out.UserRepositoryPort;
 
@@ -15,13 +16,16 @@ public class ResetPasswordService implements ResetPasswordUseCase {
     
     private final UserRepositoryPort userRepository;
     private final PasswordHasherPort passwordHasher;
+    private final EmailSenderPort emailSender;
 
     public ResetPasswordService(
         UserRepositoryPort userRepository,
-        PasswordHasherPort passwordHasher
+        PasswordHasherPort passwordHasher,
+        EmailSenderPort emailSender
     ) {
         this.userRepository = userRepository;
         this.passwordHasher = passwordHasher;
+        this.emailSender = emailSender;
     }
 
     @Override
@@ -49,6 +53,8 @@ public class ResetPasswordService implements ResetPasswordUseCase {
         user.changePassword(passwordHasher.hash(command.newPassword()));
 
         userRepository.update(user);
+
+        emailSender.sendPasswordChangedNotification(user.getEmail(), command.locale());
 
         log.debug("Reset password: completed successfully for user {}", user.getId().value());
     }

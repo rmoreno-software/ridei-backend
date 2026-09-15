@@ -188,17 +188,27 @@ public class BeanConfig {
     @Bean
     public ChangePasswordUseCase changePasswordUseCase(
         UserRepositoryPort repository,
-        PasswordHasherPort passwordHasher
+        PasswordHasherPort passwordHasher,
+        EmailSenderPort emailSender
     ) {
-        return new ChangePasswordService(repository, passwordHasher);
+        return new ChangePasswordService(
+            repository,
+            passwordHasher,
+            emailSender
+        );
     }
 
     @Bean
     public ResetPasswordUseCase resetPasswordUseCase(
         UserRepositoryPort repository,
-        PasswordHasherPort passwordHasher
+        PasswordHasherPort passwordHasher,
+        EmailSenderPort emailSender
     ) {
-        return new ResetPasswordService(repository, passwordHasher);
+        return new ResetPasswordService(
+            repository,
+            passwordHasher,
+            emailSender
+        );
     }
 
     @Bean
