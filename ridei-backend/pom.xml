@@ -15,6 +15,7 @@
     <!-- Declara los módulos hijos -->
     <modules>
         <module>ridei-identity</module>
+        <module>ridei-garage</module>
     </modules>
 
     <!-- El padre de todos los módulos es Spring Boot -->

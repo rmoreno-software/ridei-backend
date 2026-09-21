@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: ridei-garage
+  datasource:
+    url: ${GARAGE_DB_URL}
+    username: ${GARAGE_DB_USERNAME}
+    password: ${GARAGE_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+server:
+  port: 8082
+
+jwt:
+  secret: ${JWT_SECRET}
