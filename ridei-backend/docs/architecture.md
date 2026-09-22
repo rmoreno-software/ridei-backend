@@ -128,11 +128,31 @@ The repository is a **Maven multi-module project**. The root `pom.xml` acts as a
 ridei-backend/           ← Parent POM (com.ridei:ridei-backend)
 ├── pom.xml
 ├── docker-compose.yml
-└── ridei-identity/      ← Child module (identity microservice)
+├── ridei-identity/      ← Child module (identity & auth microservice)
+│   └── pom.xml
+└── ridei-garage/        ← Child module (motorbike garage microservice)
     └── pom.xml
 ```
 
-Future microservices (e.g. `ridei-events`, `ridei-results`) are added as new child modules under the same parent.
+`ridei-garage` (added 2026-09) was the first bounded context split out this way — the pattern for future microservices (e.g. `ridei-events`, `ridei-results`) is now proven: its own child module, its own package root (`com.ridei.garage`), its own database, and its own copy of `JwtAuthenticationFilter`/`SecurityConfig` rather than a shared library — see [§ Multi-service concerns](#multi-service-concerns) below for why.
+
+---
+
+## Multi-service concerns
+
+Splitting a bounded context into its own microservice (`ridei-garage`) raised two questions that don't come up in a single-service setup:
+
+### No shared code module between bounded contexts
+
+`ridei-garage` does **not** depend on `ridei-identity` as a Maven module, even though both need, for example, JWT validation logic. Each service has its own minimal, independent copy (`com.ridei.garage.infrastructure.config.JwtAuthenticationFilter` duplicates the shape of `com.ridei.identity.infrastructure.config.JwtAuthenticationFilter`, but is not the same class or a shared dependency). This is a deliberate DDD choice, not an oversight: a shared "common" module becomes a hidden coupling point between contexts that are supposed to evolve independently, and it tends to accumulate concepts that only make sense from one context's point of view. The small amount of duplication is the cheaper cost.
+
+### Cross-service authentication without a shared secret
+
+`ridei-identity` issues JWTs; `ridei-garage` (and any future service) only needs to verify them, never issue its own. Rather than share a symmetric secret (HS256) — which would let a compromised or buggy service in `ridei-garage` forge tokens as if it were `ridei-identity` — tokens are signed with **ES256 (asymmetric)**. Only `ridei-identity` holds the private key; every other service holds only the public key, wired in via its own `${jwt.public-key}` property. See [deployment.md § JWT signing keys](deployment.md#5-jwt-signing-keys-es256-shared-across-services) for the operational side.
+
+### Cross-database references without foreign keys
+
+`ridei-garage`'s `motorbikes.owner_id` refers to a user that lives in `ridei_identity`'s database — a separate Postgres database, potentially a separate host in the future. There is no foreign key, no cross-database query, and no shared table. Ownership is established purely from the authenticated JWT subject at the API boundary (`OwnerId.of(authentication.getName())`), the same anti-IDOR pattern used everywhere in `ridei-identity` (`UserId.of(authentication.getName())`). See [database.md § ridei-garage database](database.md#2-ridei-garage-database) for the full rationale.
 
 ---
 
@@ -148,3 +168,6 @@ Future microservices (e.g. `ridei-events`, `ridei-results`) are added as new chi
 | Static factory methods on aggregates | Enforce invariants at construction time (`User.register()`, `User.reconstitute()`) |
 | Commands as Java Records | Immutable, concise, no setter surface |
 | Flyway for migrations | Schema changes are versioned, reproducible, and auditable |
+| Asymmetric JWT signing (ES256) across services | Only the issuing service (`ridei-identity`) can forge tokens; every verifying service holds only a public key |
+| No shared code module between microservices | Keeps bounded contexts independently deployable and evolvable, at the cost of a small amount of duplication |
+| Ownership by JWT subject, not foreign key, across service boundaries | Cross-database references are impossible/inappropriate between independent microservices; the API boundary is the trust boundary |

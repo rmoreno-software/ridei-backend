@@ -2,6 +2,8 @@
 
 The project uses a layered error handling strategy where each layer is responsible for a specific class of errors. All errors are ultimately translated into a uniform `ApiError` JSON response by a single centralised handler.
 
+> This document describes `ridei-identity`'s `GlobalExceptionHandler`. `ridei-garage`'s follows the same three-handler shape (`MethodArgumentNotValidException` → `400`, `IllegalArgumentException` → `400`, catch-all `Exception` → `500`), but its `ApiError` record **omits `timestamp`** — a small, so-far-unreconciled divergence between the two services' error contracts, not an inconsistency to "fix" without deciding whether it's worth the coordination.
+
 ---
 
 ## Error response model — `ApiError`

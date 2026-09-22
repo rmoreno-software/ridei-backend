@@ -1,5 +1,7 @@
 # Testing
 
+> **Known broken test (2026-09-22):** `ridei-identity/src/test/java/.../infrastructure/adapter/out/security/JwtAdapterTest.java` still constructs `JwtAdapter` with plain ASCII strings (leftover from the HS256 era) instead of Base64-encoded EC keys. All 3 tests currently error with `IllegalStateException: Invalid JWT private key configuration` (confirmed via `./mvnw test -pl ridei-identity -Dtest=JwtAdapterTest`) — not a docs issue, needs a real fix: generate a throwaway EC key pair in the test (e.g. in a `@BeforeAll`, the same way as [getting-started.md § 4](getting-started.md#4-generate-a-local-jwt-key-pair-one-time)) and pass its Base64 DER encoding instead.
+
 ## Strategy
 
 The project applies a **unit-test-first** approach to the domain and application layers. All unit tests are fast, isolated, and have no external dependencies — no database, no Spring context, no HTTP stack.

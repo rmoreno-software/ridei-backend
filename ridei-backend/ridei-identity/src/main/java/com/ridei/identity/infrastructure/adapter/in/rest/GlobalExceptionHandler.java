@@ -7,8 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -140,6 +140,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleProfilePictureTooLargeException(ProfilePictureTooLargeException ex, Locale locale) {
         return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(
             new ApiError(413, "Payload Too Large", translate(ex.getMessage(), locale))
+        );
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiError> handleMalformedJson(HttpMessageNotReadableException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+            new ApiError(400, "Bad Request", "Malformed request body")
         );
     }
 }

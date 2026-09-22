@@ -2,6 +2,8 @@
 
 The application layer sits between the domain and the infrastructure. Its sole responsibility is **orchestrating domain objects to fulfill use cases**. It contains no business rules of its own — all validation and logic lives in the domain.
 
+> This document is a deep dive into `ridei-identity`'s application layer (`com.ridei.identity.application`). `ridei-garage` follows the same pattern under `com.ridei.garage.application`: `RegisterMotorbikeCommand`/`RegisterMotorbikeService` and `ListMyMotorbikeService`, implementing the inbound ports `RegisterMotorbikeUseCase`/`ListMyMotorbikesUseCase` from its own domain.
+
 Package root: `com.ridei.identity.application`
 
 ---

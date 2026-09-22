@@ -19,6 +19,7 @@ public class Motorbike {
     private final OwnerId ownerId;
     private String brand;
     private String model;
+    private Category category;
     private int year;
     private Integer displacementCc;
     private BigDecimal weightKg;
@@ -31,6 +32,7 @@ public class Motorbike {
         OwnerId ownerId,
         String brand,
         String model,
+        Category category,
         int year,
         Integer displacementCc,
         BigDecimal weightKg,
@@ -40,6 +42,9 @@ public class Motorbike {
         requireText(brand, "Brand");
         requireText(model, "Model");
 
+        if (category == null) {
+            throw new IllegalArgumentException("Category is required");
+        }
         int maxYear = Year.now().getValue() + 1;
         if (year < FIRST_MOTORBIKE_YEAR || year > maxYear)
             throw new IllegalArgumentException("Year must be between + " + FIRST_MOTORBIKE_YEAR + " and " + maxYear);
@@ -55,6 +60,7 @@ public class Motorbike {
             ownerId,
             brand.trim(),
             model.trim(),
+            category,
             year,
             displacementCc,
             weightKg,
@@ -70,6 +76,7 @@ public class Motorbike {
         OwnerId ownerId,
         String brand,
         String model,
+        Category category,
         int year,
         Integer displacementCc,
         BigDecimal weightKg,
@@ -83,6 +90,7 @@ public class Motorbike {
             ownerId,
             brand,
             model,
+            category,
             year,
             displacementCc,
             weightKg,
@@ -104,5 +112,9 @@ public class Motorbike {
     private static void requireText(String value, String field) {
         if (value == null || value.isBlank())
             throw new IllegalArgumentException(field + " is required");
+    }
+
+    public CategoryGroup getCategoryGroup() {
+        return this.category.group();
     }
 }

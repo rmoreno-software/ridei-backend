@@ -4,33 +4,49 @@
 
 The project uses **PostgreSQL 16** as its relational database. Schema creation and evolution are managed by **Flyway**, which applies versioned SQL migration scripts on application startup.
 
-- Database name: `ridei_identity`
-- Schema management: Flyway 10 (scripts at `classpath:db/migration`)
+Since `ridei-garage` was introduced as a separate microservice, **each service owns its own database** — there is no shared schema and no foreign key between them, even though `motorbikes.owner_id` conceptually refers to a `ridei_identity` user (see [§ridei-garage database](#ridei-garage-database) below for how that relationship is modeled without a cross-database FK).
+
+- Schema management: Flyway 10 per service (scripts at each module's own `classpath:db/migration`)
 - JPA strategy: `ddl-auto: validate` — Hibernate validates the schema against the entities but never modifies it; Flyway owns all DDL.
+
+This document covers `ridei-identity`'s schema in detail (§1) and `ridei-garage`'s schema (§2).
 
 ---
 
-## Running the database locally
+## Running the databases locally
 
-The repository includes a `docker-compose.yml` at the root:
+The repository includes a `docker-compose.yml` at the root, which brings up the shared Postgres container used by both services (each with its own database and role inside it):
 
 ```bash
 docker compose up -d
 ```
 
-| Parameter | Value |
-|---|---|
-| Host | `localhost` |
-| Port | `5432` |
-| Database | `ridei_identity` |
-| User | `ridei` |
-| Password | `ridei_dev` |
+| Parameter | `ridei-identity` | `ridei-garage` |
+|---|---|---|
+| Host | `localhost` | `localhost` |
+| Port | `5432` | `5432` |
+| Database | `ridei_identity` | `ridei_garage` |
+| User | `ridei` | `ridei_garage` |
+| Password | `ridei_dev` | `ridei_garage_dev` |
+
+`ridei_garage`'s database and role aren't created by `docker-compose.yml` automatically — they're provisioned once against the running container:
+
+```bash
+docker exec -it ridei-postgres psql -U ridei -d postgres \
+  -c "CREATE USER ridei_garage WITH PASSWORD 'ridei_garage_dev';" \
+  -c "CREATE DATABASE ridei_garage OWNER ridei_garage;" \
+  -c "REVOKE CONNECT ON DATABASE ridei_garage FROM PUBLIC;"
+```
+
+The `REVOKE CONNECT ... FROM PUBLIC` means only the `ridei_garage` role (and superusers) can connect to that database — `ridei-identity`'s role has no access to it, and vice versa. The same pattern is used in production with a generated, non-default password (see [deployment.md](deployment.md)).
 
 Data is persisted in a named Docker volume (`ridei_postgres_data`).
 
 ---
 
-## Migrations
+## 1. `ridei-identity` database
+
+### Migrations
 
 Flyway migration scripts live at:
 
@@ -114,13 +130,56 @@ users (1) ──────────── (0..1) organizer_accounts
 
 ---
 
-## Enums stored as strings
+### Enums stored as strings
 
 All enum columns (`gender`, `document_type`, `role`, `account_status`) are stored as `VARCHAR` with the enum name as the string value (JPA `EnumType.STRING`). This makes the data human-readable and avoids the fragility of ordinal-based storage.
 
 ---
 
+## 2. `ridei-garage` database
+
+Introduced 2026-09 as the first bounded context split into its own microservice with its own database (`ridei_garage`). It currently has a single table.
+
+### Migrations
+
+```
+ridei-garage/src/main/resources/db/migration/
+```
+
+#### `V1__create_motorbikes.sql`
+
+### `motorbikes`
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `id` | `UUID` | `PRIMARY KEY` | Unique motorbike identifier |
+| `owner_id` | `UUID` | `NOT NULL`, indexed (`idx_motorbikes_owner_id`) | The owning user's id — **no foreign key**, see below |
+| `brand` | `VARCHAR(100)` | `NOT NULL` | |
+| `model` | `VARCHAR(100)` | `NOT NULL` | |
+| `year` | `INTEGER` | `NOT NULL` | |
+| `displacement_cc` | `INTEGER` | nullable | |
+| `weight_kg` | `NUMERIC(6,2)` | nullable | |
+| `acquisition_date` | `DATE` | nullable | |
+| `disposal_date` | `DATE` | nullable | Non-null means the motorbike has been retired/sold |
+| `photo_url` | `VARCHAR(500)` | nullable | |
+| `created_at` | `TIMESTAMP` | `NOT NULL DEFAULT now()` | |
+
+Check constraint: `disposal_date` must be `>= acquisition_date` when both are set.
+
+### Cross-database ownership — no foreign key
+
+`owner_id` refers to a `ridei_identity.users.id`, but the two tables live in **physically separate databases** (potentially separate hosts in the future), so a real `FOREIGN KEY` is impossible and wouldn't be appropriate anyway — it would couple the two bounded contexts at the schema level, which contradicts the whole point of splitting them into independent microservices.
+
+Instead, ownership is enforced entirely at the **application layer**:
+- `owner_id` is only ever set from the authenticated JWT subject (`OwnerId.of(authentication.getName())` in `MotorbikeController`), **never** trusted from a request body — this is the same anti-IDOR pattern used throughout `ridei-identity` (`UserId.of(authentication.getName())`).
+- There is no reverse lookup from garage into identity (no HTTP call, no shared table) — garage doesn't need to know a user exists to store their motorbikes; if a `userId` in a token is fabricated or belongs to a deleted account, that's identity's concern to prevent at token-issuance time, not garage's to validate at read time.
+- If `ridei-identity` ever needs to show "this user has N motorbikes", that's a cross-service query (an authenticated call from identity to garage's own API), not a database join.
+
+---
+
 ## Flyway configuration
+
+Same pattern for both services:
 
 ```yaml
 spring:

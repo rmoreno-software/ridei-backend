@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import com.ridei.garage.application.RegisterMotorbikeCommand;
+import com.ridei.garage.domain.model.Category;
 import com.ridei.garage.domain.model.OwnerId;
 
 import jakarta.validation.constraints.Min;
@@ -26,6 +27,9 @@ public class RegisterMotorbikeRequestDTO {
     private String model;
 
     @NotNull 
+    private Category category;
+
+    @NotNull 
     @Min(1885)
     private Integer year;
 
@@ -43,6 +47,7 @@ public class RegisterMotorbikeRequestDTO {
             ownerId,
             brand,
             model,
+            category,
             year,
             displacementCc,
             weightKg,

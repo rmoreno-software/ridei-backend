@@ -5,12 +5,15 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 
+import com.ridei.garage.domain.model.Category;
 import com.ridei.garage.domain.model.Motorbike;
 import com.ridei.garage.domain.model.MotorbikeId;
 import com.ridei.garage.domain.model.OwnerId;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -41,6 +44,10 @@ public class MotorbikeJpaEntity {
     @Column(nullable = false, length = 100)
     private String model;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private Category category;
+
     @Column(nullable = false)
     private int year;
 
@@ -68,6 +75,7 @@ public class MotorbikeJpaEntity {
             .ownerId(motorbike.getOwnerId().value())
             .brand(motorbike.getBrand())
             .model(motorbike.getModel())
+            .category(motorbike.getCategory())
             .year(motorbike.getYear())
             .displacementCc(motorbike.getDisplacementCc())
             .weightKg(motorbike.getWeightKg())
@@ -84,6 +92,7 @@ public class MotorbikeJpaEntity {
             new OwnerId(ownerId),
             brand,
             model,
+            category,
             year,
             displacementCc,
             weightKg,

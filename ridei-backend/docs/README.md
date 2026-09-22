@@ -27,7 +27,8 @@ Welcome to the Ridei Backend documentation. This index links to all available do
 
 | Module | Description | Port |
 |---|---|---|
-| `ridei-identity` | User registration and identity management | `8081` |
+| `ridei-identity` | User registration, authentication (JWT/ES256), onboarding, and identity management | `8081` |
+| `ridei-garage` | Motorbike garage management — independent database, verifies but doesn't issue JWTs | `8082` |
 
 ### Tech stack
 

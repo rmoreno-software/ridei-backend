@@ -1,0 +1,2 @@
+ALTER TABLE motorbikes
+    ADD COLUMN category VARCHAR(30) NOT NULL;

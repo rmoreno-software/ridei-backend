@@ -2,6 +2,8 @@
 
 The domain layer is the heart of the application. It contains pure business logic and has **zero dependencies on frameworks, databases, or HTTP**. Everything in this layer is plain Java.
 
+> This document is a deep dive into `ridei-identity`'s domain (`com.ridei.identity.domain`). `ridei-garage`, added this week, follows the same pattern under `com.ridei.garage.domain` at a much smaller scale so far: aggregate root `Motorbike` (`domain/model/Motorbike.java`), value objects `MotorbikeId` and `OwnerId` (both UUID wrappers), factory methods `register(...)`/`reconstitute(...)`, and an outbound port `MotorbikeRepositoryPort`. See [database.md § ridei-garage database](database.md#2-ridei-garage-database) for its schema and [architecture.md § Multi-service concerns](architecture.md#multi-service-concerns) for why it's a separate bounded context rather than an extension of this one.
+
 Package root: `com.ridei.identity.domain`
 
 ---

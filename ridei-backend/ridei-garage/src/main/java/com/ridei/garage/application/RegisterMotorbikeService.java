@@ -18,6 +18,7 @@ public class RegisterMotorbikeService implements  RegisterMotorbikeUseCase {
             command.ownerId(),
             command.brand(),
             command.model(),
+            command.category(),
             command.year(),
             command.displacementCc(),
             command.weightKg(),
