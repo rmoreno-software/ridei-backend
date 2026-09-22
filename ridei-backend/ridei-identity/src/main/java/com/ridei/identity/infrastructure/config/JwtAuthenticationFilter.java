@@ -34,7 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
 
-            if (jwt.validateToken(token)) {
+            if (jwt.validateAccessToken(token)) {
                 UserId userId = jwt.extractUserId(token);
                 int tokenVersion = jwt.extractTokenVersion(token);
 

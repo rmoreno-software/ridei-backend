@@ -25,7 +25,7 @@ public class RefreshTokenService implements RefreshTokenUseCase {
     public RefreshTokenResult refresh(RefreshTokenCommand command) {
         String token = command.refreshToken();
 
-        if (!jwt.validateToken(token) || !jwt.isRefreshToken(token))
+        if (!jwt.validateRefreshToken(token))
             throw new InvalidCredentialException();
 
         UserId userId = jwt.extractUserId(token);

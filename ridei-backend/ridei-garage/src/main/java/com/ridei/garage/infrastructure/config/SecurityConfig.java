@@ -16,13 +16,13 @@ public class SecurityConfig {
     @Bean 
     public SecurityFilterChain securityFilterChain(
         HttpSecurity http,
-        @Value("${jwt.secret}") String jwtSecret 
+        @Value("${jwt.public-key}") String jwtPublicKey 
     ) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
-            .addFilterBefore(new JwtAuthenticationFilter(jwtSecret), UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(new JwtAuthenticationFilter(jwtPublicKey), UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth.anyRequest().authenticated());
         return http.build();
     }

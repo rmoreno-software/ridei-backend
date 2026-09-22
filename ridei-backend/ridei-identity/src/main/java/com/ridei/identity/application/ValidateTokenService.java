@@ -16,7 +16,7 @@ public class ValidateTokenService implements ValidateTokenUseCase {
 
     @Override
     public boolean validate(String token) {
-        if (!jwt.validateToken(token)) return false;
+        if (!jwt.validateAccessToken(token)) return false;
 
         try {
             UserId userId = jwt.extractUserId(token);

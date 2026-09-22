@@ -1,10 +1,12 @@
 package com.ridei.garage.infrastructure.config;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.security.KeyFactory;
+import java.security.PublicKey;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 import java.util.List;
 
-import javax.crypto.SecretKey;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -14,7 +16,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,10 +23,15 @@ import jakarta.servlet.http.HttpServletResponse;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private SecretKey key;
+    private final PublicKey publicKey;
 
-    public JwtAuthenticationFilter(String secret) {
-        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    public JwtAuthenticationFilter(String publicKeyBase64) {
+        try {
+            byte[] bytes = Base64.getDecoder().decode(publicKeyBase64);
+            this.publicKey = KeyFactory.getInstance("EC").generatePublic(new X509EncodedKeySpec(bytes));
+        } catch (Exception e) {
+            throw new IllegalStateException("Invalid JWT public key configuration", e);
+        }
     }
 
     @Override
@@ -45,7 +51,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private void authenticate(String token) {
         try {
-            Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
+            Claims claims = Jwts.parser().verifyWith(publicKey).build().parseSignedClaims(token).getPayload();
 
             if (!"access".equals(claims.get("type", String.class))) return;
 
@@ -61,5 +67,4 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // Token inválido o caducado: la petición sigue sin autenticar y Spring Security la rechazará.
         }
     }
-    
 }
