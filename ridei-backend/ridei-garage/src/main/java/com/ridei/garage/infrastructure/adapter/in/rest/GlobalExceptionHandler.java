@@ -12,6 +12,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.ridei.garage.domain.exception.CannotActivateRetiredMotorbikeException;
+import com.ridei.garage.domain.exception.MotorbikeNotFoundException;
 import com.ridei.garage.infrastructure.adapter.in.rest.exception.ApiError;
 
 @RestControllerAdvice 
@@ -44,6 +46,20 @@ public class GlobalExceptionHandler {
             )
         );
     }
+
+    @ExceptionHandler(MotorbikeNotFoundException.class)
+    public ResponseEntity<ApiError> handleNotFound(MotorbikeNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+            new ApiError(404, "Not Found", ex.getMessage())
+        );
+    }
+
+    @ExceptionHandler(CannotActivateRetiredMotorbikeException.class)
+    public ResponseEntity<ApiError> handleCannotActivateRetired(CannotActivateRetiredMotorbikeException ex) {
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(
+            new ApiError(422, "Unprocessable Entity", ex.getMessage())
+        );
+    } 
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiError> handleMalformedJson(HttpMessageNotReadableException ex) {

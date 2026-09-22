@@ -10,4 +10,8 @@ public record MotorbikeId(UUID value) {
     public static MotorbikeId newId() {
         return new MotorbikeId(UUID.randomUUID());
     }
+
+    public static MotorbikeId of(String value) {
+        return new MotorbikeId(UUID.fromString(value));
+    }
 }

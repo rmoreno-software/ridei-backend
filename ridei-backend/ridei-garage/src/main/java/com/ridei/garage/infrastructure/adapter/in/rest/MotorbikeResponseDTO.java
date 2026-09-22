@@ -17,6 +17,7 @@ public record MotorbikeResponseDTO(
     BigDecimal weightKg,
     LocalDate acquisitionDate,
     LocalDate disposalDate,
+    boolean active,
     String photoUrl,
     Instant createdAt
 ) {
@@ -32,6 +33,7 @@ public record MotorbikeResponseDTO(
             motorbike.getWeightKg(),
             motorbike.getAcquisitionDate(),
             motorbike.getDisposalDate(),
+            motorbike.isActive(),
             motorbike.getPhotoUrl(),
             motorbike.getCreatedAt()
         );

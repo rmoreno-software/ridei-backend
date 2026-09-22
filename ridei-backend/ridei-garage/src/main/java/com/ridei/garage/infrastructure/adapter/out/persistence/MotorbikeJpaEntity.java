@@ -63,6 +63,9 @@ public class MotorbikeJpaEntity {
     @Column(name = "disposal_date")
     private LocalDate disposalDate;
 
+    @Column(name = "is_active", nullable = false)
+    private boolean active;
+
     @Column(name = "photo_url", length = 500)
     private String photoUrl;
 
@@ -81,6 +84,7 @@ public class MotorbikeJpaEntity {
             .weightKg(motorbike.getWeightKg())
             .acquisitionDate(motorbike.getAcquisitionDate())
             .disposalDate(motorbike.getDisposalDate())
+            .active(motorbike.isActive())
             .photoUrl(motorbike.getPhotoUrl())
             .createdAt(motorbike.getCreatedAt())
             .build();
@@ -98,6 +102,7 @@ public class MotorbikeJpaEntity {
             weightKg,
             acquisitionDate,
             disposalDate,
+            active,
             photoUrl,
             createdAt
         );

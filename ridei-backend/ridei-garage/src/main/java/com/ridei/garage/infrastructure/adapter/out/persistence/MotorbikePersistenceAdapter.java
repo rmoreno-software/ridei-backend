@@ -1,10 +1,12 @@
 package com.ridei.garage.infrastructure.adapter.out.persistence;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
 import com.ridei.garage.domain.model.Motorbike;
+import com.ridei.garage.domain.model.MotorbikeId;
 import com.ridei.garage.domain.model.OwnerId;
 import com.ridei.garage.domain.port.out.MotorbikeRepositoryPort;
 
@@ -26,6 +28,12 @@ public class MotorbikePersistenceAdapter implements MotorbikeRepositoryPort {
         return jpaRepository.findAllByOwnerIdOrderByCreatedAtDesc(ownerId.value()).stream()
             .map(MotorbikeJpaEntity::toDomain)
             .toList();
+    }
+
+    @Override
+    public Optional<Motorbike> findById(MotorbikeId id) {
+        return jpaRepository.findById(id.value())
+            .map(MotorbikeJpaEntity::toDomain);
     }
     
 }

@@ -5,6 +5,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Year;
 
+import com.ridei.garage.domain.exception.CannotActivateRetiredMotorbikeException;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -25,6 +27,7 @@ public class Motorbike {
     private BigDecimal weightKg;
     private LocalDate acquisitionDate;
     private LocalDate disposalDate;
+    private boolean active;
     private String photoUrl;
     private final Instant createdAt;
 
@@ -36,7 +39,8 @@ public class Motorbike {
         int year,
         Integer displacementCc,
         BigDecimal weightKg,
-        LocalDate acquisitionDate
+        LocalDate acquisitionDate,
+        boolean active
     ) {
         if (ownerId == null) throw new IllegalArgumentException("Owner is required");
         requireText(brand, "Brand");
@@ -66,6 +70,7 @@ public class Motorbike {
             weightKg,
             acquisitionDate,
             null,
+            active,
             null,
             Instant.now()
         );
@@ -82,6 +87,7 @@ public class Motorbike {
         BigDecimal weightKg,
         LocalDate acquisitionDate,
         LocalDate disposalDate,
+        boolean active,
         String photoUrl,
         Instant createdAt
     ) {
@@ -96,9 +102,21 @@ public class Motorbike {
             weightKg,
             acquisitionDate,
             disposalDate,
+            active,
             photoUrl,
             createdAt
         );
+    }
+
+    public void activate() {
+        if (isRetired()) {
+            throw new CannotActivateRetiredMotorbikeException();
+        }
+        this.active = true;
+    }
+
+    public void deactivate() {
+        this.active = false;
     }
 
     public boolean isRetired() {

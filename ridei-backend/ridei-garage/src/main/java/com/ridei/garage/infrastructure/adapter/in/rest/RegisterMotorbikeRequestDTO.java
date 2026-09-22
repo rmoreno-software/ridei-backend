@@ -42,6 +42,8 @@ public class RegisterMotorbikeRequestDTO {
     @PastOrPresent
     private LocalDate acquisitionDate;
 
+    private boolean active;
+
     public RegisterMotorbikeCommand toCommand(OwnerId ownerId) {
         return new RegisterMotorbikeCommand(
             ownerId,
@@ -51,7 +53,8 @@ public class RegisterMotorbikeRequestDTO {
             year,
             displacementCc,
             weightKg,
-            acquisitionDate
+            acquisitionDate,
+            active
         );
     }
 
