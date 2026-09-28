@@ -19,3 +19,9 @@ server:
 
 jwt:
   public-key: ${JWT_PUBLIC_KEY}
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
