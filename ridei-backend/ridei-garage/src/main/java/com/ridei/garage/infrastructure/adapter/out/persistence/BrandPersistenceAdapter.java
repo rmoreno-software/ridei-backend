@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import com.ridei.garage.domain.model.Brand;
 import com.ridei.garage.domain.model.BrandId;
+import com.ridei.garage.domain.model.BrandUsage;
 import com.ridei.garage.domain.port.out.BrandRepositoryPort;
 
 import lombok.AllArgsConstructor;
@@ -28,6 +29,16 @@ public class BrandPersistenceAdapter implements BrandRepositoryPort {
     public Optional<Brand> findById(BrandId id) {
         return jpaRepository.findById(id.value())
             .map(BrandJpaEntity::toDomain);
+    }
+
+    @Override
+    public List<BrandUsage> findAllWithMotorbikeCount() {
+        return jpaRepository.findAllWithMotorbikeCount().stream()
+            .map(p -> new BrandUsage(
+                Brand.reconstitute(new BrandId(p.getId()), p.getName()),
+                p.getMotorbikeCount()
+            ))
+            .toList();
     }
     
 }

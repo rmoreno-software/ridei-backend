@@ -2,8 +2,8 @@ package com.ridei.garage.domain.port.in;
 
 import java.util.List;
 
-import com.ridei.garage.domain.model.Brand;
+import com.ridei.garage.domain.model.BrandUsage;
 
 public interface ListBrandsUseCase {
-    List<Brand> listAll();
+    List<BrandUsage> listAll();
 }
