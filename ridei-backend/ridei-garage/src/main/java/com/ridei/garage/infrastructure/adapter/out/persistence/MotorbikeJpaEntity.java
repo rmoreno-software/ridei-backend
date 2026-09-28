@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 
+import com.ridei.garage.domain.model.BrandId;
 import com.ridei.garage.domain.model.Category;
 import com.ridei.garage.domain.model.Motorbike;
 import com.ridei.garage.domain.model.MotorbikeId;
@@ -38,8 +39,11 @@ public class MotorbikeJpaEntity {
     @Column(name = "owner_id", nullable = false, updatable = false)
     private UUID ownerId;
 
-    @Column(nullable = false, length = 100)
-    private String brand;
+    @Column(name = "brand_id")
+    private UUID brandId;
+
+    @Column(name = "brand_name", nullable = false, length = 100)
+    private String brandName;
 
     @Column(nullable = false, length = 100)
     private String model;
@@ -76,7 +80,8 @@ public class MotorbikeJpaEntity {
         return MotorbikeJpaEntity.builder()
             .id(motorbike.getId().value())
             .ownerId(motorbike.getOwnerId().value())
-            .brand(motorbike.getBrand())
+            .brandId(motorbike.getBrandId().value())
+            .brandName(motorbike.getBrandName())
             .model(motorbike.getModel())
             .category(motorbike.getCategory())
             .year(motorbike.getYear())
@@ -94,7 +99,8 @@ public class MotorbikeJpaEntity {
         return Motorbike.reconstitute(
             new MotorbikeId(id),
             new OwnerId(ownerId),
-            brand,
+            brandId != null ? new BrandId(brandId) : null,
+            brandName,
             model,
             category,
             year,

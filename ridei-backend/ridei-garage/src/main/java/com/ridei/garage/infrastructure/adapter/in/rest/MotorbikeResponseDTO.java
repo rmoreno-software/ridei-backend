@@ -8,7 +8,9 @@ import com.ridei.garage.domain.model.Motorbike;
 
 public record MotorbikeResponseDTO(
     String id,
-    String brand,
+    String brandId,
+    String brandName,
+    boolean verifiedBrand,
     String model,
     String category,
     String categoryGroup,
@@ -24,7 +26,9 @@ public record MotorbikeResponseDTO(
     public static MotorbikeResponseDTO fromDomain(Motorbike motorbike) {
         return new MotorbikeResponseDTO(
             motorbike.getId().value().toString(),
-            motorbike.getBrand(),
+            motorbike.isVerifiedBrand() ? motorbike.getBrandId().value().toString() : null,
+            motorbike.getBrandName(),
+            motorbike.isVerifiedBrand(),
             motorbike.getModel(),
             motorbike.getCategory().name(),
             motorbike.getCategoryGroup().name(),

@@ -12,6 +12,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.ridei.garage.domain.exception.BrandNotFoundException;
 import com.ridei.garage.domain.exception.CannotActivateRetiredMotorbikeException;
 import com.ridei.garage.domain.exception.MotorbikeNotFoundException;
 import com.ridei.garage.infrastructure.adapter.in.rest.exception.ApiError;
@@ -58,6 +59,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleCannotActivateRetired(CannotActivateRetiredMotorbikeException ex) {
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(
             new ApiError(422, "Unprocessable Entity", ex.getMessage())
+        );
+    } 
+
+    @ExceptionHandler(BrandNotFoundException.class)
+    public ResponseEntity<ApiError> handleBrandNotFoundException(BrandNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+            new ApiError(400, "Bad request", ex.getMessage())
         );
     } 
 

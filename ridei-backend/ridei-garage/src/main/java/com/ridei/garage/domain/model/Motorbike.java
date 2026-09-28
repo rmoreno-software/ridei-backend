@@ -19,7 +19,8 @@ public class Motorbike {
 
     private final MotorbikeId id;
     private final OwnerId ownerId;
-    private String brand;
+    private BrandId brandId;
+    private String brandName;
     private String model;
     private Category category;
     private int year;
@@ -33,7 +34,8 @@ public class Motorbike {
 
     public static Motorbike register(
         OwnerId ownerId,
-        String brand,
+        BrandId brandId,
+        String brandName,
         String model,
         Category category,
         int year,
@@ -43,7 +45,7 @@ public class Motorbike {
         boolean active
     ) {
         if (ownerId == null) throw new IllegalArgumentException("Owner is required");
-        requireText(brand, "Brand");
+        requireText(brandName, "Brand name");
         requireText(model, "Model");
 
         if (category == null) {
@@ -58,11 +60,12 @@ public class Motorbike {
             throw new IllegalArgumentException("Weight must be positive");
         if (acquisitionDate != null && acquisitionDate.isAfter(LocalDate.now()))
             throw new IllegalArgumentException("Acquisition  date cannot be in the future");
-        
-        return new Motorbike(
+
+        Motorbike motorbike = new Motorbike(
             MotorbikeId.newId(),
             ownerId,
-            brand.trim(),
+            brandId,
+            brandName.trim(),
             model.trim(),
             category,
             year,
@@ -70,16 +73,23 @@ public class Motorbike {
             weightKg,
             acquisitionDate,
             null,
-            active,
+            false,
             null,
             Instant.now()
         );
+
+        if (active) {
+            motorbike.activate();
+        }
+
+        return motorbike;
     }
 
     public static Motorbike reconstitute (
         MotorbikeId id,
         OwnerId ownerId,
-        String brand,
+        BrandId brandId,
+        String brandName,
         String model,
         Category category,
         int year,
@@ -94,7 +104,8 @@ public class Motorbike {
         return new Motorbike(
             id,
             ownerId,
-            brand,
+            brandId,
+            brandName,
             model,
             category,
             year,
@@ -130,6 +141,10 @@ public class Motorbike {
     private static void requireText(String value, String field) {
         if (value == null || value.isBlank())
             throw new IllegalArgumentException(field + " is required");
+    }
+
+    public boolean isVerifiedBrand() {
+        return brandId != null;
     }
 
     public CategoryGroup getCategoryGroup() {
