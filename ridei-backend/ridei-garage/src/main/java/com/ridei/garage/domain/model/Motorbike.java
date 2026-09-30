@@ -150,4 +150,11 @@ public class Motorbike {
     public CategoryGroup getCategoryGroup() {
         return this.category.group();
     }
+
+    public void attachPhoto(String photoUrl) {
+        if (photoUrl== null || photoUrl.isBlank()) {
+            throw new IllegalArgumentException("Photo URL is required");
+        }
+        this.photoUrl = photoUrl;
+    }
 }

@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.ridei.garage.domain.exception.BrandNotFoundException;
 import com.ridei.garage.domain.exception.CannotActivateRetiredMotorbikeException;
+import com.ridei.garage.domain.exception.InvalidMotorbikePhotoUrlException;
 import com.ridei.garage.domain.exception.MotorbikeNotFoundException;
+import com.ridei.garage.domain.exception.MotorbikePhotoTooLargeException;
 import com.ridei.garage.infrastructure.adapter.in.rest.exception.ApiError;
 
 @RestControllerAdvice 
@@ -68,6 +70,20 @@ public class GlobalExceptionHandler {
             new ApiError(400, "Bad request", ex.getMessage())
         );
     } 
+
+    @ExceptionHandler(InvalidMotorbikePhotoUrlException.class)
+    public ResponseEntity<ApiError> handleInvalidMotorbikePhotoUrlException(InvalidMotorbikePhotoUrlException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+            new ApiError(400, "Bad Request", ex.getMessage())
+        );
+    }
+
+    @ExceptionHandler(MotorbikePhotoTooLargeException.class)
+    public ResponseEntity<ApiError> handleMotorbikePhotoUrlException(MotorbikePhotoTooLargeException ex) {
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(
+            new ApiError(413, "Payload Too Large", ex.getMessage())
+        );
+    }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiError> handleMalformedJson(HttpMessageNotReadableException ex) {

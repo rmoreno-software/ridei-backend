@@ -80,7 +80,7 @@ public class MotorbikeJpaEntity {
         return MotorbikeJpaEntity.builder()
             .id(motorbike.getId().value())
             .ownerId(motorbike.getOwnerId().value())
-            .brandId(motorbike.getBrandId().value())
+            .brandId(motorbike.isVerifiedBrand() ? motorbike.getBrandId().value() : null)
             .brandName(motorbike.getBrandName())
             .model(motorbike.getModel())
             .category(motorbike.getCategory())

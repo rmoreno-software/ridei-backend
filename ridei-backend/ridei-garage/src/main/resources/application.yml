@@ -25,3 +25,11 @@ springdoc:
     enabled: false
   swagger-ui:
     enabled: false
+
+cloudflare:
+  r2:
+    account-id: ${GARAGE_R2_ACCOUNT_ID}
+    access-key: ${GARAGE_R2_ACCESS_KEY}
+    secret-key: ${GARAGE_R2_SECRET_KEY}
+    bucket: ${GARAGE_R2_BUCKET}
+    public-base-url: ${GARAGE_R2_PUBLIC_BASE_URL}

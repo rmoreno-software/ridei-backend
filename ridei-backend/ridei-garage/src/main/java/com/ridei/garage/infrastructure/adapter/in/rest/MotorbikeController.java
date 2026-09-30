@@ -14,13 +14,19 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ridei.garage.application.ConfirmMotorbikePhotoCommand;
+import com.ridei.garage.application.RequestMotorbikePhotoUploadCommand;
+import com.ridei.garage.domain.model.ImageContentType;
 import com.ridei.garage.domain.model.Motorbike;
 import com.ridei.garage.domain.model.MotorbikeId;
 import com.ridei.garage.domain.model.OwnerId;
+import com.ridei.garage.domain.model.PresignedUpload;
 import com.ridei.garage.domain.port.in.ActivateMotorbikeUseCase;
+import com.ridei.garage.domain.port.in.ConfirmMotorbikePhotoUseCase;
 import com.ridei.garage.domain.port.in.DeactivateMotorbikeUseCase;
 import com.ridei.garage.domain.port.in.ListMyMotorbikesUseCase;
 import com.ridei.garage.domain.port.in.RegisterMotorbikeUseCase;
+import com.ridei.garage.domain.port.in.RequestMotorbikePhotoUploadUseCase;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -29,10 +35,13 @@ import lombok.AllArgsConstructor;
 @RequestMapping("/api/v1/garage/motorbikes") 
 @AllArgsConstructor 
 public class MotorbikeController {
+
     private final RegisterMotorbikeUseCase registerMotorbikeUseCase;
     private final ListMyMotorbikesUseCase listMyMotorbikesUseCase;
     private final ActivateMotorbikeUseCase activateMotorbikeUseCase;
     private final DeactivateMotorbikeUseCase deactivateMotorbikeUseCase;
+    private final RequestMotorbikePhotoUploadUseCase requestMotorbikePhotoUploadUseCase;
+    private final ConfirmMotorbikePhotoUseCase confirmMotorbikePhotoUseCase;
 
     @PostMapping 
     public ResponseEntity<MotorbikeResponseDTO> register(
@@ -73,6 +82,38 @@ public class MotorbikeController {
     ) {
         OwnerId ownerId = OwnerId.of(authentication.getName());
         Motorbike motorbike = deactivateMotorbikeUseCase.deactivate(ownerId, MotorbikeId.of(id));
+        return ResponseEntity.ok(MotorbikeResponseDTO.fromDomain(motorbike));
+    }
+
+    @PostMapping("/{id}/photo/presign")
+    public ResponseEntity<MotorbikePhotoUploadResponseDTO> presignPhoto(
+        @PathVariable String id,
+        @RequestBody @Valid MotorbikePhotoUploadRequestDTO dto,
+        Authentication authentication
+    ) {
+        OwnerId ownerId = OwnerId.of(authentication.getName());
+        RequestMotorbikePhotoUploadCommand command = new RequestMotorbikePhotoUploadCommand(
+            ownerId,
+            MotorbikeId.of(id),
+            new ImageContentType(dto.getContentType())
+        );
+        PresignedUpload upload = requestMotorbikePhotoUploadUseCase.request(command);
+        return ResponseEntity.ok(MotorbikePhotoUploadResponseDTO.fromDomain(upload));
+    }
+
+    @PostMapping("/{id}/photo/confirm")
+    public ResponseEntity<MotorbikeResponseDTO> confirmPhoto(
+        @PathVariable String id,
+        @RequestBody @Valid ConfirmMotorbikePhotoRequestDTO dto,
+        Authentication authentication
+    ) {
+        OwnerId ownerId = OwnerId.of(authentication.getName());
+        ConfirmMotorbikePhotoCommand command = new ConfirmMotorbikePhotoCommand(
+            ownerId,
+            MotorbikeId.of(id),
+            dto.getPublicUrl()
+        );
+        Motorbike motorbike = confirmMotorbikePhotoUseCase.confirm(command);
         return ResponseEntity.ok(MotorbikeResponseDTO.fromDomain(motorbike));
     }
 }
