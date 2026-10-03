@@ -51,6 +51,7 @@ public class RegisterMotorbikeService implements  RegisterMotorbikeUseCase {
             command.displacementCc(),
             command.weightKg(),
             command.acquisitionDate(),
+            command.disposalDate(),
             command.active()
         );
 

@@ -17,5 +17,6 @@ public record RegisterMotorbikeCommand(
     Integer displacementCc,
     BigDecimal weightKg,
     LocalDate acquisitionDate,
+    LocalDate disposalDate,
     boolean active
 ) {}

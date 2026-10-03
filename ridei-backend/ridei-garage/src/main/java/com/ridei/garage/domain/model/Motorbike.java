@@ -42,6 +42,7 @@ public class Motorbike {
         Integer displacementCc,
         BigDecimal weightKg,
         LocalDate acquisitionDate,
+        LocalDate disposalDate,
         boolean active
     ) {
         if (ownerId == null) throw new IllegalArgumentException("Owner is required");
@@ -60,7 +61,8 @@ public class Motorbike {
             throw new IllegalArgumentException("Weight must be positive");
         if (acquisitionDate != null && acquisitionDate.isAfter(LocalDate.now()))
             throw new IllegalArgumentException("Acquisition  date cannot be in the future");
-
+        requireValidDisposalDate(acquisitionDate, disposalDate);
+        
         Motorbike motorbike = new Motorbike(
             MotorbikeId.newId(),
             ownerId,
@@ -72,7 +74,7 @@ public class Motorbike {
             displacementCc,
             weightKg,
             acquisitionDate,
-            null,
+            disposalDate,
             false,
             null,
             Instant.now()
@@ -101,6 +103,10 @@ public class Motorbike {
         String photoUrl,
         Instant createdAt
     ) {
+        if (active && disposalDate != null) {
+            throw new CannotActivateRetiredMotorbikeException();
+        }
+        
         return new Motorbike(
             id,
             ownerId,
@@ -156,5 +162,14 @@ public class Motorbike {
             throw new IllegalArgumentException("Photo URL is required");
         }
         this.photoUrl = photoUrl;
+    }
+
+    private static void requireValidDisposalDate(LocalDate acquisitionDate, LocalDate disposalDate) {
+        if (disposalDate == null) return;
+
+        if (disposalDate.isAfter(LocalDate.now()))
+            throw new IllegalArgumentException("Disposal date cannot be in the future");
+        if (acquisitionDate != null && disposalDate.isBefore(acquisitionDate))
+            throw new IllegalArgumentException("Disposal date cannot be before acquisition date");
     }
 }

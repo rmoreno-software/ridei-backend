@@ -46,6 +46,9 @@ public class RegisterMotorbikeRequestDTO {
     @PastOrPresent
     private LocalDate acquisitionDate;
 
+    @PastOrPresent
+    private LocalDate disposalDate;
+
     private boolean active;
 
     @AssertTrue(message = "Provide either brandId or customBrandName, not both")
@@ -66,6 +69,7 @@ public class RegisterMotorbikeRequestDTO {
             displacementCc,
             weightKg,
             acquisitionDate,
+            disposalDate,
             active
         );
     }
