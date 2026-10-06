@@ -3,10 +3,11 @@ package com.ridei.garage.application;
 import com.ridei.garage.domain.model.FocalPoint;
 import com.ridei.garage.domain.model.MotorbikeId;
 import com.ridei.garage.domain.model.OwnerId;
+import com.ridei.garage.domain.model.PhotoId;
 
-public record ConfirmMotorbikePhotoCommand(
+public record UpdateMotorbikePhotoFocalPointCommand(
     OwnerId ownerId,
     MotorbikeId motorbikeId,
-    String publicUrl,
+    PhotoId photoId,
     FocalPoint focalPoint
 ) {}

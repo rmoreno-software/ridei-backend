@@ -3,7 +3,10 @@ package com.ridei.garage.infrastructure.adapter.out.persistence;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import com.ridei.garage.domain.model.BrandId;
 import com.ridei.garage.domain.model.Category;
@@ -11,11 +14,15 @@ import com.ridei.garage.domain.model.Motorbike;
 import com.ridei.garage.domain.model.MotorbikeId;
 import com.ridei.garage.domain.model.OwnerId;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -70,14 +77,15 @@ public class MotorbikeJpaEntity {
     @Column(name = "is_active", nullable = false)
     private boolean active;
 
-    @Column(name = "photo_url", length = 500)
-    private String photoUrl;
+    @OneToMany(mappedBy = "motorbike", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER) 
+    @OrderBy("uploadedAt ASC")
+    private List<MotorbikePhotoJpaEntity> photos = new ArrayList<>();
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
     public static MotorbikeJpaEntity fromDomain(Motorbike motorbike) {
-        return MotorbikeJpaEntity.builder()
+        MotorbikeJpaEntity entity = MotorbikeJpaEntity.builder()
             .id(motorbike.getId().value())
             .ownerId(motorbike.getOwnerId().value())
             .brandId(motorbike.isVerifiedBrand() ? motorbike.getBrandId().value() : null)
@@ -90,9 +98,14 @@ public class MotorbikeJpaEntity {
             .acquisitionDate(motorbike.getAcquisitionDate())
             .disposalDate(motorbike.getDisposalDate())
             .active(motorbike.isActive())
-            .photoUrl(motorbike.getPhotoUrl())
             .createdAt(motorbike.getCreatedAt())
             .build();
+
+        entity.setPhotos(motorbike.getPhotos().stream()
+            .map(photo -> MotorbikePhotoJpaEntity.fromDomain(photo, entity))
+            .collect(Collectors.toCollection(ArrayList::new)));
+        
+        return entity;
     }
 
     public Motorbike toDomain() {
@@ -109,7 +122,7 @@ public class MotorbikeJpaEntity {
             acquisitionDate,
             disposalDate,
             active,
-            photoUrl,
+            photos.stream().map(MotorbikePhotoJpaEntity::toDomain).toList(),
             createdAt
         );
     }

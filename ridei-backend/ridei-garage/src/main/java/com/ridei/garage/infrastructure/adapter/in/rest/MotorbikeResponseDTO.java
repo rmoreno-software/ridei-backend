@@ -20,7 +20,7 @@ public record MotorbikeResponseDTO(
     LocalDate acquisitionDate,
     LocalDate disposalDate,
     boolean active,
-    String photoUrl,
+    PrimaryPhotoResponseDTO primaryPhoto,
     Instant createdAt
 ) {
     public static MotorbikeResponseDTO fromDomain(Motorbike motorbike) {
@@ -38,7 +38,7 @@ public record MotorbikeResponseDTO(
             motorbike.getAcquisitionDate(),
             motorbike.getDisposalDate(),
             motorbike.isActive(),
-            motorbike.getPhotoUrl(),
+            motorbike.primaryPhoto().map(PrimaryPhotoResponseDTO::fromDomain).orElse(null),
             motorbike.getCreatedAt()
         );
     }

@@ -4,17 +4,22 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Year;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 
 import com.ridei.garage.domain.exception.CannotActivateRetiredMotorbikeException;
+import com.ridei.garage.domain.exception.PhotoNotFoundException;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-@AllArgsConstructor (access = AccessLevel.PRIVATE)
-@Getter 
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Getter
 public class Motorbike {
-    
+
     private static final int FIRST_MOTORBIKE_YEAR = 1887;
 
     private final MotorbikeId id;
@@ -29,7 +34,7 @@ public class Motorbike {
     private LocalDate acquisitionDate;
     private LocalDate disposalDate;
     private boolean active;
-    private String photoUrl;
+    private final List<MotorbikePhoto> photos;
     private final Instant createdAt;
 
     public static Motorbike register(
@@ -62,7 +67,7 @@ public class Motorbike {
         if (acquisitionDate != null && acquisitionDate.isAfter(LocalDate.now()))
             throw new IllegalArgumentException("Acquisition  date cannot be in the future");
         requireValidDisposalDate(acquisitionDate, disposalDate);
-        
+
         Motorbike motorbike = new Motorbike(
             MotorbikeId.newId(),
             ownerId,
@@ -76,7 +81,7 @@ public class Motorbike {
             acquisitionDate,
             disposalDate,
             false,
-            null,
+            new ArrayList<>(),
             Instant.now()
         );
 
@@ -87,7 +92,7 @@ public class Motorbike {
         return motorbike;
     }
 
-    public static Motorbike reconstitute (
+    public static Motorbike reconstitute(
         MotorbikeId id,
         OwnerId ownerId,
         BrandId brandId,
@@ -100,13 +105,12 @@ public class Motorbike {
         LocalDate acquisitionDate,
         LocalDate disposalDate,
         boolean active,
-        String photoUrl,
+        List<MotorbikePhoto> photos,
         Instant createdAt
     ) {
         if (active && disposalDate != null) {
             throw new CannotActivateRetiredMotorbikeException();
         }
-        
         return new Motorbike(
             id,
             ownerId,
@@ -120,10 +124,63 @@ public class Motorbike {
             acquisitionDate,
             disposalDate,
             active,
-            photoUrl,
+            new ArrayList<>(photos),
             createdAt
         );
     }
+
+    // ---- Fotos ---------------------------------------------------------
+
+    public void addPhoto(String url, FocalPoint focalPoint) {
+        boolean alreadyAttached = photos.stream().anyMatch(p -> p.getUrl().equals(url));
+        if (alreadyAttached)
+            throw new IllegalArgumentException("Photo already attached to this motorbike");
+
+        photos.add(MotorbikePhoto.register(url, focalPoint, photos.isEmpty()));
+    }
+
+    public void setPrimaryPhoto(PhotoId photoId) {
+        MotorbikePhoto target = findPhoto(photoId);
+        photos.forEach(MotorbikePhoto::unmarkAsPrimary);
+        target.markAsPrimary();
+    }
+
+    public void updatePhotoFocalPoint(PhotoId photoId, FocalPoint focalPoint) {
+        findPhoto(photoId).changeFocalPoint(focalPoint);
+    }
+
+    /**
+     * Quita la foto del agregado. Si era la principal y quedan más, promociona la más reciente.
+     * @return la foto eliminada, para que la capa de aplicación borre también el objeto en storage
+     */
+    public MotorbikePhoto removePhoto(PhotoId photoId) {
+        MotorbikePhoto removed = findPhoto(photoId);
+        photos.remove(removed);
+
+        if (removed.isPrimary()) {
+            photos.stream()
+                .max(Comparator.comparing(MotorbikePhoto::getUploadedAt))
+                .ifPresent(MotorbikePhoto::markAsPrimary);
+        }
+        return removed;
+    }
+
+    public Optional<MotorbikePhoto> primaryPhoto() {
+        return photos.stream().filter(MotorbikePhoto::isPrimary).findFirst();
+    }
+
+    public List<MotorbikePhoto> getPhotos() {
+        return List.copyOf(photos);
+    }
+
+    private MotorbikePhoto findPhoto(PhotoId photoId) {
+        return photos.stream()
+            .filter(p -> p.getId().equals(photoId))
+            .findFirst()
+            .orElseThrow(PhotoNotFoundException::new);
+    }
+
+    // ---- Activación / baja ---------------------------------------------
 
     public void activate() {
         if (isRetired()) {
@@ -144,11 +201,6 @@ public class Motorbike {
         return ownerId.equals(candidate);
     }
 
-    private static void requireText(String value, String field) {
-        if (value == null || value.isBlank())
-            throw new IllegalArgumentException(field + " is required");
-    }
-
     public boolean isVerifiedBrand() {
         return brandId != null;
     }
@@ -157,11 +209,11 @@ public class Motorbike {
         return this.category.group();
     }
 
-    public void attachPhoto(String photoUrl) {
-        if (photoUrl== null || photoUrl.isBlank()) {
-            throw new IllegalArgumentException("Photo URL is required");
-        }
-        this.photoUrl = photoUrl;
+    // ---- Validaciones ----------------------------------------------------
+
+    private static void requireText(String value, String field) {
+        if (value == null || value.isBlank())
+            throw new IllegalArgumentException(field + " is required");
     }
 
     private static void requireValidDisposalDate(LocalDate acquisitionDate, LocalDate disposalDate) {

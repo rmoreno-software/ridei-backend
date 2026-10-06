@@ -6,17 +6,23 @@ import org.springframework.context.annotation.Configuration;
 import com.ridei.garage.application.ActivateMotorbikeService;
 import com.ridei.garage.application.ConfirmMotorbikePhotoService;
 import com.ridei.garage.application.DeactivateMotorbikeService;
+import com.ridei.garage.application.DeleteMotorbikePhotoService;
 import com.ridei.garage.application.ListBrandsService;
 import com.ridei.garage.application.ListMyMotorbikeService;
 import com.ridei.garage.application.RegisterMotorbikeService;
 import com.ridei.garage.application.RequestMotorbikePhotoUploadService;
+import com.ridei.garage.application.SetPrimaryMotorbikePhotoService;
+import com.ridei.garage.application.UpdateMotorbikePhotoFocalPointService;
 import com.ridei.garage.domain.port.in.ActivateMotorbikeUseCase;
 import com.ridei.garage.domain.port.in.ConfirmMotorbikePhotoUseCase;
 import com.ridei.garage.domain.port.in.DeactivateMotorbikeUseCase;
+import com.ridei.garage.domain.port.in.DeleteMotorbikePhotoUseCase;
 import com.ridei.garage.domain.port.in.ListBrandsUseCase;
 import com.ridei.garage.domain.port.in.ListMyMotorbikesUseCase;
 import com.ridei.garage.domain.port.in.RegisterMotorbikeUseCase;
 import com.ridei.garage.domain.port.in.RequestMotorbikePhotoUploadUseCase;
+import com.ridei.garage.domain.port.in.SetPrimaryMotorbikePhotoUseCase;
+import com.ridei.garage.domain.port.in.UpdateMotorbikePhotoFocalPointUseCase;
 import com.ridei.garage.domain.port.out.BrandRepositoryPort;
 import com.ridei.garage.domain.port.out.MotorbikePhotoStoragePort;
 import com.ridei.garage.domain.port.out.MotorbikeRepositoryPort;
@@ -71,5 +77,25 @@ public class BeanConfig {
         return new ConfirmMotorbikePhotoService(motorbikeRepository, storage);
     } 
 
-    
+    @Bean 
+    public SetPrimaryMotorbikePhotoUseCase setPrimaryMotorbikePhotoUseCase(
+        MotorbikeRepositoryPort motorbikeRepository
+    ) {
+        return new SetPrimaryMotorbikePhotoService(motorbikeRepository);
+    }
+
+    @Bean
+    public UpdateMotorbikePhotoFocalPointUseCase updateMotorbikePhotoFocalPointUseCase(
+        MotorbikeRepositoryPort motorbikeRepository
+    ) {
+        return new UpdateMotorbikePhotoFocalPointService(motorbikeRepository);
+    }
+
+    @Bean 
+    public DeleteMotorbikePhotoUseCase deleteMotorbikePhotoUseCase(
+        MotorbikeRepositoryPort motorbikeRepository,
+        MotorbikePhotoStoragePort motorbikePhotoStorage
+    ) {
+        return new DeleteMotorbikePhotoService(motorbikeRepository, motorbikePhotoStorage);
+    }
 }

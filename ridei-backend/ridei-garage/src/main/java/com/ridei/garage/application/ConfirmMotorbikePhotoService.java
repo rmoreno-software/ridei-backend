@@ -1,5 +1,7 @@
 package com.ridei.garage.application;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import com.ridei.garage.domain.exception.InvalidMotorbikePhotoUrlException;
 import com.ridei.garage.domain.exception.MotorbikeNotFoundException;
 import com.ridei.garage.domain.exception.MotorbikePhotoTooLargeException;
@@ -24,14 +26,18 @@ public class ConfirmMotorbikePhotoService implements ConfirmMotorbikePhotoUseCas
     }
 
     @Override
+    @Transactional 
     public Motorbike confirm(ConfirmMotorbikePhotoCommand command) {
-        Motorbike motorbike = motorbikeRepository.findById(command.motorbikeId())
-            .filter(m -> m.isOwnedBy(command.ownerId()))
-            .orElseThrow(MotorbikeNotFoundException::new);
-    
-        if (!motorbikePhotoStorage.belongsToMotorbike(
+        Motorbike motorbike = OwnedMotorbikes.require(
+            motorbikeRepository, 
             command.ownerId(),
-            command.motorbikeId(),
+            command.motorbikeId()
+        );
+
+    
+        if(!motorbikePhotoStorage.belongsToMotorbike(
+            command.ownerId(), 
+            command.motorbikeId(), 
             command.publicUrl())) {
             throw new InvalidMotorbikePhotoUrlException();
         }
@@ -41,7 +47,7 @@ public class ConfirmMotorbikePhotoService implements ConfirmMotorbikePhotoUseCas
             throw new MotorbikePhotoTooLargeException();
         }
 
-        motorbike.attachPhoto(command.publicUrl());
+        motorbike.addPhoto(command.publicUrl(), command.focalPoint());
         motorbikeRepository.save(motorbike);
 
         return motorbike;

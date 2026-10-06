@@ -17,6 +17,7 @@ import com.ridei.garage.domain.exception.CannotActivateRetiredMotorbikeException
 import com.ridei.garage.domain.exception.InvalidMotorbikePhotoUrlException;
 import com.ridei.garage.domain.exception.MotorbikeNotFoundException;
 import com.ridei.garage.domain.exception.MotorbikePhotoTooLargeException;
+import com.ridei.garage.domain.exception.PhotoNotFoundException;
 import com.ridei.garage.infrastructure.adapter.in.rest.exception.ApiError;
 
 @RestControllerAdvice 
@@ -82,6 +83,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleMotorbikePhotoUrlException(MotorbikePhotoTooLargeException ex) {
         return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(
             new ApiError(413, "Payload Too Large", ex.getMessage())
+        );
+    }
+
+    @ExceptionHandler(PhotoNotFoundException.class)
+    public ResponseEntity<ApiError> handlePhotoNotPhoundException(PhotoNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+            new ApiError(404, "Not Found", ex.getMessage())
         );
     }
 
