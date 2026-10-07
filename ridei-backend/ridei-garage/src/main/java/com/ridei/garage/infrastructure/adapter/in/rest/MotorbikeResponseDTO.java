@@ -3,6 +3,7 @@ package com.ridei.garage.infrastructure.adapter.in.rest;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 
 import com.ridei.garage.domain.model.Motorbike;
 
@@ -20,6 +21,7 @@ public record MotorbikeResponseDTO(
     LocalDate acquisitionDate,
     LocalDate disposalDate,
     boolean active,
+    List<PhotoResponseDTO> photos,
     PrimaryPhotoResponseDTO primaryPhoto,
     Instant createdAt
 ) {
@@ -38,6 +40,7 @@ public record MotorbikeResponseDTO(
             motorbike.getAcquisitionDate(),
             motorbike.getDisposalDate(),
             motorbike.isActive(),
+            motorbike.getPhotos().stream().map(PhotoResponseDTO::fromDomain).toList(),
             motorbike.primaryPhoto().map(PrimaryPhotoResponseDTO::fromDomain).orElse(null),
             motorbike.getCreatedAt()
         );
