@@ -41,7 +41,7 @@ import lombok.AllArgsConstructor;
 
 @RestController 
 @RequestMapping("/api/v1/garage/motorbikes") 
-@AllArgsConstructor 
+@AllArgsConstructor  
 public class MotorbikeController {
 
     private final RegisterMotorbikeUseCase registerMotorbikeUseCase;
@@ -171,7 +171,7 @@ public class MotorbikeController {
         @PathVariable String photoId,
         Authentication authentication
     ) {
-        OwnerId ownerId = OwnerId.of(id);
+        OwnerId ownerId = OwnerId.of(authentication.getName());
         Motorbike motorbike = deleteMotorbikePhotoUseCase.delete(
             new DeleteMotorbikePhotoCommand(
                 ownerId,
