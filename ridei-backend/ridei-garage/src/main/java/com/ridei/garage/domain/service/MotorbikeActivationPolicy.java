@@ -41,4 +41,5 @@ public final class MotorbikeActivationPolicy {
             .filter(m -> !m.getId().equals(target.getId()))
             .filter(m -> !m.isRetired())
             .noneMatch(m -> m.getCategoryGroup() == target.getCategoryGroup());
+    }
 }
