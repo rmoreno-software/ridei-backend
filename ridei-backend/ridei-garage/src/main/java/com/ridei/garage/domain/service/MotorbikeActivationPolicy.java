@@ -30,4 +30,15 @@ public final class MotorbikeActivationPolicy {
 
             return conflicting;
     }
+
+    /**
+     * True si, entre las motos del mismo usuario (sin contar a {@code target} ni las dadas de baja),
+     * no hay ninguna otra en el mismo categoryGroup — es decir, {@code target} es la única candidata
+     * posible a estar activa en ese grupo.
+     */
+    public static boolean isSoleCandidateInGroup(Motorbike target, List<Motorbike> siblings) {
+        return siblings.stream()
+            .filter(m -> !m.getId().equals(target.getId()))
+            .filter(m -> !m.isRetired())
+            .noneMatch(m -> m.getCategoryGroup() == target.getCategoryGroup());
 }
