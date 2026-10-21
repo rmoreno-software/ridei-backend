@@ -51,22 +51,7 @@ public class Motorbike {
         boolean active
     ) {
         if (ownerId == null) throw new IllegalArgumentException("Owner is required");
-        requireText(brandName, "Brand name");
-        requireText(model, "Model");
-
-        if (category == null) {
-            throw new IllegalArgumentException("Category is required");
-        }
-        int maxYear = Year.now().getValue() + 1;
-        if (year < FIRST_MOTORBIKE_YEAR || year > maxYear)
-            throw new IllegalArgumentException("Year must be between + " + FIRST_MOTORBIKE_YEAR + " and " + maxYear);
-        if (displacementCc != null && displacementCc <= 0)
-            throw new IllegalArgumentException("Displacement must be positive");
-        if (weightKg != null && weightKg.signum() <= 0)
-            throw new IllegalArgumentException("Weight must be positive");
-        if (acquisitionDate != null && acquisitionDate.isAfter(LocalDate.now()))
-            throw new IllegalArgumentException("Acquisition  date cannot be in the future");
-        requireValidDisposalDate(acquisitionDate, disposalDate);
+        validateDetails(brandName, model, category, year, displacementCc, weightKg, acquisitionDate, disposalDate);
 
         Motorbike motorbike = new Motorbike(
             MotorbikeId.newId(),
@@ -90,6 +75,34 @@ public class Motorbike {
         }
 
         return motorbike;
+    }
+
+    public void update(
+        BrandId brandId,
+        String brandName,
+        String model,
+        Category category,
+        int year,
+        Integer displacementCc,
+        BigDecimal weightKg,
+        LocalDate acquisitionDate,
+        LocalDate disposalDate
+    ) {
+        validateDetails(brandName, model, category, year, displacementCc, weightKg, acquisitionDate, disposalDate);
+
+        this.brandId = brandId;
+        this.brandName = brandName.trim();
+        this.model = model.trim();
+        this.category = category;
+        this.year = year;
+        this.displacementCc = displacementCc;
+        this.weightKg = weightKg;
+        this.acquisitionDate = acquisitionDate;
+        this.disposalDate = disposalDate;
+
+        if (disposalDate != null && active) {
+            deactivate();
+        }
     }
 
     public static Motorbike reconstitute(
@@ -127,6 +140,34 @@ public class Motorbike {
             new ArrayList<>(photos),
             createdAt
         );
+    }
+
+    private static void validateDetails(
+        String brandName,
+        String model,
+        Category category,
+        int year,
+        Integer displacementCc,
+        BigDecimal weightKg,
+        LocalDate acquisitionDate,
+        LocalDate disposalDate
+    ) {
+        requireText(brandName, "Brand name");
+        requireText(model, "Model");
+
+        if (category == null) {
+            throw new IllegalArgumentException("Category is required");
+        }
+        int maxYear = Year.now().getValue() + 1;
+        if (year < FIRST_MOTORBIKE_YEAR || year > maxYear)
+            throw new IllegalArgumentException("Year must be between + " + FIRST_MOTORBIKE_YEAR + " and " + maxYear);
+        if (displacementCc != null && displacementCc <= 0)
+            throw new IllegalArgumentException("Displacement must be positive");
+        if (weightKg != null && weightKg.signum() <= 0)
+            throw new IllegalArgumentException("Weight must be positive");
+        if (acquisitionDate != null && acquisitionDate.isAfter(LocalDate.now()))
+            throw new IllegalArgumentException("Acquisition  date cannot be in the future");
+        requireValidDisposalDate(acquisitionDate, disposalDate);
     }
 
     // ---- Fotos ---------------------------------------------------------

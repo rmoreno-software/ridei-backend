@@ -29,22 +29,12 @@ public class RegisterMotorbikeService implements  RegisterMotorbikeUseCase {
     @Override
     @Transactional 
     public Motorbike register(RegisterMotorbikeCommand command) {
-        BrandId brandId = null;
-        String brandName;
-
-        if (command.brandId() != null) {
-            Brand brand = brandRepository.findById(command.brandId())
-                .orElseThrow(BrandNotFoundException::new);
-            brandId = brand.getId();
-            brandName = brand.getName();
-        } else {
-            brandName = command.customBrandName();
-        }
+        BrandResolver.Resolved brand = BrandResolver.resolve(brandRepository, command.brandId(), command.customBrandName());
 
         Motorbike motorbike = Motorbike.register(
             command.ownerId(),
-            brandId,
-            brandName,
+            brand.brandId(),
+            brand.brandName(),
             command.model(),
             command.category(),
             command.year(),
@@ -62,7 +52,6 @@ public class RegisterMotorbikeService implements  RegisterMotorbikeUseCase {
         }
 
         motorbikeRepository.save(motorbike);
-
         return motorbike;
     }
 }

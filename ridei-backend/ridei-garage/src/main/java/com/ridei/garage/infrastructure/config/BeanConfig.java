@@ -7,6 +7,7 @@ import com.ridei.garage.application.ActivateMotorbikeService;
 import com.ridei.garage.application.ConfirmMotorbikePhotoService;
 import com.ridei.garage.application.DeactivateMotorbikeService;
 import com.ridei.garage.application.DeleteMotorbikePhotoService;
+import com.ridei.garage.application.EditMotorbikeService;
 import com.ridei.garage.application.ListBrandsService;
 import com.ridei.garage.application.ListMyMotorbikeService;
 import com.ridei.garage.application.RegisterMotorbikeService;
@@ -17,6 +18,7 @@ import com.ridei.garage.domain.port.in.ActivateMotorbikeUseCase;
 import com.ridei.garage.domain.port.in.ConfirmMotorbikePhotoUseCase;
 import com.ridei.garage.domain.port.in.DeactivateMotorbikeUseCase;
 import com.ridei.garage.domain.port.in.DeleteMotorbikePhotoUseCase;
+import com.ridei.garage.domain.port.in.EditMotorbikeUseCase;
 import com.ridei.garage.domain.port.in.ListBrandsUseCase;
 import com.ridei.garage.domain.port.in.ListMyMotorbikesUseCase;
 import com.ridei.garage.domain.port.in.RegisterMotorbikeUseCase;
@@ -97,5 +99,13 @@ public class BeanConfig {
         MotorbikePhotoStoragePort motorbikePhotoStorage
     ) {
         return new DeleteMotorbikePhotoService(motorbikeRepository, motorbikePhotoStorage);
+    }
+
+    @Bean 
+    public EditMotorbikeUseCase editMotorbikeUseCase(
+        MotorbikeRepositoryPort motorbikeRepository,
+        BrandRepositoryPort brandRepository
+    ) {
+        return new EditMotorbikeService(motorbikeRepository, brandRepository);
     }
 }

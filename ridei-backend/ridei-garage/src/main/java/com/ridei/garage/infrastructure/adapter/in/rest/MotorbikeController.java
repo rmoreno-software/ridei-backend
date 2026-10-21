@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,6 +31,7 @@ import com.ridei.garage.domain.port.in.ActivateMotorbikeUseCase;
 import com.ridei.garage.domain.port.in.ConfirmMotorbikePhotoUseCase;
 import com.ridei.garage.domain.port.in.DeactivateMotorbikeUseCase;
 import com.ridei.garage.domain.port.in.DeleteMotorbikePhotoUseCase;
+import com.ridei.garage.domain.port.in.EditMotorbikeUseCase;
 import com.ridei.garage.domain.port.in.ListMyMotorbikesUseCase;
 import com.ridei.garage.domain.port.in.RegisterMotorbikeUseCase;
 import com.ridei.garage.domain.port.in.RequestMotorbikePhotoUploadUseCase;
@@ -53,6 +55,7 @@ public class MotorbikeController {
     private final SetPrimaryMotorbikePhotoUseCase setPrimaryMotorbikePhotoUseCase;
     private final UpdateMotorbikePhotoFocalPointUseCase updateMotorbikePhotoFocalPointUseCase;
     private final DeleteMotorbikePhotoUseCase deleteMotorbikePhotoUseCase;
+    private final EditMotorbikeUseCase editMotorbikeUseCase;
 
     @PostMapping 
     public ResponseEntity<MotorbikeResponseDTO> register(
@@ -181,4 +184,19 @@ public class MotorbikeController {
         );
         return ResponseEntity.ok(MotorbikeResponseDTO.fromDomain(motorbike));
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<MotorbikeResponseDTO> edit(
+        @PathVariable String id,
+        @RequestBody @Valid EditMotorbikeRequestDTO dto,
+        Authentication authentication
+    ) {
+        OwnerId ownerId = OwnerId.of(authentication.getName());
+        Motorbike motorbike = editMotorbikeUseCase.edit(
+            dto.toCommand(ownerId, MotorbikeId.of(id))
+        );
+        return ResponseEntity.ok(
+            MotorbikeResponseDTO.fromDomain(motorbike)
+        );
+    } 
 }
