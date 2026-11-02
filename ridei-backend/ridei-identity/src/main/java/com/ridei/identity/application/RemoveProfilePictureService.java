@@ -1,8 +1,10 @@
 package com.ridei.identity.application;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import com.ridei.identity.domain.exception.UserNotFoundException;
 import com.ridei.identity.domain.model.User;
-import com.ridei.identity.domain.port.in.RemoveProfilePictureUseCase;
+import com.ridei.identity.application.port.in.RemoveProfilePictureUseCase;
 import com.ridei.identity.domain.port.out.ProfilePictureStoragePort;
 import com.ridei.identity.domain.port.out.UserRepositoryPort;
 
@@ -20,6 +22,7 @@ public class RemoveProfilePictureService implements RemoveProfilePictureUseCase 
     }
 
     @Override
+    @Transactional
     public void remove(RemoveProfilePictureCommand command) {
         User user = userRepository.findById(command.userId())
             .orElseThrow(() -> new UserNotFoundException(command.userId()));

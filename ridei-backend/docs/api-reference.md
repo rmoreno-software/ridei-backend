@@ -332,6 +332,34 @@ Same as above.
 
 ---
 
+### `DELETE /api/v1/garage/motorbikes/{id}`
+
+Permanently deletes the motorbike, its setup history and its photos (rows and R2 objects). Details in [motorbike-deletion.md](motorbike-deletion.md).
+
+| Status | When |
+|---|---|
+| `204 No Content` | Deleted |
+| `400 Bad Request` | `{id}` is not a UUID |
+| `401 Unauthorized` | Missing/invalid token |
+| `404 Not Found` | Motorbike doesn't exist or belongs to another user |
+
+---
+
+### Motorbike setup — `/api/v1/garage/motorbikes/{id}/setup`
+
+Tyres and final drive ratio with history per component. Full request/response shapes and rules in [motorbike-setup.md](motorbike-setup.md#4-rest-api).
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/setup` | Current part, "since" date and change count of each component (empty setup → `current: null`) |
+| `GET` | `/setup/{component}/history` | History of `front-tyre`, `rear-tyre` or `final-drive`, newest first |
+| `POST` | `/setup/changes` | Mount one or more components on the same date (`201`); previous parts are closed the day before |
+| `PUT` | `/setup/entries/{entryId}` | Correct an entry's spec and mounted date |
+
+Errors: `400` validation, `404` motorbike not owned / entry not found, `422` date breaks the chronological order (`SetupChangeDateConflictException`).
+
+---
+
 ## `ridei-garage` error response schema
 
 Same `ApiError` shape as `ridei-identity`, minus the `timestamp` field:

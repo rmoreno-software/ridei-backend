@@ -1,8 +1,10 @@
 package com.ridei.identity.application;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import com.ridei.identity.domain.exception.UserNotFoundException;
 import com.ridei.identity.domain.model.User;
-import com.ridei.identity.domain.port.in.SaveOnboardingStep5UseCase;
+import com.ridei.identity.application.port.in.SaveOnboardingStep5UseCase;
 import com.ridei.identity.domain.port.out.UserRepositoryPort;
 
 public class SaveOnboardingStep5Service implements SaveOnboardingStep5UseCase {
@@ -14,6 +16,7 @@ public class SaveOnboardingStep5Service implements SaveOnboardingStep5UseCase {
     }
 
     @Override
+    @Transactional
     public void complete(SaveOnboardingStep5Command command) {
         User user = repositoryPort.findById(command.userId())
             .orElseThrow(() -> new UserNotFoundException(command.userId()));

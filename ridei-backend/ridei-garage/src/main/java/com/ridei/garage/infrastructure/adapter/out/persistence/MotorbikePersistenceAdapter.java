@@ -35,5 +35,11 @@ public class MotorbikePersistenceAdapter implements MotorbikeRepositoryPort {
         return jpaRepository.findById(id.value())
             .map(MotorbikeJpaEntity::toDomain);
     }
-    
+
+    /** Las filas de {@code motorbike_photos} caen por cascade/orphanRemoval de la relación. */
+    @Override
+    public void delete(Motorbike motorbike) {
+        jpaRepository.deleteById(motorbike.getId().value());
+    }
+
 }

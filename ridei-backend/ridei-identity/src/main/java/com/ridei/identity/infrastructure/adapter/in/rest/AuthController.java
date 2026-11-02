@@ -27,14 +27,14 @@ import com.ridei.identity.application.ResetPasswordCommand;
 import com.ridei.identity.application.VerifyEmailCommand;
 import com.ridei.identity.domain.exception.InvalidOrExpiredVerificationTokenException;
 import com.ridei.identity.domain.model.Email;
-import com.ridei.identity.domain.port.in.LoginUseCase;
-import com.ridei.identity.domain.port.in.LoginWithGoogleUseCase;
-import com.ridei.identity.domain.port.in.RefreshTokenUseCase;
-import com.ridei.identity.domain.port.in.RequestTemporaryPasswordUseCase;
-import com.ridei.identity.domain.port.in.ResendVerificationEmailUseCase;
-import com.ridei.identity.domain.port.in.ResetPasswordUseCase;
-import com.ridei.identity.domain.port.in.ValidateTokenUseCase;
-import com.ridei.identity.domain.port.in.VerifyEmailUseCase;
+import com.ridei.identity.application.port.in.LoginUseCase;
+import com.ridei.identity.application.port.in.LoginWithGoogleUseCase;
+import com.ridei.identity.application.port.in.RefreshTokenUseCase;
+import com.ridei.identity.application.port.in.RequestTemporaryPasswordUseCase;
+import com.ridei.identity.application.port.in.ResendVerificationEmailUseCase;
+import com.ridei.identity.application.port.in.ResetPasswordUseCase;
+import com.ridei.identity.application.port.in.ValidateTokenUseCase;
+import com.ridei.identity.application.port.in.VerifyEmailUseCase;
 
 import jakarta.validation.Valid;
 

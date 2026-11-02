@@ -2,7 +2,7 @@
 
 The application layer sits between the domain and the infrastructure. Its sole responsibility is **orchestrating domain objects to fulfill use cases**. It contains no business rules of its own — all validation and logic lives in the domain.
 
-> This document is a deep dive into `ridei-identity`'s application layer (`com.ridei.identity.application`). `ridei-garage` follows the same pattern under `com.ridei.garage.application`: `RegisterMotorbikeCommand`/`RegisterMotorbikeService` and `ListMyMotorbikeService`, implementing the inbound ports `RegisterMotorbikeUseCase`/`ListMyMotorbikesUseCase` from its own domain.
+> This document is a deep dive into `ridei-identity`'s application layer (`com.ridei.identity.application`). `ridei-garage` follows the same pattern under `com.ridei.garage.application`: `RegisterMotorbikeCommand`/`RegisterMotorbikeService` and `ListMyMotorbikeService`, implementing the inbound ports `RegisterMotorbikeUseCase`/`ListMyMotorbikesUseCase` from its own `application/port/in`.
 
 Package root: `com.ridei.identity.application`
 
@@ -39,7 +39,7 @@ Because `RegisterUserCommand` is a Java Record, it is inherently immutable — t
 
 ## Application Services
 
-Application services implement the inbound port interfaces defined in the domain. They coordinate domain objects, outbound ports, and domain events.
+Application services implement the inbound port interfaces defined in `application/port/in`. They coordinate domain objects, outbound ports, and domain events.
 
 ### `RegisterUserService`
 
@@ -92,6 +92,6 @@ Returns the `UserId` of the newly created user. The inbound adapter (controller)
 | Username already taken | `UsernameAlreadyTakenException` | `409 Conflict` |
 | User is under 16 years old | `MinimumAgeNotMetException` | `422 Unprocessable Entity` |
 
-#### No Spring annotations
+#### Minimal Spring annotations
 
-`RegisterUserService` has no `@Service` or any other Spring annotation. It is a plain Java class. Spring's dependency injection is configured manually in `BeanConfig`, which keeps the application layer free of framework coupling.
+`RegisterUserService` has no `@Service` annotation. It is a plain Java class wired manually in `BeanConfig`. The only Spring annotation used in the application layer is `@Transactional`, placed on every use case that writes, so that the whole use case commits or rolls back as a unit.

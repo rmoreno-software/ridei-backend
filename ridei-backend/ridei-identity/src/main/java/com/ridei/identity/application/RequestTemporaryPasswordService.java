@@ -1,5 +1,7 @@
 package com.ridei.identity.application;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
@@ -8,7 +10,7 @@ import java.util.Optional;
 
 import com.ridei.identity.domain.model.Email;
 import com.ridei.identity.domain.model.User;
-import com.ridei.identity.domain.port.in.RequestTemporaryPasswordUseCase;
+import com.ridei.identity.application.port.in.RequestTemporaryPasswordUseCase;
 import com.ridei.identity.domain.port.out.EmailSenderPort;
 import com.ridei.identity.domain.port.out.PasswordHasherPort;
 import com.ridei.identity.domain.port.out.UserRepositoryPort;
@@ -35,6 +37,7 @@ public class RequestTemporaryPasswordService implements RequestTemporaryPassword
     }
 
     @Override
+    @Transactional
     public void request(RequestTemporaryPasswordCommand command) {
         parseEmail(command.email())
             .flatMap(userRepositoryPort::findByEmail)

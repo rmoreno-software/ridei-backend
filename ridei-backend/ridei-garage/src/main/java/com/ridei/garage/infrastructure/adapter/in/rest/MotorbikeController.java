@@ -17,7 +17,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ridei.garage.application.ConfirmMotorbikePhotoCommand;
+import com.ridei.garage.application.DeleteMotorbikeCommand;
 import com.ridei.garage.application.DeleteMotorbikePhotoCommand;
+import com.ridei.garage.application.port.in.DeleteMotorbikeUseCase;
 import com.ridei.garage.application.RequestMotorbikePhotoUploadCommand;
 import com.ridei.garage.application.SetPrimaryMotorbikePhotoCommand;
 import com.ridei.garage.application.UpdateMotorbikePhotoFocalPointCommand;
@@ -27,16 +29,16 @@ import com.ridei.garage.domain.model.MotorbikeId;
 import com.ridei.garage.domain.model.OwnerId;
 import com.ridei.garage.domain.model.PhotoId;
 import com.ridei.garage.domain.model.PresignedUpload;
-import com.ridei.garage.domain.port.in.ActivateMotorbikeUseCase;
-import com.ridei.garage.domain.port.in.ConfirmMotorbikePhotoUseCase;
-import com.ridei.garage.domain.port.in.DeactivateMotorbikeUseCase;
-import com.ridei.garage.domain.port.in.DeleteMotorbikePhotoUseCase;
-import com.ridei.garage.domain.port.in.EditMotorbikeUseCase;
-import com.ridei.garage.domain.port.in.ListMyMotorbikesUseCase;
-import com.ridei.garage.domain.port.in.RegisterMotorbikeUseCase;
-import com.ridei.garage.domain.port.in.RequestMotorbikePhotoUploadUseCase;
-import com.ridei.garage.domain.port.in.SetPrimaryMotorbikePhotoUseCase;
-import com.ridei.garage.domain.port.in.UpdateMotorbikePhotoFocalPointUseCase;
+import com.ridei.garage.application.port.in.ActivateMotorbikeUseCase;
+import com.ridei.garage.application.port.in.ConfirmMotorbikePhotoUseCase;
+import com.ridei.garage.application.port.in.DeactivateMotorbikeUseCase;
+import com.ridei.garage.application.port.in.DeleteMotorbikePhotoUseCase;
+import com.ridei.garage.application.port.in.EditMotorbikeUseCase;
+import com.ridei.garage.application.port.in.ListMyMotorbikesUseCase;
+import com.ridei.garage.application.port.in.RegisterMotorbikeUseCase;
+import com.ridei.garage.application.port.in.RequestMotorbikePhotoUploadUseCase;
+import com.ridei.garage.application.port.in.SetPrimaryMotorbikePhotoUseCase;
+import com.ridei.garage.application.port.in.UpdateMotorbikePhotoFocalPointUseCase;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -56,6 +58,7 @@ public class MotorbikeController {
     private final UpdateMotorbikePhotoFocalPointUseCase updateMotorbikePhotoFocalPointUseCase;
     private final DeleteMotorbikePhotoUseCase deleteMotorbikePhotoUseCase;
     private final EditMotorbikeUseCase editMotorbikeUseCase;
+    private final DeleteMotorbikeUseCase deleteMotorbikeUseCase;
 
     @PostMapping 
     public ResponseEntity<MotorbikeResponseDTO> register(
@@ -133,7 +136,7 @@ public class MotorbikeController {
     }
 
     @PatchMapping("/{id}/photos/{photoId}/primary")
-    public ResponseEntity<MotorbikeResponseDTO> setPrimatyPhoto(
+    public ResponseEntity<MotorbikeResponseDTO> setPrimaryPhoto(
         @PathVariable String id,
         @PathVariable String photoId,
         Authentication authentication
@@ -198,5 +201,16 @@ public class MotorbikeController {
         return ResponseEntity.ok(
             MotorbikeResponseDTO.fromDomain(motorbike)
         );
-    } 
+    }
+
+    /** Borra la moto con su setup y sus fotos (filas y objetos del storage). Irreversible. */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(
+        @PathVariable String id,
+        Authentication authentication
+    ) {
+        OwnerId ownerId = OwnerId.of(authentication.getName());
+        deleteMotorbikeUseCase.delete(new DeleteMotorbikeCommand(ownerId, MotorbikeId.of(id)));
+        return ResponseEntity.noContent().build();
+    }
 }

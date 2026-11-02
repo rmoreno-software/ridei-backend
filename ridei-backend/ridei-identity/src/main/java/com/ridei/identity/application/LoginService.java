@@ -1,9 +1,11 @@
 package com.ridei.identity.application;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import com.ridei.identity.domain.exception.InvalidCredentialException;
 import com.ridei.identity.domain.exception.UserSuspendedException;
 import com.ridei.identity.domain.model.User;
-import com.ridei.identity.domain.port.in.LoginUseCase;
+import com.ridei.identity.application.port.in.LoginUseCase;
 import com.ridei.identity.domain.port.out.JwtPort;
 import com.ridei.identity.domain.port.out.PasswordHasherPort;
 import com.ridei.identity.domain.port.out.UserRepositoryPort;
@@ -25,6 +27,7 @@ public class LoginService implements LoginUseCase {
     }
 
     @Override
+    @Transactional
     public LoginResult login(LoginCommand command) {
         User user = userRepository.findByEmail(command.email())
             .orElseThrow(InvalidCredentialException::new);

@@ -1,4 +1,4 @@
-package com.ridei.garage.domain.port.in;
+package com.ridei.garage.application.port.in;
 
 import java.util.List;
 

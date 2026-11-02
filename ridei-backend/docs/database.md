@@ -166,6 +166,12 @@ ridei-garage/src/main/resources/db/migration/
 
 Check constraint: `disposal_date` must be `>= acquisition_date` when both are set.
 
+#### `V9__create_motorbike_setup_entries.sql`
+
+### `motorbike_setup_entries`
+
+Setup history (front tyre, rear tyre, final drive) — one row per mounted part; `removed_on IS NULL` marks the current one. FK to `motorbikes(id) ON DELETE CASCADE`, check constraints so each row carries only the columns of its component, a partial unique index guaranteeing one current part per component, and a unique `(motorbike_id, component, mounted_on)`. Full column list and rationale in [motorbike-setup.md § Persistence](motorbike-setup.md#5-persistence).
+
 ### Cross-database ownership — no foreign key
 
 `owner_id` refers to a `ridei_identity.users.id`, but the two tables live in **physically separate databases** (potentially separate hosts in the future), so a real `FOREIGN KEY` is impossible and wouldn't be appropriate anyway — it would couple the two bounded contexts at the schema level, which contradicts the whole point of splitting them into independent microservices.

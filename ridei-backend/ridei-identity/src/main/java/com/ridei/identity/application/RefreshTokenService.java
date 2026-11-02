@@ -4,7 +4,7 @@ import com.ridei.identity.domain.exception.InvalidCredentialException;
 import com.ridei.identity.domain.exception.UserSuspendedException;
 import com.ridei.identity.domain.model.User;
 import com.ridei.identity.domain.model.UserId;
-import com.ridei.identity.domain.port.in.RefreshTokenUseCase;
+import com.ridei.identity.application.port.in.RefreshTokenUseCase;
 import com.ridei.identity.domain.port.out.JwtPort;
 import com.ridei.identity.domain.port.out.UserRepositoryPort;
 

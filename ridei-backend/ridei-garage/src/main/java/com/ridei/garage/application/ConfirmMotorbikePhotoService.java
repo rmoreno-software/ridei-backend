@@ -6,7 +6,7 @@ import com.ridei.garage.domain.exception.InvalidMotorbikePhotoUrlException;
 import com.ridei.garage.domain.exception.MotorbikeNotFoundException;
 import com.ridei.garage.domain.exception.MotorbikePhotoTooLargeException;
 import com.ridei.garage.domain.model.Motorbike;
-import com.ridei.garage.domain.port.in.ConfirmMotorbikePhotoUseCase;
+import com.ridei.garage.application.port.in.ConfirmMotorbikePhotoUseCase;
 import com.ridei.garage.domain.port.out.MotorbikePhotoStoragePort;
 import com.ridei.garage.domain.port.out.MotorbikeRepositoryPort;
 

@@ -22,6 +22,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
@@ -106,7 +107,7 @@ public class CloudflareR2MotorbikePhotoStorageAdapter implements MotorbikePhotoS
 
     @Override
     public long getContentLength(String publicUrl) {
-        String key = publicUrl.replace(publicBaseUrl + "/", "");
+        String key = keyOf(publicUrl);
         return s3Client.headObject(HeadObjectRequest.builder()
             .bucket(bucket)
             .key(key)
@@ -116,11 +117,42 @@ public class CloudflareR2MotorbikePhotoStorageAdapter implements MotorbikePhotoS
 
     @Override
     public void delete(String publicUrl) {
-        String key = publicUrl.replace( publicBaseUrl + "/", "");
+        if (!isStoredHere(publicUrl)) return; // nada que borrar: no es un objeto de este bucket
+        String key = keyOf(publicUrl);
         s3Client.deleteObject(DeleteObjectRequest.builder()
             .bucket(bucket)
             .key(key)
             .build());
     }
-    
+
+    /**
+     * Lista por prefijo de la moto y borra objeto a objeto. Se evita {@code DeleteObjects}
+     * (borrado en lote) porque el SDK añade checksums que R2 no siempre acepta; una moto tiene
+     * pocas fotos y {@code DeleteObject} es la misma llamada que ya usa {@link #delete(String)}.
+     */
+    @Override
+    public void deleteAllOf(OwnerId ownerId, MotorbikeId motorbikeId) {
+        ListObjectsV2Request listRequest = ListObjectsV2Request.builder()
+            .bucket(bucket)
+            .prefix(prefixFor(ownerId, motorbikeId))
+            .build();
+
+        s3Client.listObjectsV2Paginator(listRequest).contents()
+            .forEach(object -> s3Client.deleteObject(DeleteObjectRequest.builder()
+                .bucket(bucket)
+                .key(object.key())
+                .build()));
+    }
+
+    /** Extrae la clave del objeto a partir de su URL pública; falla si no pertenece a este bucket. */
+    private String keyOf(String publicUrl) {
+        if (!isStoredHere(publicUrl)) {
+            throw new IllegalArgumentException("URL does not belong to the configured storage");
+        }
+        return publicUrl.substring(publicBaseUrl.length() + 1);
+    }
+
+    private boolean isStoredHere(String publicUrl) {
+        return publicUrl != null && publicUrl.startsWith(publicBaseUrl + "/");
+    }
 }

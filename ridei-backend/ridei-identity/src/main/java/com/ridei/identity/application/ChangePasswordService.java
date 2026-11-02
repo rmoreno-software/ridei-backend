@@ -1,8 +1,10 @@
 package com.ridei.identity.application;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import com.ridei.identity.domain.exception.UserNotFoundException;
 import com.ridei.identity.domain.model.User;
-import com.ridei.identity.domain.port.in.ChangePasswordUseCase;
+import com.ridei.identity.application.port.in.ChangePasswordUseCase;
 import com.ridei.identity.domain.port.out.EmailSenderPort;
 import com.ridei.identity.domain.port.out.JwtPort;
 import com.ridei.identity.domain.port.out.PasswordHasherPort;
@@ -28,6 +30,7 @@ public class ChangePasswordService implements ChangePasswordUseCase {
     }
 
     @Override
+    @Transactional
     public ChangePasswordResult change(ChangePasswordCommand command) {
         User user = userRepository.findById(command.userId())
             .orElseThrow(() -> new UserNotFoundException(command.userId()));

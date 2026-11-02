@@ -3,7 +3,7 @@ package com.ridei.garage.application;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ridei.garage.domain.model.Motorbike;
-import com.ridei.garage.domain.port.in.UpdateMotorbikePhotoFocalPointUseCase;
+import com.ridei.garage.application.port.in.UpdateMotorbikePhotoFocalPointUseCase;
 import com.ridei.garage.domain.port.out.MotorbikeRepositoryPort;
 
 public class UpdateMotorbikePhotoFocalPointService implements UpdateMotorbikePhotoFocalPointUseCase {

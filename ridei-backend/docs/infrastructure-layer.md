@@ -1,6 +1,6 @@
 # Infrastructure Layer
 
-The infrastructure layer adapts the application to external systems: HTTP, the database, password hashing, and event publishing. All adapters implement port interfaces defined in the domain, so the domain is never aware of the technologies used.
+The infrastructure layer adapts the application to external systems: HTTP, the database, password hashing, and event publishing. Outbound adapters implement port interfaces defined in the domain (`domain/port/out`) and inbound adapters call use case interfaces from `application/port/in`, so the domain is never aware of the technologies used.
 
 > This document is a deep dive into `ridei-identity`'s infrastructure (`com.ridei.identity.infrastructure`). `ridei-garage` has its own, independent set of adapters under `com.ridei.garage.infrastructure`: `MotorbikeController` (REST), `MotorbikePersistenceAdapter`/`MotorbikeJpaRepository`/`MotorbikeJpaEntity` (persistence), and its own `JwtAuthenticationFilter`/`SecurityConfig` — a deliberate duplicate rather than a shared dependency (see [architecture.md § Multi-service concerns](architecture.md#multi-service-concerns)). Notably, `ridei-identity`'s `JwtAdapter` now signs with **ES256** (`java.security.PrivateKey`/`PublicKey`, EC P-256) instead of the original HS256 shared secret; `ridei-garage`'s filter only ever holds a `PublicKey` and can verify but never sign.
 

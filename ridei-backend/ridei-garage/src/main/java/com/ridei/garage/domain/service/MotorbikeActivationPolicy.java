@@ -25,10 +25,9 @@ public final class MotorbikeActivationPolicy {
             .filter(Motorbike::isActive)
             .filter(m -> m.getCategoryGroup() == target.getCategoryGroup())
             .toList();
-        
-            conflicting.forEach(Motorbike::deactivate);
 
-            return conflicting;
+        conflicting.forEach(Motorbike::deactivate);
+        return conflicting;
     }
 
     /**

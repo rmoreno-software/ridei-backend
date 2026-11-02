@@ -20,7 +20,7 @@ import lombok.Getter;
 @Getter
 public class Motorbike {
 
-    private static final int FIRST_MOTORBIKE_YEAR = 1887;
+    public static final int FIRST_MOTORBIKE_YEAR = 1887;
 
     private final MotorbikeId id;
     private final OwnerId ownerId;
@@ -160,13 +160,13 @@ public class Motorbike {
         }
         int maxYear = Year.now().getValue() + 1;
         if (year < FIRST_MOTORBIKE_YEAR || year > maxYear)
-            throw new IllegalArgumentException("Year must be between + " + FIRST_MOTORBIKE_YEAR + " and " + maxYear);
+            throw new IllegalArgumentException("Year must be between " + FIRST_MOTORBIKE_YEAR + " and " + maxYear);
         if (displacementCc != null && displacementCc <= 0)
             throw new IllegalArgumentException("Displacement must be positive");
         if (weightKg != null && weightKg.signum() <= 0)
             throw new IllegalArgumentException("Weight must be positive");
         if (acquisitionDate != null && acquisitionDate.isAfter(LocalDate.now()))
-            throw new IllegalArgumentException("Acquisition  date cannot be in the future");
+            throw new IllegalArgumentException("Acquisition date cannot be in the future");
         requireValidDisposalDate(acquisitionDate, disposalDate);
     }
 

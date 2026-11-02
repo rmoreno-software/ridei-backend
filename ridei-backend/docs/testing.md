@@ -1,7 +1,5 @@
 # Testing
 
-> **Known broken test (2026-09-22):** `ridei-identity/src/test/java/.../infrastructure/adapter/out/security/JwtAdapterTest.java` still constructs `JwtAdapter` with plain ASCII strings (leftover from the HS256 era) instead of Base64-encoded EC keys. All 3 tests currently error with `IllegalStateException: Invalid JWT private key configuration` (confirmed via `./mvnw test -pl ridei-identity -Dtest=JwtAdapterTest`) — not a docs issue, needs a real fix: generate a throwaway EC key pair in the test (e.g. in a `@BeforeAll`, the same way as [getting-started.md § 4](getting-started.md#4-generate-a-local-jwt-key-pair-one-time)) and pass its Base64 DER encoding instead.
-
 ## Strategy
 
 The project applies a **unit-test-first** approach to the domain and application layers. All unit tests are fast, isolated, and have no external dependencies — no database, no Spring context, no HTTP stack.
@@ -14,14 +12,35 @@ Tests are written with **JUnit 5** and **Mockito**.
 
 ```
 ridei-identity/src/test/java/com/ridei/identity/
-├── domain/
-│   └── model/
-│       ├── EmailTest.java          ← Value Object validation
-│       ├── UsernameTest.java       ← Value Object validation
-│       └── UserTest.java          ← Aggregate root invariants
-└── application/
-    └── RegisterUserServiceTest.java ← Use Case orchestration
+├── domain/model/
+│   ├── EmailTest.java                         ← Value Object validation
+│   └── UsernameTest.java                      ← Value Object validation
+├── application/
+│   ├── CheckUsernameAvailabilityServiceTest.java
+│   └── ConfirmProfilePictureServiceTest.java  ← size limit / compression / ownership (Mockito)
+└── infrastructure/adapter/out/security/
+    └── JwtAdapterTest.java                    ← generates a throwaway EC P-256 key pair per run
+
+ridei-garage/src/test/java/com/ridei/garage/
+├── application/
+│   ├── DeleteMotorbikeServiceTest.java        ← delete order, event published, ownership (Mockito)
+│   ├── PurgeMotorbikePhotosServiceTest.java   ← storage purge by motorbike prefix
+│   └── RegisterSetupChangeServiceTest.java    ← "both tyres" change, ownership (Mockito)
+├── domain/event/
+│   └── MotorbikeDeletedEventTest.java
+├── domain/model/
+│   ├── MotorbikeTest.java                     ← aggregate invariants, photos, activation
+│   └── MotorbikeSetupTest.java                ← setup history chain, date conflicts, corrections
+├── domain/service/
+│   └── MotorbikeActivationPolicyTest.java     ← one active motorbike per category group
+└── infrastructure/adapter/in/event/
+    ├── MotorbikeDeletedListenerTest.java      ← AFTER_COMMIT binding, failures swallowed
+    └── MotorbikeDeletionTransactionTest.java  ← minimal Spring context, no DB: purge only after commit
 ```
+
+See [motorbike-setup.md § Tests](motorbike-setup.md#6-tests) and [motorbike-deletion.md § Tests](motorbike-deletion.md#5-tests) for what those tests cover. `MotorbikeDeletionTransactionTest` is the one exception to "no Spring context": it starts a tiny context (no DB, in-memory transaction manager) because the guarantee under test lives in Spring's transaction synchronization.
+
+> Sections below describing `UserTest` and `RegisterUserServiceTest` document tests that are **planned but not yet written**.
 
 ---
 
@@ -126,7 +145,7 @@ These tests verify:
 ./mvnw test -pl ridei-identity
 
 # Run a specific test class
-./mvnw test -pl ridei-identity -Dtest=RegisterUserServiceTest
+./mvnw test -pl ridei-identity -Dtest=ConfirmProfilePictureServiceTest
 ```
 
 ---
@@ -139,6 +158,7 @@ These tests verify:
 | `UserPersistenceAdapter` | Would require an in-memory or Testcontainers database; planned for a future iteration |
 | `BCryptPasswordHasherAdapter` | Trivial delegation to `BCryptPasswordEncoder`; no custom logic |
 | `GlobalExceptionHandler` | Best verified with a Spring MVC test slice (`@WebMvcTest`) — planned |
+| `MotorbikeSetupPersistenceAdapter` / `V9` migration | Needs PostgreSQL (partial unique index, flush ordering); verify by starting garage with the `local` profile or with Testcontainers |
 
 ---
 

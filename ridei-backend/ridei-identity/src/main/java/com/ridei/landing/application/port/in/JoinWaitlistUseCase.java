@@ -1,4 +1,4 @@
-package com.ridei.landing.domain.port.in;
+package com.ridei.landing.application.port.in;
 
 import com.ridei.landing.application.JoinWaitlistCommand;
 

@@ -7,6 +7,7 @@ import java.util.UUID;
 import com.ridei.garage.application.EditMotorbikeCommand;
 import com.ridei.garage.domain.model.BrandId;
 import com.ridei.garage.domain.model.Category;
+import com.ridei.garage.domain.model.Motorbike;
 import com.ridei.garage.domain.model.MotorbikeId;
 import com.ridei.garage.domain.model.OwnerId;
 
@@ -35,7 +36,7 @@ public class EditMotorbikeRequestDTO {
     private Category category;
 
     @NotNull
-    @Min(1885)
+    @Min(Motorbike.FIRST_MOTORBIKE_YEAR)
     private Integer year;
 
     @Positive

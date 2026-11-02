@@ -7,6 +7,7 @@ import java.util.UUID;
 import com.ridei.garage.application.RegisterMotorbikeCommand;
 import com.ridei.garage.domain.model.BrandId;
 import com.ridei.garage.domain.model.Category;
+import com.ridei.garage.domain.model.Motorbike;
 import com.ridei.garage.domain.model.OwnerId;
 
 import jakarta.validation.constraints.AssertTrue;
@@ -34,7 +35,7 @@ public class RegisterMotorbikeRequestDTO {
     private Category category;
 
     @NotNull 
-    @Min(1885)
+    @Min(Motorbike.FIRST_MOTORBIKE_YEAR)
     private Integer year;
 
     @Positive

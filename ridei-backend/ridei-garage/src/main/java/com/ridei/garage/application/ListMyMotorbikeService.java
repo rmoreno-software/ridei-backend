@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.ridei.garage.domain.model.Motorbike;
 import com.ridei.garage.domain.model.OwnerId;
-import com.ridei.garage.domain.port.in.ListMyMotorbikesUseCase;
+import com.ridei.garage.application.port.in.ListMyMotorbikesUseCase;
 import com.ridei.garage.domain.port.out.MotorbikeRepositoryPort;
 
 public class ListMyMotorbikeService implements ListMyMotorbikesUseCase {

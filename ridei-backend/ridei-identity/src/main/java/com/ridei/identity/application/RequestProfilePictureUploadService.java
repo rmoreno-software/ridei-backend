@@ -2,7 +2,7 @@ package com.ridei.identity.application;
 
 import com.ridei.identity.domain.exception.UserNotFoundException;
 import com.ridei.identity.domain.model.PresignedUpload;
-import com.ridei.identity.domain.port.in.RequestProfilePictureUploadUseCase;
+import com.ridei.identity.application.port.in.RequestProfilePictureUploadUseCase;
 import com.ridei.identity.domain.port.out.ProfilePictureStoragePort;
 import com.ridei.identity.domain.port.out.UserRepositoryPort;
 

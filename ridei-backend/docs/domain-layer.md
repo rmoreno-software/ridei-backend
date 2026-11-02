@@ -231,15 +231,17 @@ All three extend `RuntimeException`. They carry a human-readable message that is
 
 ## Ports
 
-Ports are **Java interfaces** defined in the domain layer. They represent the contracts through which the domain interacts with the outside world. Concrete implementations live in the infrastructure layer.
+Outbound ports are **Java interfaces** defined in the domain layer (`domain/port/out`); inbound ports are defined in the application layer (see below). They represent the contracts through which the domain interacts with the outside world. Concrete implementations live in the infrastructure layer.
 
 ### Inbound Ports (Use Cases)
 
-The domain defines what operations it exposes to external actors.
+> Inbound ports live in the **application** layer (`application/port/in`), not in the domain: their signatures use application `*Command` records, so keeping them in `domain/` would make the domain depend on the application layer. Only outbound ports (`domain/port/out`) belong to the domain.
+
+The application layer defines what operations it exposes to external actors.
 
 #### `RegisterUserUseCase`
 
-File: `domain/port/in/RegisterUserUseCase.java`
+File: `application/port/in/RegisterUserUseCase.java`
 
 ```java
 public interface RegisterUserUseCase {

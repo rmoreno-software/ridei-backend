@@ -1,5 +1,7 @@
 package com.ridei.identity.application;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.Instant;
 import java.util.Optional;
 
@@ -7,7 +9,7 @@ import com.ridei.identity.domain.event.UserGoogleAccountLinkedEvent;
 import com.ridei.identity.domain.model.Email;
 import com.ridei.identity.domain.model.GoogleUserInfo;
 import com.ridei.identity.domain.model.User;
-import com.ridei.identity.domain.port.in.LoginWithGoogleUseCase;
+import com.ridei.identity.application.port.in.LoginWithGoogleUseCase;
 import com.ridei.identity.domain.port.out.EventPublisherPort;
 import com.ridei.identity.domain.port.out.GoogleTokenVerifierPort;
 import com.ridei.identity.domain.port.out.JwtPort;
@@ -33,6 +35,7 @@ public class LoginWithGoogleService implements LoginWithGoogleUseCase{
     }
 
     @Override
+    @Transactional
     public GoogleAuthResult login(LoginWithGoogleCommand command) {
         GoogleUserInfo googleInfo = googleVerifier.verify(command.idToken());
 

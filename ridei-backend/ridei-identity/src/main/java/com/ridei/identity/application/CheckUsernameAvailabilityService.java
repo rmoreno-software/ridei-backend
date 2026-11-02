@@ -2,7 +2,7 @@ package com.ridei.identity.application;
 
 import com.ridei.identity.domain.model.Username;
 import com.ridei.identity.domain.model.UsernameAvailabilityReason;
-import com.ridei.identity.domain.port.in.CheckUsernameAvailabilityUseCase;
+import com.ridei.identity.application.port.in.CheckUsernameAvailabilityUseCase;
 import com.ridei.identity.domain.port.out.UserRepositoryPort;
 
 import lombok.AllArgsConstructor;

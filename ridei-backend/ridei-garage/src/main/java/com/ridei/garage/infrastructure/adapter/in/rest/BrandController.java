@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ridei.garage.domain.port.in.ListBrandsUseCase;
+import com.ridei.garage.application.port.in.ListBrandsUseCase;
 
 import lombok.AllArgsConstructor;
 

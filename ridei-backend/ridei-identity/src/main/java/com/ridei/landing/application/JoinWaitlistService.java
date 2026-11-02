@@ -1,7 +1,7 @@
 package com.ridei.landing.application;
 
 import com.ridei.landing.domain.model.WaitlistEntry;
-import com.ridei.landing.domain.port.in.JoinWaitlistUseCase;
+import com.ridei.landing.application.port.in.JoinWaitlistUseCase;
 import com.ridei.landing.domain.port.out.WaitlistRepositoryPort;
 
 public class JoinWaitlistService implements JoinWaitlistUseCase {

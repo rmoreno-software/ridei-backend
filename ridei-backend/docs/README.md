@@ -16,6 +16,8 @@ Welcome to the Ridei Backend documentation. This index links to all available do
 | [Error Handling](error-handling.md) | Error model, exception hierarchy, HTTP status mapping |
 | [Database](database.md) | Schema, migrations strategy (Flyway), table definitions |
 | [Testing](testing.md) | Test strategy, unit tests, coverage goals |
+| [Motorbike Setup](motorbike-setup.md) | Garage: tyres & final drive setup with history — domain, endpoints, schema |
+| [Motorbike Deletion](motorbike-deletion.md) | Garage: deleting a motorbike with its setup and photos (DB + R2), after-commit purge |
 
 ---
 

@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ridei.landing.domain.model.Email;
 import com.ridei.landing.application.JoinWaitlistCommand;
-import com.ridei.landing.domain.port.in.JoinWaitlistUseCase;
+import com.ridei.landing.application.port.in.JoinWaitlistUseCase;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;

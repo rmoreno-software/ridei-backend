@@ -8,7 +8,7 @@ import com.ridei.garage.domain.exception.BrandNotFoundException;
 import com.ridei.garage.domain.model.Brand;
 import com.ridei.garage.domain.model.BrandId;
 import com.ridei.garage.domain.model.Motorbike;
-import com.ridei.garage.domain.port.in.RegisterMotorbikeUseCase;
+import com.ridei.garage.application.port.in.RegisterMotorbikeUseCase;
 import com.ridei.garage.domain.port.out.BrandRepositoryPort;
 import com.ridei.garage.domain.port.out.MotorbikeRepositoryPort;
 import com.ridei.garage.domain.service.MotorbikeActivationPolicy;

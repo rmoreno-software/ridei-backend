@@ -1,9 +1,11 @@
 package com.ridei.identity.application;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import com.ridei.identity.domain.exception.UserNotFoundException;
 import com.ridei.identity.domain.exception.UsernameAlreadyTakenException;
 import com.ridei.identity.domain.model.User;
-import com.ridei.identity.domain.port.in.SaveOnboardingStep1UseCase;
+import com.ridei.identity.application.port.in.SaveOnboardingStep1UseCase;
 import com.ridei.identity.domain.port.out.UserRepositoryPort;
 
 public class SaveOnboardingStep1Service implements SaveOnboardingStep1UseCase {
@@ -15,6 +17,7 @@ public class SaveOnboardingStep1Service implements SaveOnboardingStep1UseCase {
     }
 
     @Override
+    @Transactional
     public void complete(SaveOnboardingStep1Command command) {
         // 1. Recuperar el usuario
         User user = repository.findById(command.userId())

@@ -11,4 +11,6 @@ public interface MotorbikeRepositoryPort {
     void save(Motorbike motorbike);
     List<Motorbike> findAllByOwnerId(OwnerId ownerId);
     Optional<Motorbike> findById(MotorbikeId id);
+    /** Borra la moto y sus fotos (filas); los objetos del storage los limpia quien corresponda. */
+    void delete(Motorbike motorbike);
 }

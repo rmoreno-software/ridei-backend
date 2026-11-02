@@ -1,10 +1,12 @@
 package com.ridei.identity.application;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.Locale;
 
 import com.ridei.identity.domain.model.AccountStatus;
 import com.ridei.identity.domain.model.User;
-import com.ridei.identity.domain.port.in.ResendVerificationEmailUseCase;
+import com.ridei.identity.application.port.in.ResendVerificationEmailUseCase;
 import com.ridei.identity.domain.port.out.EmailSenderPort;
 import com.ridei.identity.domain.port.out.UserRepositoryPort;
 
@@ -26,6 +28,7 @@ public class ResendVerificationEmailService implements ResendVerificationEmailUs
     }
 
     @Override
+    @Transactional
     public void resend(ResendVerificationEmailCommand command) {
         userRepository.findByEmail(command.email())
             .filter(user -> user.getStatus() == AccountStatus.PENDING_VERIFICATION)

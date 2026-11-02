@@ -2,7 +2,7 @@ package com.ridei.identity.application;
 
 import com.ridei.identity.domain.model.Email;
 import com.ridei.identity.domain.model.EmailAvailabilityReason;
-import com.ridei.identity.domain.port.in.CheckEmailAvailabilityUseCase;
+import com.ridei.identity.application.port.in.CheckEmailAvailabilityUseCase;
 import com.ridei.identity.domain.port.out.UserRepositoryPort;
 
 import lombok.AllArgsConstructor;

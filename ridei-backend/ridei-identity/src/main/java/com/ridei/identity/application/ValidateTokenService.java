@@ -2,7 +2,7 @@ package com.ridei.identity.application;
 
 import com.ridei.identity.domain.model.User;
 import com.ridei.identity.domain.model.UserId;
-import com.ridei.identity.domain.port.in.ValidateTokenUseCase;
+import com.ridei.identity.application.port.in.ValidateTokenUseCase;
 import com.ridei.identity.domain.port.out.JwtPort;
 import com.ridei.identity.domain.port.out.UserRepositoryPort;
 

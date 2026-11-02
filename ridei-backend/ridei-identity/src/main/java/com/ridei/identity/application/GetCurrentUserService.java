@@ -4,7 +4,7 @@ import com.ridei.identity.domain.exception.UserNotFoundException;
 import com.ridei.identity.domain.exception.UserSuspendedException;
 import com.ridei.identity.domain.model.UserId;
 import com.ridei.identity.domain.model.UserProfile;
-import com.ridei.identity.domain.port.in.GetCurrentUserUseCase;
+import com.ridei.identity.application.port.in.GetCurrentUserUseCase;
 import com.ridei.identity.domain.port.out.UserRepositoryPort;
 
 import lombok.AllArgsConstructor;

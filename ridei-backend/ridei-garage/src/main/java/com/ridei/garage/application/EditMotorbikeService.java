@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ridei.garage.domain.model.Motorbike;
-import com.ridei.garage.domain.port.in.EditMotorbikeUseCase;
+import com.ridei.garage.application.port.in.EditMotorbikeUseCase;
 import com.ridei.garage.domain.port.out.BrandRepositoryPort;
 import com.ridei.garage.domain.port.out.MotorbikeRepositoryPort;
 import com.ridei.garage.domain.service.MotorbikeActivationPolicy;

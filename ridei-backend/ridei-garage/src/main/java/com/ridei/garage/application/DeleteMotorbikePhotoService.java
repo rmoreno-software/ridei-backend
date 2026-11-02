@@ -4,7 +4,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.ridei.garage.domain.model.Motorbike;
 import com.ridei.garage.domain.model.MotorbikePhoto;
-import com.ridei.garage.domain.port.in.DeleteMotorbikePhotoUseCase;
+import com.ridei.garage.application.port.in.DeleteMotorbikePhotoUseCase;
 import com.ridei.garage.domain.port.out.MotorbikePhotoStoragePort;
 import com.ridei.garage.domain.port.out.MotorbikeRepositoryPort;
 

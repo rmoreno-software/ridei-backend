@@ -18,4 +18,9 @@ public interface MotorbikePhotoStoragePort {
     );
     long getContentLength(String publicUrl);
     void delete(String publicUrl);
+    /**
+     * Borra todos los objetos guardados para la moto, también subidas presignadas que nunca
+     * se confirmaron. Idempotente: no falla si no queda nada.
+     */
+    void deleteAllOf(OwnerId ownerId, MotorbikeId motorbikeId);
 }

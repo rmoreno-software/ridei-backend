@@ -104,7 +104,8 @@ public class CloudflareR2StorageAdapter implements ProfilePictureStoragePort {
 
     @Override
     public void delete(String publicUrl) {
-        String key = publicUrl.replace(publicBaseUrl + "/", "");
+        if (!isStoredHere(publicUrl)) return; // nada que borrar: no es un objeto de este bucket
+        String key = keyOf(publicUrl);
         s3Client.deleteObject(DeleteObjectRequest.builder()
             .bucket(bucket)
             .key(key)
@@ -113,7 +114,7 @@ public class CloudflareR2StorageAdapter implements ProfilePictureStoragePort {
 
     @Override
     public long getContentLength(String publicUrl) {
-        String key = publicUrl.replace(publicBaseUrl + "/", "");
+        String key = keyOf(publicUrl);
         return s3Client.headObject(HeadObjectRequest.builder()
             .bucket(bucket)
             .key(key)
@@ -123,9 +124,9 @@ public class CloudflareR2StorageAdapter implements ProfilePictureStoragePort {
 
     @Override
     public byte[] download(String publicUrl) {
-        String key = publicUrl.replace(publicBaseUrl + "/", "");
+        String key = keyOf(publicUrl);
         ResponseBytes<GetObjectResponse> response = s3Client.getObjectAsBytes(GetObjectRequest.builder()
-            .bucket(key)
+            .bucket(bucket)
             .key(key)
             .build());
         return response.asByteArray();
@@ -146,5 +147,16 @@ public class CloudflareR2StorageAdapter implements ProfilePictureStoragePort {
 
         return publicBaseUrl + "/" + key;
     }
-    
+
+    /** Extrae la clave del objeto a partir de su URL pública; falla si no pertenece a este bucket. */
+    private String keyOf(String publicUrl) {
+        if (!isStoredHere(publicUrl)) {
+            throw new IllegalArgumentException("URL does not belong to the configured storage");
+        }
+        return publicUrl.substring(publicBaseUrl.length() + 1);
+    }
+
+    private boolean isStoredHere(String publicUrl) {
+        return publicUrl != null && publicUrl.startsWith(publicBaseUrl + "/");
+    }
 }

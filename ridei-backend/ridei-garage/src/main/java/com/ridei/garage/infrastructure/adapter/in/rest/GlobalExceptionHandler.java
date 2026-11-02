@@ -19,6 +19,8 @@ import com.ridei.garage.domain.exception.InvalidMotorbikePhotoUrlException;
 import com.ridei.garage.domain.exception.MotorbikeNotFoundException;
 import com.ridei.garage.domain.exception.MotorbikePhotoTooLargeException;
 import com.ridei.garage.domain.exception.PhotoNotFoundException;
+import com.ridei.garage.domain.exception.SetupChangeDateConflictException;
+import com.ridei.garage.domain.exception.SetupEntryNotFoundException;
 import com.ridei.garage.infrastructure.adapter.in.rest.exception.ApiError;
 
 @RestControllerAdvice 
@@ -67,30 +69,44 @@ public class GlobalExceptionHandler {
     } 
 
     @ExceptionHandler(BrandNotFoundException.class)
-    public ResponseEntity<ApiError> handleBrandNotFoundException(BrandNotFoundException ex) {
+    public ResponseEntity<ApiError> handleBrandNotFound(BrandNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-            new ApiError(400, "Bad request", ex.getMessage())
+            new ApiError(400, "Bad Request", ex.getMessage())
         );
     } 
 
     @ExceptionHandler(InvalidMotorbikePhotoUrlException.class)
-    public ResponseEntity<ApiError> handleInvalidMotorbikePhotoUrlException(InvalidMotorbikePhotoUrlException ex) {
+    public ResponseEntity<ApiError> handleInvalidMotorbikePhotoUrl(InvalidMotorbikePhotoUrlException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
             new ApiError(400, "Bad Request", ex.getMessage())
         );
     }
 
     @ExceptionHandler(MotorbikePhotoTooLargeException.class)
-    public ResponseEntity<ApiError> handleMotorbikePhotoUrlException(MotorbikePhotoTooLargeException ex) {
+    public ResponseEntity<ApiError> handleMotorbikePhotoTooLarge(MotorbikePhotoTooLargeException ex) {
         return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(
             new ApiError(413, "Payload Too Large", ex.getMessage())
         );
     }
 
     @ExceptionHandler(PhotoNotFoundException.class)
-    public ResponseEntity<ApiError> handlePhotoNotPhoundException(PhotoNotFoundException ex) {
+    public ResponseEntity<ApiError> handlePhotoNotFound(PhotoNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
             new ApiError(404, "Not Found", ex.getMessage())
+        );
+    }
+
+    @ExceptionHandler(SetupEntryNotFoundException.class)
+    public ResponseEntity<ApiError> handleSetupEntryNotFound(SetupEntryNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+            new ApiError(404, "Not Found", ex.getMessage())
+        );
+    }
+
+    @ExceptionHandler(SetupChangeDateConflictException.class)
+    public ResponseEntity<ApiError> handleSetupChangeDateConflict(SetupChangeDateConflictException ex) {
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(
+            new ApiError(422, "Unprocessable Entity", ex.getMessage())
         );
     }
 

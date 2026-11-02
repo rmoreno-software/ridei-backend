@@ -35,7 +35,7 @@ The innermost ring. Contains pure business logic with **no framework dependencie
 - **Enums** — `UserRole`, `AccountStatus`, `Gender`, `DocumentType`: closed sets of domain-meaningful values.
 - **Domain exceptions** — thrown when business rules are violated.
 - **Domain events** — facts that happened inside the domain (`UserRegisteredEvent`).
-- **Ports** — Java interfaces that the domain defines and that external layers must implement.
+- **Outbound ports** — Java interfaces that the domain defines (`domain/port/out`) and that infrastructure adapters must implement. Inbound ports (use cases) live in `application/port/in`.
 
 ### Application layer
 
@@ -100,10 +100,11 @@ com.ridei.identity
 │   ├── event/                             ← Domain Events
 │   ├── exception/                         ← Domain Exceptions
 │   └── port/
-│       ├── in/                            ← Inbound Port interfaces (Use Cases)
 │       └── out/                           ← Outbound Port interfaces
 │
 ├── application/
+│   ├── port/
+│   │   └── in/                            ← Inbound Port interfaces (Use Cases)
 │   ├── RegisterUserCommand.java           ← Command Record
 │   └── RegisterUserService.java           ← Use Case implementation
 │
@@ -163,8 +164,9 @@ Splitting a bounded context into its own microservice (`ridei-garage`) raised tw
 | Hexagonal Architecture | Keeps the domain testable in isolation; infrastructure can be swapped without touching business logic |
 | Domain-Driven Design | Models the business language explicitly (Value Objects, Aggregate Roots, Domain Events) |
 | Immutable Value Objects | Prevent invalid state from propagating through the system |
-| Ports defined in the domain | The domain dictates what it needs; infrastructure adapts — not the other way around |
-| No Spring annotations in domain/application | Zero framework coupling in business logic |
+| Outbound ports defined in the domain | The domain dictates what it needs; infrastructure adapts — not the other way around |
+| No Spring annotations in domain; only `@Transactional` in application | Near-zero framework coupling in business logic; transaction boundaries are declared on the use case |
+| Inbound ports live in `application/port/in`, outbound ports in `domain/port/out` | Use case interfaces take application `*Command` records, so placing them in the domain would make the domain depend on the application layer |
 | Static factory methods on aggregates | Enforce invariants at construction time (`User.register()`, `User.reconstitute()`) |
 | Commands as Java Records | Immutable, concise, no setter surface |
 | Flyway for migrations | Schema changes are versioned, reproducible, and auditable |

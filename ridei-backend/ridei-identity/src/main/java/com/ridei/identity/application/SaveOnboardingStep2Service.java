@@ -1,8 +1,10 @@
 package com.ridei.identity.application;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import com.ridei.identity.domain.exception.UserNotFoundException;
 import com.ridei.identity.domain.model.User;
-import com.ridei.identity.domain.port.in.SaveOnboardingStep2UseCase;
+import com.ridei.identity.application.port.in.SaveOnboardingStep2UseCase;
 import com.ridei.identity.domain.port.out.UserRepositoryPort;
 
 public class SaveOnboardingStep2Service implements SaveOnboardingStep2UseCase {
@@ -14,6 +16,7 @@ public class SaveOnboardingStep2Service implements SaveOnboardingStep2UseCase {
     }
 
     @Override
+    @Transactional
     public void complete(SaveOnboardingStep2Command command) {
         // 1. Recuperar el usuario
         User user = repository.findById(command.userId())
