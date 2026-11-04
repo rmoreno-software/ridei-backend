@@ -148,6 +148,25 @@ These tests verify:
 ./mvnw test -pl ridei-identity -Dtest=ConfirmProfilePictureServiceTest
 ```
 
+### `ridei-circuits`: unit, slice and integration tests
+
+`ridei-circuits` is the first module with tests beyond plain unit tests. The suffix decides which plugin runs a class:
+
+| Suffix | Plugin / phase | Needs | What |
+|---|---|---|---|
+| `*Test` | surefire / `test` | nothing | Domain (`CatalogNameTest`, `TrigramSimilarityTest`, `LayoutTest`, `VenueTest`, `VenueMergeTest`, `ValueObjectsTest`), application with an in-memory repository (`ProposeVenueServiceTest`, `AddTrackAndLayoutServiceTest`, `MergeServicesTest`, `GetVenueDetailServiceTest`, `RetryingUseCasesTest`), and API with `@WebMvcTest` (`CatalogApiTest`: HTTP codes, 409 body, security by role — it generates its own ES256 key pair) |
+| `*IT` | failsafe / `integration-test` + `verify` | **Docker** | Full Spring context against `postgis/postgis:16-3.4` via Testcontainers (`PostgisIntegrationTest`): native geo/trigram queries, UNIQUE/EXCLUDE constraints, optimistic lock, merges and default swap persisted, seed consistency (`SeedDataIT` checks every `normalized_name` against `NameNormalizer`) and race conditions (two threads, same venue/track → one wins, the other gets the existing item or a 409, never a 500) |
+
+```bash
+./mvnw test   -pl ridei-circuits                          # *Test only, no Docker
+./mvnw verify -pl ridei-circuits                          # *Test + *IT (Docker running)
+./mvnw verify -pl ridei-circuits -Dit.test=CatalogUseCasesIT -Dtest=skip -Dsurefire.failIfNoSpecifiedTests=false
+```
+
+Because of this, `./mvnw clean verify` at the root now needs Docker running.
+
+`ridei-circuits/pom.xml` overrides `testcontainers.version` to `1.21.4`. The 1.19.x that Spring Boot 3.3.5 manages speaks a Docker API older than 1.44, which Docker Engine 29+ rejects; the symptom is `Could not find a valid Docker environment` even with Docker Desktop running.
+
 ---
 
 ## What is NOT tested (and why)

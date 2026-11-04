@@ -49,6 +49,16 @@ docker exec -it ridei-postgres psql -U ridei -d postgres \
 
 Data is persisted in a named Docker volume (`ridei_postgres_data`) and survives container restarts.
 
+`ridei-circuits` needs PostGIS, so it runs in its own container (`ridei-postgis`, image `postgis/postgis:16-3.4`), started by the same `docker compose up -d`. Its database and role are created automatically:
+
+| Parameter | Value |
+|---|---|
+| Host / port | `localhost:5433` |
+| Database | `ridei_circuits` |
+| User / password | `ridei_circuits` / `ridei_circuits_dev` |
+
+Locally that role is the container's superuser, so Flyway's `V1` creates the `postgis` and `pg_trgm` extensions itself (in production a superuser has to create `postgis` beforehand — see [deployment.md](deployment.md)).
+
 Verify the database is healthy:
 
 ```bash
@@ -116,6 +126,28 @@ Paste the two Base64 values (no `-----BEGIN...-----` headers) into:
 
 # ridei-garage (port 8082) — in a separate terminal
 ./mvnw spring-boot:run -pl ridei-garage -Dspring-boot.run.profiles=local
+
+# ridei-circuits (port 8083) — in a separate terminal
+./mvnw spring-boot:run -pl ridei-circuits -Dspring-boot.run.profiles=local
+```
+
+`ridei-circuits/src/main/resources/application-local.yml` (git-ignored) only needs the `ridei-postgis` datasource above and the same `jwt.public-key` as garage:
+
+```yaml
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/ridei_circuits
+    username: ridei_circuits
+    password: ridei_circuits_dev
+jwt:
+  public-key: <same base64 public key as ridei-identity / ridei-garage>
+```
+
+Admin endpoints (`/api/v1/circuits/admin/**`) need a token with role `ADMIN`. No API grants that role; promote a user by hand in `ridei_identity` and log in again so the new role reaches the token:
+
+```bash
+docker exec -it ridei-postgres psql -U ridei -d ridei_identity \
+  -c "UPDATE users SET role = 'ADMIN' WHERE email = 'you@example.com';"
 ```
 
 You should see, respectively:

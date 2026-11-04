@@ -29,7 +29,7 @@ File: `domain/model/User.java`
 | `dateOfBirth` | `LocalDate` | Used for age validation |
 | `countryCode` | `String` | ISO 3166-1 alpha-2 country code (e.g. `ES`, `IT`) |
 | `identityDocument` | `IdentityDocument` | Document type + number pair |
-| `role` | `UserRole` | `RIDER` or `ORGANIZER` |
+| `role` | `UserRole` | `RIDER`, `ORGANIZER` or `ADMIN` |
 | `status` | `AccountStatus` | Lifecycle state: `PENDING_VERIFICATION`, `ACTIVE`, `SUSPENDED` |
 | `termsAccepted` | `boolean` | Must be `true` for registration to succeed |
 | `termsAcceptedAt` | `Instant` | Timestamp of acceptance |
@@ -147,6 +147,7 @@ Defines the two roles a user can hold:
 |---|---|
 | `RIDER` | A motorcycle rider who participates in events |
 | `ORGANIZER` | A legal entity that organises and manages events |
+| `ADMIN` | Catalog administrator (used by `ridei-circuits` admin endpoints). Never assigned through the API — set by hand in `users.role`; the user must log in again to get it in the token |
 
 Role-specific data is stored in separate tables (`rider_profiles`, `organizer_accounts`).
 

@@ -16,5 +16,25 @@ services:
       timeout: 5s
       retries: 5
 
+  # ridei-circuits necesita PostGIS. Contenedor y volumen propios para no cambiar la imagen
+  # (alpine → debian) del Postgres compartido por identity y garage.
+  postgis:
+    image: postgis/postgis:16-3.4
+    container_name: ridei-postgis
+    environment:
+      POSTGRES_USER: ridei_circuits
+      POSTGRES_PASSWORD: ridei_circuits_dev
+      POSTGRES_DB: ridei_circuits
+    ports:
+      - "5433:5432"
+    volumes:
+      - ridei_postgis_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ridei_circuits -d ridei_circuits"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   ridei_postgres_data:
+  ridei_postgis_data:
