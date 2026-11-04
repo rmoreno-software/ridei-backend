@@ -131,9 +131,18 @@ ridei-backend/           ← Parent POM (com.ridei:ridei-backend)
 ├── docker-compose.yml
 ├── ridei-identity/      ← Child module (identity & auth microservice)
 │   └── pom.xml
-└── ridei-garage/        ← Child module (motorbike garage microservice)
+├── ridei-garage/        ← Child module (motorbike garage microservice)
+│   └── pom.xml
+└── ridei-circuits/      ← Child module (circuits catalog, PostGIS) — see circuits.md
     └── pom.xml
 ```
+
+`ridei-circuits` follows the garage pattern, with three differences:
+- its domain package is pure Java (no Lombok either);
+- its database runs on its own PostGIS container;
+- its admin endpoints use role `ADMIN` from identity's JWT.
+
+See [circuits.md](circuits.md).
 
 `ridei-garage` (added 2026-09) was the first bounded context split out this way — the pattern for future microservices (e.g. `ridei-events`, `ridei-results`) is now proven: its own child module, its own package root (`com.ridei.garage`), its own database, and its own copy of `JwtAuthenticationFilter`/`SecurityConfig` rather than a shared library — see [§ Multi-service concerns](#multi-service-concerns) below for why.
 

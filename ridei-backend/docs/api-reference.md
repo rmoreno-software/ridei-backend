@@ -370,3 +370,9 @@ Same `ApiError` shape as `ridei-identity`, minus the `timestamp` field:
 | `error` | `string` | Short error category |
 | `message` | `string` | Human-readable error description |
 | `details` | `string[]` | Field-level messages (populated only for validation errors) |
+
+---
+
+## `ridei-circuits` endpoints
+
+Base path `/api/v1/circuits` (port `8083`). Full endpoint list, request/response bodies and the 409 `code`/`candidates` format: see [circuits.md §4](circuits.md#4-rest-api-apiv1circuits).

@@ -9,9 +9,10 @@ Ridei is a platform for motorcycle racing events. This repo is a Maven multi-mod
 Use the Maven wrapper from the repo root (`./mvnw` in Git Bash, `.\mvnw.cmd` in PowerShell).
 
 ```bash
-docker compose up -d                       # Postgres 16 (container ridei-postgres, db ridei_identity)
+docker compose up -d                       # Postgres 16 (ridei-postgres :5432, db ridei_identity) + PostGIS (ridei-postgis :5433, db ridei_circuits)
 ./mvnw spring-boot:run -pl ridei-identity -Dspring-boot.run.profiles=local   # port 8081
 ./mvnw spring-boot:run -pl ridei-garage   -Dspring-boot.run.profiles=local   # port 8082
+./mvnw spring-boot:run -pl ridei-circuits -Dspring-boot.run.profiles=local   # port 8083
 ./mvnw clean package -pl ridei-garage -am -DskipTests   # build one module
 ./mvnw clean verify                        # build + all tests
 ./mvnw test -pl ridei-garage -Dtest=MotorbikeTest        # single test class
@@ -20,13 +21,14 @@ docker compose up -d                       # Postgres 16 (container ridei-postgr
 
 - Running requires the `local` profile: `application-local.yml` (git-ignored) holds real DB credentials, R2 credentials and the ES256 JWT key pair. `application.yml` has only `${ENV_VAR}` placeholders. See `docs/getting-started.md` for generating keys and creating the separate `ridei_garage` database/role (not created by docker-compose).
 - There is no linter configured.
-- Tests are plain JUnit 5 + AssertJ + Mockito unit tests (no Spring context, no DB) for domain models and application services; see `docs/testing.md`. Coverage is still small — controllers, persistence and R2 adapters are untested. After moving/renaming packages run `./mvnw clean verify`, since stale classes in `target/` can hide broken imports.
+- Tests are plain JUnit 5 + AssertJ + Mockito unit tests (no Spring context, no DB) for domain models and application services; see `docs/testing.md`. Exception: `ridei-circuits` also has `@WebMvcTest` slices (`*Test`) and Testcontainers/PostGIS integration tests (`*IT`, run by failsafe in `verify` — **`./mvnw verify` needs Docker**). Coverage is still small — controllers, persistence and R2 adapters are untested. After moving/renaming packages run `./mvnw clean verify`, since stale classes in `target/` can hide broken imports.
 
 ## Architecture
 
 ### Modules
 - `ridei-identity` (`com.ridei.identity`) — registration, login (password + Google), JWT issuing, refresh tokens, email verification, password reset, multi-step onboarding, profile pictures. Also hosts a small `com.ridei.landing` package (waitlist), picked up via `@ComponentScan` in `IdentityServiceApplication`.
 - `ridei-garage` (`com.ridei.garage`) — users' motorbikes, brands catalog, motorbike photos.
+- `ridei-circuits` (`com.ridei.circuits`) — catalog of venues → tracks → layouts with deduplication (trigram + distance) and admin merges; PostGIS database. Its `domain` package is pure Java (no Lombok, unlike the other modules). See `docs/circuits.md`.
 
 The services are deliberately independent bounded contexts: **no shared/common module**, no Maven dependency between them, separate databases with **no cross-DB foreign keys**. Duplicated infrastructure (e.g. `JwtAuthenticationFilter`, `SecurityConfig`, `ApiError`, `ImageContentType`, `PresignedUpload`) is intentional — don't extract it into a shared library. New services should follow the `ridei-garage` pattern.
 
@@ -48,4 +50,4 @@ The services are deliberately independent bounded contexts: **no shared/common m
 - **i18n (identity)**: user-facing emails/pages use `messages*.properties` (default, `es`, `ca`) and Thymeleaf templates in `templates/`; locale flows through commands (e.g. `RegisterUserCommand.locale`). Keep all three properties files in sync.
 
 ### Deployment
-Both services run on an Ubuntu server as systemd units (`ridei-identity`, `ridei-garage`) with profile `prod`, secrets injected from `/etc/<service>/*.env`. See `docs/deployment.md` before adding new env vars.
+Identity and garage run on an Ubuntu server as systemd units (`ridei-identity`, `ridei-garage`; `ridei-circuits` not deployed yet — see `docs/deployment.md` §3.6) with profile `prod`, secrets injected from `/etc/<service>/*.env`. See `docs/deployment.md` before adding new env vars.

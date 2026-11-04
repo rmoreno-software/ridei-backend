@@ -30,7 +30,7 @@ Carries all the data needed to register a new user. Fields are already typed as 
 | `dateOfBirth` | `LocalDate` | Date of birth (used for age check in the domain) |
 | `countryCode` | `String` | ISO 3166-1 alpha-2 country code |
 | `identityDocument` | `IdentityDocument` | Document type and number |
-| `role` | `UserRole` | `RIDER` or `ORGANIZER` |
+| `role` | `UserRole` | `RIDER`, `ORGANIZER` or `ADMIN` |
 | `termsAccepted` | `boolean` | Must be `true` |
 
 Because `RegisterUserCommand` is a Java Record, it is inherently immutable — there are no setters and all fields are set at construction time.

@@ -189,6 +189,40 @@ sudo systemctl restart ridei-identity
 7. Add an `ingress` rule for it in the Cloudflare Tunnel config (see [§7](#7-cloudflare-tunnel-ingress)) and restart `cloudflared`.
 8. Verify end-to-end with a real access token issued by `ridei-identity` (see [§7](#7-cloudflare-tunnel-ingress)).
 
+### 3.6 `ridei-circuits` (not deployed yet — checklist for its first deployment)
+
+Follow §3.5 with the names below. The one new infrastructure piece is **PostGIS**.
+
+| Concern | Value |
+|---|---|
+| Unit / jar | `ridei-circuits` / `ridei-circuits/target/ridei-circuits-0.0.1-SNAPSHOT.jar` |
+| Port | `8083` |
+| Database | `ridei_circuits` on a PostgreSQL **with PostGIS** (the `ridei-postgres` container image `postgres:16-alpine` has none) |
+
+| Variable | File | Notes |
+|---|---|---|
+| `CIRCUITS_DB_URL` | `app.env` | e.g. `jdbc:postgresql://localhost:5433/ridei_circuits` |
+| `CIRCUITS_DB_USERNAME` | `secrets.env` | Dedicated role `ridei_circuits`, scoped to its database only |
+| `CIRCUITS_DB_PASSWORD` | `secrets.env` | Alphanumeric only (see §3.2) |
+| `JWT_PUBLIC_KEY` | `secrets.env` | Byte-for-byte the same as `ridei-identity`'s |
+
+Dedup tuning (`circuits.deduplication.venue-radius-km`, `venue-min-similarity`) lives in `application.yml`; override with `CIRCUITS_DEDUPLICATION_VENUE_RADIUS_KM` / `CIRCUITS_DEDUPLICATION_VENUE_MIN_SIMILARITY` only if needed.
+
+Provisioning, run once as a **superuser**. `postgis` is not a trusted extension, so the app role cannot create it; Flyway's `V1` only does `CREATE EXTENSION IF NOT EXISTS`:
+
+```bash
+# Recommended: a separate container, like local docker-compose (postgis/postgis:16-3.4 on 5433),
+# so the shared ridei-postgres image and volume stay untouched.
+psql -U postgres -c "CREATE USER ridei_circuits WITH PASSWORD '<alphanumeric>';"
+psql -U postgres -c "CREATE DATABASE ridei_circuits OWNER ridei_circuits;"
+psql -U postgres -c "REVOKE CONNECT ON DATABASE ridei_circuits FROM PUBLIC;"
+psql -U postgres -d ridei_circuits -c "CREATE EXTENSION IF NOT EXISTS postgis; CREATE EXTENSION IF NOT EXISTS pg_trgm;"
+```
+
+Cloudflare ingress: add a `path: /api/v1/circuits/*` → `http://localhost:8083` rule **before** the identity fallback (see §7).
+
+Admins: role `ADMIN` is set by hand in `ridei_identity.users.role`; the user must log in again for it to reach the token. Revocation through `tv` (token version) is **not** checked by circuits (or garage), so a revoked token stays valid there until it expires.
+
 ---
 
 ## 4. Checking what's currently configured

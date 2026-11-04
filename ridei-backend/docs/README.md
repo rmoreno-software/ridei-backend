@@ -18,6 +18,7 @@ Welcome to the Ridei Backend documentation. This index links to all available do
 | [Testing](testing.md) | Test strategy, unit tests, coverage goals |
 | [Motorbike Setup](motorbike-setup.md) | Garage: tyres & final drive setup with history — domain, endpoints, schema |
 | [Motorbike Deletion](motorbike-deletion.md) | Garage: deleting a motorbike with its setup and photos (DB + R2), after-commit purge |
+| [Circuits](circuits.md) | Circuits catalog: venue → track → layout model, deduplication, merges, REST API, race conditions |
 
 ---
 
@@ -31,6 +32,7 @@ Welcome to the Ridei Backend documentation. This index links to all available do
 |---|---|---|
 | `ridei-identity` | User registration, authentication (JWT/ES256), onboarding, and identity management | `8081` |
 | `ridei-garage` | Motorbike garage management — independent database, verifies but doesn't issue JWTs | `8082` |
+| `ridei-circuits` | Circuits catalog (venues, tracks, layouts) with deduplication — PostGIS database, verifies JWTs | `8083` |
 
 ### Tech stack
 
