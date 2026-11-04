@@ -1,0 +1,1821 @@
+{
+  "openapi" : "3.0.1",
+  "info" : {
+    "title" : "Ridei Circuits API",
+    "description" : "Catálogo de circuitos: venues, tracks y layouts, con deduplicación y administración.",
+    "version" : "v1"
+  },
+  "servers" : [ {
+    "url" : "http://localhost",
+    "description" : "Generated server url"
+  } ],
+  "security" : [ {
+    "bearerAuth" : [ ]
+  } ],
+  "tags" : [ {
+    "name" : "Admin",
+    "description" : "Administración del catálogo. Requiere un token con rol ADMIN."
+  }, {
+    "name" : "Venues",
+    "description" : "Catálogo de circuitos para cualquier usuario autenticado: búsqueda y propuestas."
+  } ],
+  "paths" : {
+    "/api/v1/circuits/admin/venues/{venueId}/tracks/{trackId}/default-layout/{layoutId}" : {
+      "put" : {
+        "tags" : [ "Admin" ],
+        "summary" : "Set the default layout",
+        "description" : "Returns the track.",
+        "operationId" : "setDefaultLayout",
+        "parameters" : [ {
+          "name" : "venueId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "trackId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "layoutId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TrackResponseDTO"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid input: `details` lists the problems",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Missing, invalid, expired or revoked access token (no body)"
+          },
+          "403" : {
+            "description" : "The token does not have role ADMIN (no body)"
+          },
+          "404" : {
+            "description" : "Venue, track or layout not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict. `code` indicates the case:\n- `POSSIBLE_DUPLICATE_VENUE`: nearby venue(s) with a similar name; `candidates` sorted by similarity. Resend with `confirmedNotDuplicate: true` to create it anyway.\n- `DUPLICATE_TRACK` / `DUPLICATE_LAYOUT`: `candidates[0]` is the existing item.\n- `CATALOG_ITEM_MERGED`: the item was merged; operate on the canonical one.\n- `CATALOG_ITEM_ALREADY_EXISTS` / `CONCURRENT_MODIFICATION`: concurrent write; reload and retry.",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ConflictApiError"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "ridei-identity unreachable to validate the token; retry later",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/circuits/venues" : {
+      "get" : {
+        "tags" : [ "Venues" ],
+        "summary" : "Search venues",
+        "description" : "Free text (matches words of venue and track names, accents/case/punctuation ignored), country, discipline and proximity (lat + lon + radiusKm together). All optional. Paginated (page from 0, size ≤ 100, default 20). Ordered by similarity, then distance, then name. Excludes merged venues.",
+        "operationId" : "search",
+        "parameters" : [ {
+          "name" : "q",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "maxLength" : 150,
+            "minLength" : 0,
+            "type" : "string"
+          }
+        }, {
+          "name" : "country",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "pattern" : "[A-Za-z]{2}",
+            "type" : "string"
+          }
+        }, {
+          "name" : "discipline",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "ROAD_RACING", "KARTING", "MOTOCROSS", "SUPERMOTO", "ENDURO", "FLAT_TRACK" ]
+          }
+        }, {
+          "name" : "lat",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "maximum" : 90.0,
+            "exclusiveMaximum" : false,
+            "minimum" : -90.0,
+            "exclusiveMinimum" : false,
+            "type" : "number",
+            "format" : "double"
+          }
+        }, {
+          "name" : "lon",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "maximum" : 180.0,
+            "exclusiveMaximum" : false,
+            "minimum" : -180.0,
+            "exclusiveMinimum" : false,
+            "type" : "number",
+            "format" : "double"
+          }
+        }, {
+          "name" : "radiusKm",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "maximum" : 500,
+            "type" : "number",
+            "format" : "double"
+          }
+        }, {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "minimum" : 0,
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "size",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "maximum" : 100,
+            "minimum" : 1,
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PageResponseDTOVenueSearchItemDTO"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid input: `details` lists the problems",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Missing, invalid, expired or revoked access token (no body)"
+          },
+          "503" : {
+            "description" : "ridei-identity unreachable to validate the token; retry later",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Venues" ],
+        "summary" : "Propose a venue",
+        "description" : "Creates a venue with its first track and, optionally, its first layout (it becomes the default). 201 CREATED if new. 200 EXISTING_BY_EXTERNAL_PLACE_ID if a venue with the same externalPlaceId exists (always, even with confirmedNotDuplicate). 409 POSSIBLE_DUPLICATE_VENUE with candidates if a venue < 2 km away has a similar name: show them and resend with confirmedNotDuplicate = true if none matches. The proposer is taken from the token.",
+        "operationId" : "propose",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ProposeVenueRequestDTO"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Created (outcome = CREATED); Location header points to the venue",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProposeVenueResponseDTO"
+                }
+              }
+            }
+          },
+          "200" : {
+            "description" : "A venue with the same externalPlaceId already existed (outcome = EXISTING_BY_EXTERNAL_PLACE_ID)",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProposeVenueResponseDTO"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid input: `details` lists the problems",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Missing, invalid, expired or revoked access token (no body)"
+          },
+          "409" : {
+            "description" : "Conflict. `code` indicates the case:\n- `POSSIBLE_DUPLICATE_VENUE`: nearby venue(s) with a similar name; `candidates` sorted by similarity. Resend with `confirmedNotDuplicate: true` to create it anyway.\n- `DUPLICATE_TRACK` / `DUPLICATE_LAYOUT`: `candidates[0]` is the existing item.\n- `CATALOG_ITEM_MERGED`: the item was merged; operate on the canonical one.\n- `CATALOG_ITEM_ALREADY_EXISTS` / `CONCURRENT_MODIFICATION`: concurrent write; reload and retry.",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ConflictApiError"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "ridei-identity unreachable to validate the token; retry later",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/circuits/venues/{venueId}/tracks" : {
+      "post" : {
+        "tags" : [ "Venues" ],
+        "summary" : "Add a track to a venue",
+        "description" : "409 DUPLICATE_TRACK if the venue already has a track of the same discipline with a similar name.",
+        "operationId" : "addTrack",
+        "parameters" : [ {
+          "name" : "venueId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TrackRequestDTO"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Track created",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TrackResponseDTO"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid input: `details` lists the problems",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Missing, invalid, expired or revoked access token (no body)"
+          },
+          "404" : {
+            "description" : "Venue, track or layout not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict. `code` indicates the case:\n- `POSSIBLE_DUPLICATE_VENUE`: nearby venue(s) with a similar name; `candidates` sorted by similarity. Resend with `confirmedNotDuplicate: true` to create it anyway.\n- `DUPLICATE_TRACK` / `DUPLICATE_LAYOUT`: `candidates[0]` is the existing item.\n- `CATALOG_ITEM_MERGED`: the item was merged; operate on the canonical one.\n- `CATALOG_ITEM_ALREADY_EXISTS` / `CONCURRENT_MODIFICATION`: concurrent write; reload and retry.",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ConflictApiError"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "ridei-identity unreachable to validate the token; retry later",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/circuits/venues/{venueId}/tracks/{trackId}/layouts" : {
+      "post" : {
+        "tags" : [ "Venues" ],
+        "summary" : "Add a layout to a track",
+        "description" : "The first layout of a track becomes its default. 409 DUPLICATE_LAYOUT if an equivalent layout exists: similar name, or length within ±25 m with the same turns and direction.",
+        "operationId" : "addLayout",
+        "parameters" : [ {
+          "name" : "venueId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "trackId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/LayoutRequestDTO"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Layout created",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LayoutResponseDTO"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid input: `details` lists the problems",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Missing, invalid, expired or revoked access token (no body)"
+          },
+          "404" : {
+            "description" : "Venue, track or layout not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict. `code` indicates the case:\n- `POSSIBLE_DUPLICATE_VENUE`: nearby venue(s) with a similar name; `candidates` sorted by similarity. Resend with `confirmedNotDuplicate: true` to create it anyway.\n- `DUPLICATE_TRACK` / `DUPLICATE_LAYOUT`: `candidates[0]` is the existing item.\n- `CATALOG_ITEM_MERGED`: the item was merged; operate on the canonical one.\n- `CATALOG_ITEM_ALREADY_EXISTS` / `CONCURRENT_MODIFICATION`: concurrent write; reload and retry.",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ConflictApiError"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "ridei-identity unreachable to validate the token; retry later",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/circuits/admin/venues/{venueId}/verify" : {
+      "post" : {
+        "tags" : [ "Admin" ],
+        "summary" : "Verify a venue",
+        "description" : "PENDING_REVIEW → VERIFIED. Returns the venue.",
+        "operationId" : "verifyVenue",
+        "parameters" : [ {
+          "name" : "venueId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/VenueResponseDTO"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid input: `details` lists the problems",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Missing, invalid, expired or revoked access token (no body)"
+          },
+          "403" : {
+            "description" : "The token does not have role ADMIN (no body)"
+          },
+          "404" : {
+            "description" : "Venue, track or layout not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict. `code` indicates the case:\n- `POSSIBLE_DUPLICATE_VENUE`: nearby venue(s) with a similar name; `candidates` sorted by similarity. Resend with `confirmedNotDuplicate: true` to create it anyway.\n- `DUPLICATE_TRACK` / `DUPLICATE_LAYOUT`: `candidates[0]` is the existing item.\n- `CATALOG_ITEM_MERGED`: the item was merged; operate on the canonical one.\n- `CATALOG_ITEM_ALREADY_EXISTS` / `CONCURRENT_MODIFICATION`: concurrent write; reload and retry.",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ConflictApiError"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "ridei-identity unreachable to validate the token; retry later",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/circuits/admin/venues/{sourceId}/merge-into/{targetId}" : {
+      "post" : {
+        "tags" : [ "Admin" ],
+        "summary" : "Merge duplicate venues",
+        "description" : "Moves every track of source to target (clashing tracks and layouts are merged too). source becomes MERGED. Returns the target venue.",
+        "operationId" : "mergeVenues",
+        "parameters" : [ {
+          "name" : "sourceId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "targetId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/VenueResponseDTO"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid input: `details` lists the problems",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Missing, invalid, expired or revoked access token (no body)"
+          },
+          "403" : {
+            "description" : "The token does not have role ADMIN (no body)"
+          },
+          "404" : {
+            "description" : "Venue, track or layout not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict. `code` indicates the case:\n- `POSSIBLE_DUPLICATE_VENUE`: nearby venue(s) with a similar name; `candidates` sorted by similarity. Resend with `confirmedNotDuplicate: true` to create it anyway.\n- `DUPLICATE_TRACK` / `DUPLICATE_LAYOUT`: `candidates[0]` is the existing item.\n- `CATALOG_ITEM_MERGED`: the item was merged; operate on the canonical one.\n- `CATALOG_ITEM_ALREADY_EXISTS` / `CONCURRENT_MODIFICATION`: concurrent write; reload and retry.",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ConflictApiError"
+                }
+              }
+            }
+          },
+          "422" : {
+            "description" : "Invalid merge (same item, different disciplines, layouts of different tracks)",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "ridei-identity unreachable to validate the token; retry later",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/circuits/admin/tracks/{trackId}/verify" : {
+      "post" : {
+        "tags" : [ "Admin" ],
+        "summary" : "Verify a track",
+        "description" : "Returns the venue that contains it.",
+        "operationId" : "verifyTrack",
+        "parameters" : [ {
+          "name" : "trackId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/VenueResponseDTO"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid input: `details` lists the problems",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Missing, invalid, expired or revoked access token (no body)"
+          },
+          "403" : {
+            "description" : "The token does not have role ADMIN (no body)"
+          },
+          "404" : {
+            "description" : "Venue, track or layout not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict. `code` indicates the case:\n- `POSSIBLE_DUPLICATE_VENUE`: nearby venue(s) with a similar name; `candidates` sorted by similarity. Resend with `confirmedNotDuplicate: true` to create it anyway.\n- `DUPLICATE_TRACK` / `DUPLICATE_LAYOUT`: `candidates[0]` is the existing item.\n- `CATALOG_ITEM_MERGED`: the item was merged; operate on the canonical one.\n- `CATALOG_ITEM_ALREADY_EXISTS` / `CONCURRENT_MODIFICATION`: concurrent write; reload and retry.",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ConflictApiError"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "ridei-identity unreachable to validate the token; retry later",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/circuits/admin/tracks/{sourceId}/merge-into/{targetId}" : {
+      "post" : {
+        "tags" : [ "Admin" ],
+        "summary" : "Merge duplicate tracks",
+        "description" : "Same discipline only; may belong to different venues. Returns the target's venue.",
+        "operationId" : "mergeTracks",
+        "parameters" : [ {
+          "name" : "sourceId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "targetId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/VenueResponseDTO"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid input: `details` lists the problems",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Missing, invalid, expired or revoked access token (no body)"
+          },
+          "403" : {
+            "description" : "The token does not have role ADMIN (no body)"
+          },
+          "404" : {
+            "description" : "Venue, track or layout not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict. `code` indicates the case:\n- `POSSIBLE_DUPLICATE_VENUE`: nearby venue(s) with a similar name; `candidates` sorted by similarity. Resend with `confirmedNotDuplicate: true` to create it anyway.\n- `DUPLICATE_TRACK` / `DUPLICATE_LAYOUT`: `candidates[0]` is the existing item.\n- `CATALOG_ITEM_MERGED`: the item was merged; operate on the canonical one.\n- `CATALOG_ITEM_ALREADY_EXISTS` / `CONCURRENT_MODIFICATION`: concurrent write; reload and retry.",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ConflictApiError"
+                }
+              }
+            }
+          },
+          "422" : {
+            "description" : "Invalid merge (same item, different disciplines, layouts of different tracks)",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "ridei-identity unreachable to validate the token; retry later",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/circuits/admin/layouts/{sourceId}/merge-into/{targetId}" : {
+      "post" : {
+        "tags" : [ "Admin" ],
+        "summary" : "Merge duplicate layouts",
+        "description" : "Same track only. If source was the default, target becomes the default.",
+        "operationId" : "mergeLayouts",
+        "parameters" : [ {
+          "name" : "sourceId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "targetId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/VenueResponseDTO"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid input: `details` lists the problems",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Missing, invalid, expired or revoked access token (no body)"
+          },
+          "403" : {
+            "description" : "The token does not have role ADMIN (no body)"
+          },
+          "404" : {
+            "description" : "Venue, track or layout not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict. `code` indicates the case:\n- `POSSIBLE_DUPLICATE_VENUE`: nearby venue(s) with a similar name; `candidates` sorted by similarity. Resend with `confirmedNotDuplicate: true` to create it anyway.\n- `DUPLICATE_TRACK` / `DUPLICATE_LAYOUT`: `candidates[0]` is the existing item.\n- `CATALOG_ITEM_MERGED`: the item was merged; operate on the canonical one.\n- `CATALOG_ITEM_ALREADY_EXISTS` / `CONCURRENT_MODIFICATION`: concurrent write; reload and retry.",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ConflictApiError"
+                }
+              }
+            }
+          },
+          "422" : {
+            "description" : "Invalid merge (same item, different disciplines, layouts of different tracks)",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "ridei-identity unreachable to validate the token; retry later",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/circuits/admin/layouts/{layoutId}/verify" : {
+      "post" : {
+        "tags" : [ "Admin" ],
+        "summary" : "Verify a layout",
+        "description" : "Returns the venue that contains it.",
+        "operationId" : "verifyLayout",
+        "parameters" : [ {
+          "name" : "layoutId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/VenueResponseDTO"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid input: `details` lists the problems",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Missing, invalid, expired or revoked access token (no body)"
+          },
+          "403" : {
+            "description" : "The token does not have role ADMIN (no body)"
+          },
+          "404" : {
+            "description" : "Venue, track or layout not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict. `code` indicates the case:\n- `POSSIBLE_DUPLICATE_VENUE`: nearby venue(s) with a similar name; `candidates` sorted by similarity. Resend with `confirmedNotDuplicate: true` to create it anyway.\n- `DUPLICATE_TRACK` / `DUPLICATE_LAYOUT`: `candidates[0]` is the existing item.\n- `CATALOG_ITEM_MERGED`: the item was merged; operate on the canonical one.\n- `CATALOG_ITEM_ALREADY_EXISTS` / `CONCURRENT_MODIFICATION`: concurrent write; reload and retry.",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ConflictApiError"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "ridei-identity unreachable to validate the token; retry later",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/circuits/admin/venues/{venueId}" : {
+      "patch" : {
+        "tags" : [ "Admin" ],
+        "summary" : "Correct a venue",
+        "description" : "Only the fields sent are changed.",
+        "operationId" : "updateVenue",
+        "parameters" : [ {
+          "name" : "venueId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateVenueRequestDTO"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/VenueResponseDTO"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid input: `details` lists the problems",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Missing, invalid, expired or revoked access token (no body)"
+          },
+          "403" : {
+            "description" : "The token does not have role ADMIN (no body)"
+          },
+          "404" : {
+            "description" : "Venue, track or layout not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict. `code` indicates the case:\n- `POSSIBLE_DUPLICATE_VENUE`: nearby venue(s) with a similar name; `candidates` sorted by similarity. Resend with `confirmedNotDuplicate: true` to create it anyway.\n- `DUPLICATE_TRACK` / `DUPLICATE_LAYOUT`: `candidates[0]` is the existing item.\n- `CATALOG_ITEM_MERGED`: the item was merged; operate on the canonical one.\n- `CATALOG_ITEM_ALREADY_EXISTS` / `CONCURRENT_MODIFICATION`: concurrent write; reload and retry.",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ConflictApiError"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "ridei-identity unreachable to validate the token; retry later",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/circuits/admin/venues/{venueId}/tracks/{trackId}" : {
+      "patch" : {
+        "tags" : [ "Admin" ],
+        "summary" : "Correct a track",
+        "description" : "Only the fields sent are changed; duplicate rules apply.",
+        "operationId" : "updateTrack",
+        "parameters" : [ {
+          "name" : "venueId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "trackId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateTrackRequestDTO"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TrackResponseDTO"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid input: `details` lists the problems",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Missing, invalid, expired or revoked access token (no body)"
+          },
+          "403" : {
+            "description" : "The token does not have role ADMIN (no body)"
+          },
+          "404" : {
+            "description" : "Venue, track or layout not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict. `code` indicates the case:\n- `POSSIBLE_DUPLICATE_VENUE`: nearby venue(s) with a similar name; `candidates` sorted by similarity. Resend with `confirmedNotDuplicate: true` to create it anyway.\n- `DUPLICATE_TRACK` / `DUPLICATE_LAYOUT`: `candidates[0]` is the existing item.\n- `CATALOG_ITEM_MERGED`: the item was merged; operate on the canonical one.\n- `CATALOG_ITEM_ALREADY_EXISTS` / `CONCURRENT_MODIFICATION`: concurrent write; reload and retry.",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ConflictApiError"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "ridei-identity unreachable to validate the token; retry later",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/circuits/admin/venues/{venueId}/tracks/{trackId}/layouts/{layoutId}" : {
+      "patch" : {
+        "tags" : [ "Admin" ],
+        "summary" : "Correct a layout",
+        "description" : "Only the fields sent are changed; equivalence rules apply.",
+        "operationId" : "updateLayout",
+        "parameters" : [ {
+          "name" : "venueId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "trackId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "layoutId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateLayoutRequestDTO"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LayoutResponseDTO"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid input: `details` lists the problems",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Missing, invalid, expired or revoked access token (no body)"
+          },
+          "403" : {
+            "description" : "The token does not have role ADMIN (no body)"
+          },
+          "404" : {
+            "description" : "Venue, track or layout not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict. `code` indicates the case:\n- `POSSIBLE_DUPLICATE_VENUE`: nearby venue(s) with a similar name; `candidates` sorted by similarity. Resend with `confirmedNotDuplicate: true` to create it anyway.\n- `DUPLICATE_TRACK` / `DUPLICATE_LAYOUT`: `candidates[0]` is the existing item.\n- `CATALOG_ITEM_MERGED`: the item was merged; operate on the canonical one.\n- `CATALOG_ITEM_ALREADY_EXISTS` / `CONCURRENT_MODIFICATION`: concurrent write; reload and retry.",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ConflictApiError"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "ridei-identity unreachable to validate the token; retry later",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/circuits/venues/{venueId}" : {
+      "get" : {
+        "tags" : [ "Venues" ],
+        "summary" : "Venue detail",
+        "description" : "Venue with its active tracks and layouts. If venueId was merged, the canonical venue is returned with redirectedFromMerged = true: replace the stored id with venue.id.",
+        "operationId" : "get",
+        "parameters" : [ {
+          "name" : "venueId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/VenueDetailResponseDTO"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid input: `details` lists the problems",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Missing, invalid, expired or revoked access token (no body)"
+          },
+          "404" : {
+            "description" : "Venue, track or layout not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "ridei-identity unreachable to validate the token; retry later",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/circuits/venues/nearby" : {
+      "get" : {
+        "tags" : [ "Venues" ],
+        "summary" : "Venues near a point",
+        "description" : "Ordered by distance. radiusKm defaults to 50 (max 500).",
+        "operationId" : "nearby",
+        "parameters" : [ {
+          "name" : "lat",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "maximum" : 90.0,
+            "exclusiveMaximum" : false,
+            "minimum" : -90.0,
+            "exclusiveMinimum" : false,
+            "type" : "number",
+            "format" : "double"
+          }
+        }, {
+          "name" : "lon",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "maximum" : 180.0,
+            "exclusiveMaximum" : false,
+            "minimum" : -180.0,
+            "exclusiveMinimum" : false,
+            "type" : "number",
+            "format" : "double"
+          }
+        }, {
+          "name" : "radiusKm",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "maximum" : 500,
+            "type" : "number",
+            "format" : "double"
+          }
+        }, {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "minimum" : 0,
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "size",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "maximum" : 100,
+            "minimum" : 1,
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PageResponseDTOVenueSearchItemDTO"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid input: `details` lists the problems",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Missing, invalid, expired or revoked access token (no body)"
+          },
+          "503" : {
+            "description" : "ridei-identity unreachable to validate the token; retry later",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "LayoutResponseDTO" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "lengthMeters" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "turns" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "direction" : {
+            "type" : "string",
+            "enum" : [ "CLOCKWISE", "COUNTER_CLOCKWISE" ]
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "PENDING_REVIEW", "VERIFIED", "MERGED" ]
+          },
+          "isDefault" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "TrackResponseDTO" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "discipline" : {
+            "type" : "string",
+            "enum" : [ "ROAD_RACING", "KARTING", "MOTOCROSS", "SUPERMOTO", "ENDURO", "FLAT_TRACK" ]
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "PENDING_REVIEW", "VERIFIED", "MERGED" ]
+          },
+          "layouts" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/LayoutResponseDTO"
+            }
+          }
+        }
+      },
+      "LayoutRequestDTO" : {
+        "required" : [ "direction", "lengthMeters", "name" ],
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "maxLength" : 150,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "lengthMeters" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "turns" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "direction" : {
+            "type" : "string",
+            "enum" : [ "CLOCKWISE", "COUNTER_CLOCKWISE" ]
+          }
+        }
+      },
+      "ProposeVenueRequestDTO" : {
+        "required" : [ "countryCode", "latitude", "longitude", "name", "track" ],
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "maxLength" : 150,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "countryCode" : {
+            "pattern" : "[A-Za-z]{2}",
+            "type" : "string"
+          },
+          "latitude" : {
+            "maximum" : 90,
+            "exclusiveMaximum" : false,
+            "minimum" : -90,
+            "exclusiveMinimum" : false,
+            "type" : "number",
+            "format" : "double"
+          },
+          "longitude" : {
+            "maximum" : 180,
+            "exclusiveMaximum" : false,
+            "minimum" : -180,
+            "exclusiveMinimum" : false,
+            "type" : "number",
+            "format" : "double"
+          },
+          "externalPlaceId" : {
+            "maxLength" : 255,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "track" : {
+            "$ref" : "#/components/schemas/TrackRequestDTO"
+          },
+          "layout" : {
+            "$ref" : "#/components/schemas/LayoutRequestDTO"
+          },
+          "confirmedNotDuplicate" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "TrackRequestDTO" : {
+        "required" : [ "discipline", "name" ],
+        "type" : "object",
+        "properties" : {
+          "discipline" : {
+            "type" : "string",
+            "enum" : [ "ROAD_RACING", "KARTING", "MOTOCROSS", "SUPERMOTO", "ENDURO", "FLAT_TRACK" ]
+          },
+          "name" : {
+            "maxLength" : 150,
+            "minLength" : 0,
+            "type" : "string"
+          }
+        }
+      },
+      "ProposeVenueResponseDTO" : {
+        "type" : "object",
+        "properties" : {
+          "outcome" : {
+            "type" : "string",
+            "enum" : [ "CREATED", "EXISTING_BY_EXTERNAL_PLACE_ID" ]
+          },
+          "venue" : {
+            "$ref" : "#/components/schemas/VenueResponseDTO"
+          }
+        }
+      },
+      "VenueResponseDTO" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "countryCode" : {
+            "type" : "string"
+          },
+          "latitude" : {
+            "type" : "number",
+            "format" : "double"
+          },
+          "longitude" : {
+            "type" : "number",
+            "format" : "double"
+          },
+          "externalPlaceId" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "PENDING_REVIEW", "VERIFIED", "MERGED" ]
+          },
+          "tracks" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TrackResponseDTO"
+            }
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "UpdateVenueRequestDTO" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "maxLength" : 150,
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "countryCode" : {
+            "pattern" : "[A-Za-z]{2}",
+            "type" : "string"
+          },
+          "latitude" : {
+            "maximum" : 90,
+            "exclusiveMaximum" : false,
+            "minimum" : -90,
+            "exclusiveMinimum" : false,
+            "type" : "number",
+            "format" : "double"
+          },
+          "longitude" : {
+            "maximum" : 180,
+            "exclusiveMaximum" : false,
+            "minimum" : -180,
+            "exclusiveMinimum" : false,
+            "type" : "number",
+            "format" : "double"
+          },
+          "externalPlaceId" : {
+            "maxLength" : 255,
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "locationComplete" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "UpdateTrackRequestDTO" : {
+        "type" : "object",
+        "properties" : {
+          "discipline" : {
+            "type" : "string",
+            "enum" : [ "ROAD_RACING", "KARTING", "MOTOCROSS", "SUPERMOTO", "ENDURO", "FLAT_TRACK" ]
+          },
+          "name" : {
+            "maxLength" : 150,
+            "minLength" : 1,
+            "type" : "string"
+          }
+        }
+      },
+      "UpdateLayoutRequestDTO" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "maxLength" : 150,
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "lengthMeters" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "turns" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "direction" : {
+            "type" : "string",
+            "enum" : [ "CLOCKWISE", "COUNTER_CLOCKWISE" ]
+          }
+        }
+      },
+      "PageResponseDTOVenueSearchItemDTO" : {
+        "type" : "object",
+        "properties" : {
+          "content" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/VenueSearchItemDTO"
+            }
+          },
+          "page" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "totalElements" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "totalPages" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "VenueSearchItemDTO" : {
+        "type" : "object",
+        "properties" : {
+          "venue" : {
+            "$ref" : "#/components/schemas/VenueResponseDTO"
+          },
+          "distanceMeters" : {
+            "type" : "number",
+            "format" : "double"
+          },
+          "similarity" : {
+            "type" : "number",
+            "format" : "double"
+          }
+        }
+      },
+      "VenueDetailResponseDTO" : {
+        "type" : "object",
+        "properties" : {
+          "requestedId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "redirectedFromMerged" : {
+            "type" : "boolean"
+          },
+          "venue" : {
+            "$ref" : "#/components/schemas/VenueResponseDTO"
+          }
+        }
+      },
+      "ApiError" : {
+        "type" : "object",
+        "properties" : {
+          "status" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "error" : {
+            "type" : "string"
+          },
+          "message" : {
+            "type" : "string"
+          },
+          "details" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "timestamp" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "CandidateDTO" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "distanceMeters" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "similarity" : {
+            "type" : "number",
+            "format" : "double"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "PENDING_REVIEW", "VERIFIED", "MERGED" ]
+          }
+        }
+      },
+      "ConflictApiError" : {
+        "type" : "object",
+        "properties" : {
+          "status" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "error" : {
+            "type" : "string"
+          },
+          "message" : {
+            "type" : "string"
+          },
+          "details" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "timestamp" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "code" : {
+            "type" : "string"
+          },
+          "candidates" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/CandidateDTO"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes" : {
+      "bearerAuth" : {
+        "type" : "http",
+        "name" : "bearerAuth",
+        "scheme" : "bearer",
+        "bearerFormat" : "JWT"
+      }
+    }
+  }
+}

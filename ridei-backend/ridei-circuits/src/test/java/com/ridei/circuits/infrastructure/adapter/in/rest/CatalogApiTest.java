@@ -21,6 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.List;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -69,6 +70,8 @@ import com.ridei.circuits.domain.model.UserId;
 import com.ridei.circuits.domain.model.Venue;
 import com.ridei.circuits.domain.model.VenueCandidate;
 import com.ridei.circuits.domain.model.VenueId;
+import com.ridei.circuits.infrastructure.adapter.out.identity.TokenValidationStatus;
+import com.ridei.circuits.infrastructure.adapter.out.identity.TokenValidator;
 import com.ridei.circuits.infrastructure.config.SecurityConfig;
 
 @WebMvcTest(controllers = {VenueController.class, AdminCatalogController.class})
@@ -114,6 +117,12 @@ class CatalogApiTest {
     @MockBean UpdateVenueUseCase updateVenue;
     @MockBean UpdateTrackUseCase updateTrack;
     @MockBean UpdateLayoutUseCase updateLayout;
+    @MockBean TokenValidator tokenValidator;
+
+    @BeforeEach
+    void identityConsidersTokensValid() {
+        when(tokenValidator.validate(any())).thenReturn(TokenValidationStatus.VALID);
+    }
 
     @Nested
     class Security {
@@ -127,6 +136,33 @@ class CatalogApiTest {
         void refreshTokensAreNotAccepted() throws Exception {
             mvc.perform(get(VENUES + "/" + VenueId.newId()).header(HttpHeaders.AUTHORIZATION, TestTokens.refreshToken()))
                 .andExpect(status().isUnauthorized());
+        }
+
+        @Test
+        void revokedTokensAreUnauthorized() throws Exception {
+            when(tokenValidator.validate(any())).thenReturn(TokenValidationStatus.REVOKED);
+
+            mvc.perform(get(VENUES + "/" + VenueId.newId()).header(HttpHeaders.AUTHORIZATION, TestTokens.rider()))
+                .andExpect(status().isUnauthorized());
+            verifyNoInteractions(getVenueDetail);
+        }
+
+        @Test
+        void identityDownFailsClosedWith503() throws Exception {
+            when(tokenValidator.validate(any())).thenReturn(TokenValidationStatus.UNAVAILABLE);
+
+            mvc.perform(get(VENUES + "/" + VenueId.newId()).header(HttpHeaders.AUTHORIZATION, TestTokens.rider()))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.status").value(503))
+                .andExpect(jsonPath("$.timestamp").isString());
+            verifyNoInteractions(getVenueDetail);
+        }
+
+        @Test
+        void tokensWithABadSignatureNeverReachIdentity() throws Exception {
+            mvc.perform(get(VENUES + "/" + VenueId.newId()).header(HttpHeaders.AUTHORIZATION, "Bearer not.a.jwt"))
+                .andExpect(status().isUnauthorized());
+            verifyNoInteractions(tokenValidator);
         }
 
         @Test

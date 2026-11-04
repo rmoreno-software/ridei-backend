@@ -10,9 +10,13 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ridei.circuits.infrastructure.adapter.out.identity.TokenValidator;
+
 /**
  * Consultas y propuestas: cualquier usuario autenticado. {@code /admin/**}: rol {@code ADMIN}
- * del JWT de ridei-identity. Sin token válido → 401; con rol insuficiente → 403.
+ * del JWT de ridei-identity. Sin token válido o revocado → 401; con rol insuficiente → 403;
+ * identity no disponible para validar el token → 503 (ver {@link JwtAuthenticationFilter}).
  */
 @Configuration
 public class SecurityConfig {
@@ -22,13 +26,16 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(
         HttpSecurity http,
-        @Value("${jwt.public-key}") String jwtPublicKey
+        @Value("${jwt.public-key}") String jwtPublicKey,
+        TokenValidator tokenValidator,
+        ObjectMapper objectMapper
     ) throws Exception {
+        JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(jwtPublicKey, tokenValidator, objectMapper);
         http
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
-            .addFilterBefore(new JwtAuthenticationFilter(jwtPublicKey), UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     "/v3/api-docs/**",

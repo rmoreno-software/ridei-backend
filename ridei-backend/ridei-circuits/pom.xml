@@ -73,6 +73,11 @@
             <version>0.12.6</version>
             <scope>runtime</scope>
         </dependency>
+        <!-- Caché de las validaciones de token contra ridei-identity -->
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>

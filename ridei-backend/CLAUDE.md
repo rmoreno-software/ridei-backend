@@ -42,7 +42,7 @@ The services are deliberately independent bounded contexts: **no shared/common m
 - `infrastructure/config/BeanConfig` — **every application service is wired manually here**. Adding a use case means: UseCase interface in `application/port/in`, Service + Command in `application`, a `@Bean` in `BeanConfig`, then the controller endpoint.
 
 ### Cross-cutting conventions
-- **Auth**: `ridei-identity` signs JWTs with ES256 (private key); other services only verify with the public key (`jwt.public-key`). Never introduce a shared symmetric secret.
+- **Auth**: `ridei-identity` signs JWTs with ES256 (private key); other services only verify with the public key (`jwt.public-key`). Never introduce a shared symmetric secret. Revocation (`tv` claim, bumped on password change): identity checks it against the DB; `ridei-circuits` checks it online via identity's `GET /api/v1/auth/validate` (cached 60 s, `503` if identity is down); garage does not check it yet.
 - **Ownership / anti-IDOR**: the current user is always taken from the JWT subject (`UserId.of(authentication.getName())`, `OwnerId.of(...)`), never from request bodies or paths. In garage, load owned aggregates via `OwnedMotorbikes.require(...)`, which returns `MotorbikeNotFoundException` (404) for both missing and not-owned.
 - **Errors**: domain exceptions are mapped to HTTP statuses in each module's `GlobalExceptionHandler`, returning `ApiError`. New domain exceptions need a handler entry there. Garage's `ApiError` has no `timestamp` field (unlike identity's) — a known, intentional-for-now divergence.
 - **Images**: uploads use a presign → client uploads directly to Cloudflare R2 → confirm flow (`Request…UploadService` / `Confirm…Service`).
@@ -50,4 +50,4 @@ The services are deliberately independent bounded contexts: **no shared/common m
 - **i18n (identity)**: user-facing emails/pages use `messages*.properties` (default, `es`, `ca`) and Thymeleaf templates in `templates/`; locale flows through commands (e.g. `RegisterUserCommand.locale`). Keep all three properties files in sync.
 
 ### Deployment
-Identity and garage run on an Ubuntu server as systemd units (`ridei-identity`, `ridei-garage`; `ridei-circuits` not deployed yet — see `docs/deployment.md` §3.6) with profile `prod`, secrets injected from `/etc/<service>/*.env`. See `docs/deployment.md` before adding new env vars.
+Database backups: `ops/backup/` (encrypted `pg_dump` to R2 via a systemd timer, see `docs/deployment.md` §10). Identity and garage run on an Ubuntu server as systemd units (`ridei-identity`, `ridei-garage`; `ridei-circuits` not deployed yet — see `docs/deployment.md` §3.6) with profile `prod`, secrets injected from `/etc/<service>/*.env`. See `docs/deployment.md` before adding new env vars.

@@ -27,10 +27,15 @@ import com.ridei.circuits.domain.model.TrackId;
 import com.ridei.circuits.domain.model.UserId;
 import com.ridei.circuits.domain.model.VenueId;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springdoc.core.annotations.ParameterObject;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
 /** Consultas y propuestas de cualquier usuario autenticado. */
+@Tag(name = "Venues", description = "Catálogo de circuitos para cualquier usuario autenticado: búsqueda y propuestas.")
 @RestController
 @RequestMapping(VenueController.BASE_PATH)
 @AllArgsConstructor
@@ -45,22 +50,32 @@ public class VenueController {
     private final AddTrackToVenueUseCase addTrackToVenueUseCase;
     private final AddLayoutToTrackUseCase addLayoutToTrackUseCase;
 
+    @Operation(summary = "Search venues",
+        description = "Free text (matches words of venue and track names, accents/case/punctuation ignored), country, discipline and proximity (lat + lon + radiusKm together). All optional. Paginated (page from 0, size ≤ 100, default 20). Ordered by similarity, then distance, then name. Excludes merged venues.")
     @GetMapping
-    public PageResponseDTO<VenueSearchItemDTO> search(@Valid SearchVenuesRequestDTO params) {
+    public PageResponseDTO<VenueSearchItemDTO> search(@ParameterObject @Valid SearchVenuesRequestDTO params) {
         return PageResponseDTO.fromDomain(searchVenuesUseCase.search(params.toQuery()), VenueSearchItemDTO::fromDomain);
     }
 
+    @Operation(summary = "Venues near a point",
+        description = "Ordered by distance. radiusKm defaults to 50 (max 500).")
     @GetMapping("/nearby")
-    public PageResponseDTO<VenueSearchItemDTO> nearby(@Valid NearbyVenuesRequestDTO params) {
+    public PageResponseDTO<VenueSearchItemDTO> nearby(@ParameterObject @Valid NearbyVenuesRequestDTO params) {
         return PageResponseDTO.fromDomain(findNearbyVenuesUseCase.findNearby(params.toQuery()), VenueSearchItemDTO::fromDomain);
     }
 
+    @Operation(summary = "Venue detail",
+        description = "Venue with its active tracks and layouts. If venueId was merged, the canonical venue is returned with redirectedFromMerged = true: replace the stored id with venue.id.")
     @GetMapping("/{venueId}")
     public VenueDetailResponseDTO get(@PathVariable String venueId) {
         return VenueDetailResponseDTO.fromDetail(getVenueDetailUseCase.get(VenueId.of(venueId)));
     }
 
     /** 201 si se crea; 200 si ya existía uno con el mismo {@code externalPlaceId}; 409 si hay posibles duplicados. */
+    @Operation(summary = "Propose a venue",
+        description = "Creates a venue with its first track and, optionally, its first layout (it becomes the default). 201 CREATED if new. 200 EXISTING_BY_EXTERNAL_PLACE_ID if a venue with the same externalPlaceId exists (always, even with confirmedNotDuplicate). 409 POSSIBLE_DUPLICATE_VENUE with candidates if a venue < 2 km away has a similar name: show them and resend with confirmedNotDuplicate = true if none matches. The proposer is taken from the token.")
+    @ApiResponse(responseCode = "201", description = "Created (outcome = CREATED); Location header points to the venue")
+    @ApiResponse(responseCode = "200", description = "A venue with the same externalPlaceId already existed (outcome = EXISTING_BY_EXTERNAL_PLACE_ID)")
     @PostMapping
     public ResponseEntity<ProposeVenueResponseDTO> propose(
         @RequestBody @Valid ProposeVenueRequestDTO dto,
@@ -72,6 +87,9 @@ public class VenueController {
         return ResponseEntity.created(URI.create(BASE_PATH + "/" + result.venue().getId())).body(body);
     }
 
+    @Operation(summary = "Add a track to a venue",
+        description = "409 DUPLICATE_TRACK if the venue already has a track of the same discipline with a similar name.")
+    @ApiResponse(responseCode = "201", description = "Track created")
     @PostMapping("/{venueId}/tracks")
     public ResponseEntity<TrackResponseDTO> addTrack(
         @PathVariable String venueId,
@@ -81,6 +99,9 @@ public class VenueController {
         return ResponseEntity.status(HttpStatus.CREATED).body(TrackResponseDTO.fromDomain(track));
     }
 
+    @Operation(summary = "Add a layout to a track",
+        description = "The first layout of a track becomes its default. 409 DUPLICATE_LAYOUT if an equivalent layout exists: similar name, or length within ±25 m with the same turns and direction.")
+    @ApiResponse(responseCode = "201", description = "Layout created")
     @PostMapping("/{venueId}/tracks/{trackId}/layouts")
     public ResponseEntity<LayoutResponseDTO> addLayout(
         @PathVariable String venueId,

@@ -8,6 +8,12 @@ import com.ridei.identity.domain.port.out.UserRepositoryPort;
 
 import lombok.AllArgsConstructor;
 
+/**
+ * Validación online de un access token, para los servicios que solo tienen la clave pública
+ * (p. ej. ridei-circuits): firma y caducidad, cuenta activa y que el token no esté revocado,
+ * es decir, que su {@code tv} coincida con el {@code tokenVersion} actual del usuario (sube al
+ * cambiar o restablecer la contraseña).
+ */
 @AllArgsConstructor
 public class ValidateTokenService implements ValidateTokenUseCase {
 
@@ -20,12 +26,14 @@ public class ValidateTokenService implements ValidateTokenUseCase {
 
         try {
             UserId userId = jwt.extractUserId(token);
+            int tokenVersion = jwt.extractTokenVersion(token);
             return repositoryPort.findById(userId)
-                .map(User::isActive)
-                .orElse(false);
+                .filter(User::isActive)
+                .filter(user -> user.getTokenVersion() == tokenVersion)
+                .isPresent();
         } catch (IllegalArgumentException e) {
             return false;
         }
     }
-    
+
 }

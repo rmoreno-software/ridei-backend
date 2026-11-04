@@ -32,3 +32,14 @@ circuits:
   deduplication:
     venue-radius-km: 2
     venue-min-similarity: 0.4
+
+  # Revocación de tokens: además de verificar la firma ES256 en local, cada access token se
+  # valida online contra ridei-identity (GET /api/v1/auth/validate), que comprueba que la cuenta
+  # siga activa y que el token no esté revocado (claim tv). El resultado se cachea
+  # validation-cache-ttl; si identity no responde, la petición recibe 503 (falla cerrado).
+  identity:
+    base-url: ${IDENTITY_BASE_URL:http://localhost:8081}
+    connect-timeout: 1s
+    read-timeout: 2s
+    validation-cache-ttl: 60s
+    validation-cache-max-size: 10000

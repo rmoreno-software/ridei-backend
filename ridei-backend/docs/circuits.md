@@ -92,7 +92,15 @@ Queries take `*Query` records; commands take `*Command` records. A `java.time.Cl
 
 ## 4. REST API (`/api/v1/circuits`)
 
-All endpoints need a valid **access** token issued by `ridei-identity`; `/admin/**` needs role `ADMIN`. `401` without/invalid token, `403` with insufficient role.
+There is a frontend-oriented guide (in Spanish) with JSON examples and error handling: [circuits-frontend-guide.md](circuits-frontend-guide.md). The machine-readable spec is [openapi/ridei-circuits.json](openapi/ridei-circuits.json); `OpenApiExportIT` regenerates it when run with `-Dopenapi.export=true`.
+
+All endpoints need a valid **access** token issued by `ridei-identity`; `/admin/**` needs role `ADMIN`.
+
+Tokens are checked in two steps:
+1. Locally: ES256 signature, expiry, `type=access`.
+2. Online: `GET /api/v1/auth/validate` on identity confirms the account is active and the token isn't revoked (`tv`). `CachingTokenValidator` caches each verdict for 60 s (`circuits.identity.validation-cache-ttl`), so a revocation takes effect within about a minute.
+
+Responses: `401` without a token, or with an invalid or revoked one; `403` with an insufficient role; `503` if identity can't be reached to validate (fails closed). Identity is only called for tokens that passed step 1.
 
 ### User endpoints
 

@@ -205,6 +205,7 @@ Follow §3.5 with the names below. The one new infrastructure piece is **PostGIS
 | `CIRCUITS_DB_USERNAME` | `secrets.env` | Dedicated role `ridei_circuits`, scoped to its database only |
 | `CIRCUITS_DB_PASSWORD` | `secrets.env` | Alphanumeric only (see §3.2) |
 | `JWT_PUBLIC_KEY` | `secrets.env` | Byte-for-byte the same as `ridei-identity`'s |
+| `IDENTITY_BASE_URL` | `app.env` | Optional, default `http://localhost:8081` — where circuits validates tokens online |
 
 Dedup tuning (`circuits.deduplication.venue-radius-km`, `venue-min-similarity`) lives in `application.yml`; override with `CIRCUITS_DEDUPLICATION_VENUE_RADIUS_KM` / `CIRCUITS_DEDUPLICATION_VENUE_MIN_SIMILARITY` only if needed.
 
@@ -221,7 +222,13 @@ psql -U postgres -d ridei_circuits -c "CREATE EXTENSION IF NOT EXISTS postgis; C
 
 Cloudflare ingress: add a `path: /api/v1/circuits/*` → `http://localhost:8083` rule **before** the identity fallback (see §7).
 
-Admins: role `ADMIN` is set by hand in `ridei_identity.users.role`; the user must log in again for it to reach the token. Revocation through `tv` (token version) is **not** checked by circuits (or garage), so a revoked token stays valid there until it expires.
+Admins: role `ADMIN` is set by hand in `ridei_identity.users.role`, and the user must log in again for it to reach the token. **Redeploy `ridei-identity` before promoting anyone.** An older identity doesn't know `ADMIN` and would fail to load that user.
+
+Token revocation: circuits validates every access token online against identity (`GET /api/v1/auth/validate`, which checks an active account and the current `tv`), caching each verdict for 60 s. So:
+- **Deploy order:** identity first (its `/validate` must check `tv`), then circuits.
+- `IDENTITY_BASE_URL` (`app.env`, optional) defaults to `http://localhost:8081`. Set it only if identity moves to another host or port.
+- If identity is down, circuits answers `503` to authenticated requests (fails closed). Restarting identity briefly affects circuits.
+- Tuning lives under `circuits.identity.*` in `application.yml`: `validation-cache-ttl` (default 60 s), and `connect-timeout` / `read-timeout` (1 s / 2 s).
 
 ---
 
@@ -355,8 +362,84 @@ sudo journalctl -u cloudflared -n 30 --no-pager
 
 ## 9. Pending — known gaps
 
-- **No database backups (added 2026-09-15, still open).** There is currently no automated backup of either production Postgres database (`ridei_identity` or, as of this deployment, `ridei_garage`) — if the server fails or data is deleted by mistake, it's unrecoverable. Decided to defer implementation for now; **must be resolved before relying on this for real user data.**
-  Planned approach when picked back up: a daily `pg_dump` cron job (covering both databases) uploading a compressed dump to a dedicated Cloudflare R2 bucket (`ridei-backups`, separate from the profile-pictures bucket, with its own scoped API token and an object lifecycle rule to auto-expire old dumps), plus enabling Hetzner's automatic server snapshots as a coarser secondary safety net. Test the restore procedure once set up — an untested backup isn't a real backup.
+- **Database backups: implemented but not yet enabled on the server (scripts added 2026-11-04).** Daily encrypted backups of `ridei_identity`, `ridei_garage` and `ridei_circuits` to R2. Enable them by following [§10](#10-database-backups). Until then there is still **no backup**, and that **must be resolved before relying on this for real user data.** Also pending: enabling Hetzner's automatic server snapshots as a coarser second safety net.
+- **`ridei-garage` doesn't check token revocation (`tv`).** Circuits now validates online against identity (§3.6); garage still trusts a revoked token until it expires (24 h). The same `TokenValidator` approach can be ported to garage when needed.
 - **Rate limiting** was designed twice and cancelled both times by explicit decision — not implemented.
 - **GDPR account-deletion endpoint** was flagged during the production-readiness audit but never implemented.
 - **`ridei-garage` only has `POST`/`GET /api/v1/garage/motorbikes` so far** — get single motorbike, edit, retire/dispose, and photo upload (reusing the R2 presign pattern from `ridei-identity`) are the natural next steps but haven't been requested yet.
+
+---
+
+## 10. Database backups
+
+Implemented in `ops/backup/` (in the repo):
+
+| File | Installed at | Role |
+|---|---|---|
+| `ridei-db-backup.sh` | `/usr/local/bin/` | Dumps, verifies, encrypts, uploads, prunes |
+| `ridei-db-restore.sh` | `/usr/local/bin/` | Decrypts and restores into a **new** database (never overwrites one) |
+| `ridei-db-backup.service` / `.timer` | `/etc/systemd/system/` | Runs daily at 03:30 UTC (`Persistent=true`: catches up after downtime) |
+| `backup.env.example` / `secrets.env.example` | `/etc/ridei-backup/backup.env` / `secrets.env` | Configuration / R2 token |
+
+What each run produces, under `r2:ridei-backups/<host>/YYYY/MM/DD/<stamp>/`:
+- `<database>-<stamp>.dump.age`: `pg_dump --format=custom` run **inside** each database's container (so `pg_dump` matches the server version), checked with `pg_restore --list` before encrypting.
+- `<container>-globals-<stamp>.sql.age`: the container's roles (`pg_dumpall --globals-only`). Needed to recreate `ridei_garage` / `ridei_circuits` on a new server.
+- `SHA256SUMS` of the encrypted files. After uploading, `rclone check` confirms the copy.
+
+Every file is encrypted with [age](https://age-encryption.org) to a public key. **The private key never lives on the server**, so a leaked R2 token or bucket doesn't expose the users' personal data. Any failure exits non-zero, so the unit shows as `failed` and the error is in the journal.
+
+### 10.1 One-time setup
+
+1. **Generate the age key pair on your own machine, not on the server.** Store `ridei-backup-key.txt` in the password manager (losing it makes every backup unreadable). Copy only the public key, the `age1…` line:
+   ```bash
+   age-keygen -o ridei-backup-key.txt      # prints "Public key: age1..."
+   ```
+2. **Cloudflare R2**:
+   - Create the bucket `ridei-backups`.
+   - Add a lifecycle rule that deletes objects older than e.g. 35 days.
+   - Create an API token with **Object Read & Write on that bucket only**. Don't reuse the profile-pictures token.
+3. **Install the tools on the server**:
+   ```bash
+   sudo apt install age rclone
+   sudo install -m 0755 ops/backup/ridei-db-backup.sh ops/backup/ridei-db-restore.sh /usr/local/bin/
+   sudo install -m 0644 ops/backup/ridei-db-backup.service ops/backup/ridei-db-backup.timer /etc/systemd/system/
+   sudo install -d -m 0700 /etc/ridei-backup /var/backups/ridei
+   sudo cp ops/backup/backup.env.example /etc/ridei-backup/backup.env      # fill in <ACCOUNT_ID>; check BACKUP_TARGETS
+   sudo cp ops/backup/secrets.env.example /etc/ridei-backup/secrets.env    # R2 token from step 2
+   echo 'age1...' | sudo tee /etc/ridei-backup/age-recipients.txt          # public key from step 1
+   sudo chmod 600 /etc/ridei-backup/*
+   ```
+   `BACKUP_TARGETS` lists `container:superuser:database`. The defaults match the containers in this document: `ridei-postgres` with superuser `ridei`, and `ridei-postgis` with superuser `postgres`.
+4. **First run by hand, then enable the timer**:
+   ```bash
+   sudo systemctl daemon-reload
+   sudo systemctl start ridei-db-backup.service && sudo journalctl -u ridei-db-backup -n 30 --no-pager
+   sudo systemctl enable --now ridei-db-backup.timer
+   systemctl list-timers ridei-db-backup.timer
+   ```
+5. *(Recommended)* Set `BACKUP_HEARTBEAT_URL` to a healthchecks.io-style check that alerts if a daily ping **doesn't arrive**. Nothing else will tell you that backups stopped.
+
+### 10.2 Restore test (monthly — an untested backup isn't a backup)
+
+Copy the private key to the server only for the duration of the test:
+
+```bash
+mkdir -p /root/restore && chmod 700 /root/restore
+# from your machine: scp ridei-backup-key.txt server:/root/restore/
+rclone copy "r2:ridei-backups/<host>/<YYYY>/<MM>/<DD>/<stamp>/" /root/restore/ --s3-no-check-bucket
+ridei-db-restore.sh --identity /root/restore/ridei-backup-key.txt --container ridei-postgres --user ridei \
+    --into restore_check_identity --check-and-drop /root/restore/ridei_identity-<stamp>.dump.age
+# … same for ridei_garage (ridei-postgres) and ridei_circuits (ridei-postgis, --user postgres)
+shred -u /root/restore/ridei-backup-key.txt && rm -rf /root/restore
+```
+
+`--check-and-drop` restores into a scratch database, prints the rows per table and drops it.
+
+### 10.3 Real recovery
+
+1. Restore into a **new** database, owned by the application role (no `--check-and-drop`). For example `--into ridei_garage_restored --owner ridei_garage`, or `--owner ridei_circuits` in `ridei-postgis` with `--user postgres`.
+2. Check the data.
+3. Stop the service and swap the databases: `ALTER DATABASE ridei_identity RENAME TO ridei_identity_broken; ALTER DATABASE ridei_identity_restored RENAME TO ridei_identity;`.
+4. Start the service again.
+
+On a fresh server, first restore the roles with `age -d -i key <container>-globals-<stamp>.sql.age | docker exec -i <container> psql -U <superuser>` (the "role already exists" errors are expected). The restore runs as the container superuser and keeps the original owners, so `postgis` / `pg_trgm` are recreated too.

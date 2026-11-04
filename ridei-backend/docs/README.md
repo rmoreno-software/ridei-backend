@@ -19,6 +19,7 @@ Welcome to the Ridei Backend documentation. This index links to all available do
 | [Motorbike Setup](motorbike-setup.md) | Garage: tyres & final drive setup with history — domain, endpoints, schema |
 | [Motorbike Deletion](motorbike-deletion.md) | Garage: deleting a motorbike with its setup and photos (DB + R2), after-commit purge |
 | [Circuits](circuits.md) | Circuits catalog: venue → track → layout model, deduplication, merges, REST API, race conditions |
+| [Circuits — frontend guide](circuits-frontend-guide.md) | For the Flutter app: endpoints, request/response JSON, duplicate flow, error handling; OpenAPI spec in [`openapi/ridei-circuits.json`](openapi/ridei-circuits.json) |
 
 ---
 

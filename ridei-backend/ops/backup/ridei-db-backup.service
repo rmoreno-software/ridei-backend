@@ -1,0 +1,16 @@
+# /etc/systemd/system/ridei-db-backup.service — la lanza ridei-db-backup.timer.
+[Unit]
+Description=Ridei - encrypted database backup to Cloudflare R2
+Wants=network-online.target
+After=network-online.target docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/ridei-backup/backup.env
+EnvironmentFile=/etc/ridei-backup/secrets.env
+ExecStart=/usr/local/bin/ridei-db-backup.sh
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+TimeoutStartSec=1h

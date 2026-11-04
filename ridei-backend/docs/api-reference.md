@@ -26,7 +26,15 @@ Two token types are issued, distinguished by a `type` claim (`access` / `refresh
 | Access token | short-lived | `sub` (userId), `role`, `type=access`, `tv` (token version) | `Authorization: Bearer` header on every protected request |
 | Refresh token | long-lived | `sub` (userId), `type=refresh`, `tv` | Exchanged for a new access token via the refresh endpoint |
 
-`tv` (token version) is bumped every time the user changes their password, which immediately invalidates every previously-issued token for that account — both services check it against the current value stored on the user before trusting a token.
+`tv` (token version) is bumped every time the user changes or resets their password, which invalidates every previously-issued token for that account. Who checks it:
+
+| Service | How `tv` is checked |
+|---|---|
+| `ridei-identity` | On every request, against the user row (`JwtAuthenticationFilter`), and on refresh |
+| `ridei-circuits` | Online via `GET /api/v1/auth/validate` (active account + current `tv`), cached for 60 s per token, so a revocation takes effect within about a minute. If identity doesn't answer, circuits responds `503` (fails closed). |
+| `ridei-garage` | **Not checked**: signature and expiry only, so a revoked token stays valid until it expires |
+
+`GET /api/v1/auth/validate` (public; the token goes in `Authorization: Bearer`) returns `200` if the access token is valid, the account is `ACTIVE` and its `tv` is current, and `401` otherwise.
 
 The `/api/v1/users/register` endpoint (below) is **publicly accessible** and requires no credentials. All other `ridei-identity` and `ridei-garage` endpoints require a valid access token.
 
