@@ -84,9 +84,9 @@ class VenueTest {
         void sameNameInAnotherDisciplineIsNotADuplicate() {
             Venue venue = alcarras();
 
-            Track supermoto = venue.addTrack(track(Discipline.SUPERMOTO, "Velocidad"), LATER);
+            Track mixed = venue.addTrack(track(Discipline.MIXED, "Velocidad"), LATER);
 
-            assertThat(supermoto.getStatus()).isEqualTo(CatalogStatus.PENDING_REVIEW);
+            assertThat(mixed.getStatus()).isEqualTo(CatalogStatus.PENDING_REVIEW);
         }
     }
 

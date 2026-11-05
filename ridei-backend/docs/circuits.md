@@ -19,7 +19,7 @@ Venue (complex)       ← aggregate root; WHERE it is
 | Jerez | One venue, one track. |
 
 - **Venue**: `VenueId`, `VenueName`, `CountryCode` (ISO 3166-1 alpha-2 — not the numeric phone prefix used by identity), `GeoPoint`, optional `ExternalPlaceId` (Google Places / Mapbox id sent by the client), `CatalogStatus`, `mergedInto`, `createdBy` (from the JWT; `null` for seed data), timestamps, optimistic `version`.
-- **Track**: `TrackId`, `Discipline` (`ROAD_RACING`, `KARTING`, `MOTOCROSS`, `SUPERMOTO`, `ENDURO`, `FLAT_TRACK`), `TrackName`, status, `mergedInto`.
+- **Track**: `TrackId`, `Discipline` (`ROAD_RACING`, `KARTING`, `ENDURO`, `TRIAL`, `MOTOCROSS`, `MIXED`, `FLAT_TRACK`, `DIRT_TRACK`; `MIXED` combines asphalt and dirt, e.g. supermoto), `TrackName`, status, `mergedInto`.
 - **Layout**: `LayoutId`, `LayoutName`, `Length` (m, > 0), optional `Turns` (≥ 0), `Direction` (`CLOCKWISE`, `COUNTER_CLOCKWISE`), `isDefault`, status, `mergedInto`.
 - **CatalogStatus**: `PENDING_REVIEW` (user proposals — usable immediately) → `VERIFIED` (admin). `MERGED` is terminal: the row is kept (other services hold its id) and points to the canonical item.
 

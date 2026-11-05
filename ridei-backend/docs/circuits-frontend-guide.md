@@ -40,7 +40,7 @@ Los campos opcionales llegan como `null`, no se omiten: `externalPlaceId`, `turn
 // TrackResponseDTO
 {
   "id": "20000000-0000-4000-8000-000000000001",
-  "discipline": "ROAD_RACING",         // ROAD_RACING | KARTING | MOTOCROSS | SUPERMOTO | ENDURO | FLAT_TRACK
+  "discipline": "ROAD_RACING",         // ROAD_RACING | KARTING | ENDURO | TRIAL | MOTOCROSS | MIXED | FLAT_TRACK | DIRT_TRACK
   "name": "Velocidad",
   "status": "VERIFIED",
   "layouts": [ /* LayoutResponseDTO */ ]

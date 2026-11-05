@@ -137,7 +137,7 @@
           "required" : false,
           "schema" : {
             "type" : "string",
-            "enum" : [ "ROAD_RACING", "KARTING", "MOTOCROSS", "SUPERMOTO", "ENDURO", "FLAT_TRACK" ]
+            "enum" : [ "ROAD_RACING", "KARTING", "ENDURO", "TRIAL", "MOTOCROSS", "MIXED", "FLAT_TRACK", "DIRT_TRACK" ]
           }
         }, {
           "name" : "lat",
@@ -1437,7 +1437,7 @@
           },
           "discipline" : {
             "type" : "string",
-            "enum" : [ "ROAD_RACING", "KARTING", "MOTOCROSS", "SUPERMOTO", "ENDURO", "FLAT_TRACK" ]
+            "enum" : [ "ROAD_RACING", "KARTING", "ENDURO", "TRIAL", "MOTOCROSS", "MIXED", "FLAT_TRACK", "DIRT_TRACK" ]
           },
           "name" : {
             "type" : "string"
@@ -1528,7 +1528,7 @@
         "properties" : {
           "discipline" : {
             "type" : "string",
-            "enum" : [ "ROAD_RACING", "KARTING", "MOTOCROSS", "SUPERMOTO", "ENDURO", "FLAT_TRACK" ]
+            "enum" : [ "ROAD_RACING", "KARTING", "ENDURO", "TRIAL", "MOTOCROSS", "MIXED", "FLAT_TRACK", "DIRT_TRACK" ]
           },
           "name" : {
             "maxLength" : 150,
@@ -1636,7 +1636,7 @@
         "properties" : {
           "discipline" : {
             "type" : "string",
-            "enum" : [ "ROAD_RACING", "KARTING", "MOTOCROSS", "SUPERMOTO", "ENDURO", "FLAT_TRACK" ]
+            "enum" : [ "ROAD_RACING", "KARTING", "ENDURO", "TRIAL", "MOTOCROSS", "MIXED", "FLAT_TRACK", "DIRT_TRACK" ]
           },
           "name" : {
             "maxLength" : 150,
