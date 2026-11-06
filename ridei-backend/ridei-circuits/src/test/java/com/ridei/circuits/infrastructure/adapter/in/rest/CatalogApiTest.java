@@ -6,6 +6,7 @@ import static com.ridei.circuits.domain.model.CatalogFixtures.alcarras;
 import static com.ridei.circuits.domain.model.CatalogFixtures.layout;
 import static com.ridei.circuits.domain.model.CatalogFixtures.montmelo;
 import static com.ridei.circuits.domain.model.CatalogFixtures.onlyTrack;
+import static com.ridei.circuits.domain.model.CatalogFixtures.pendingLayout;
 import static com.ridei.circuits.domain.model.CatalogFixtures.track;
 import static com.ridei.circuits.domain.model.CatalogFixtures.venue;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -306,6 +307,23 @@ class CatalogApiTest {
                     .content("{ \"name\": \"GP con chicane\", \"lengthMeters\": 4675, \"turns\": 16, \"direction\": \"CLOCKWISE\" }"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.isDefault").value(false));
+        }
+
+        @Test
+        void layoutWithOnlyANameReturns201WithoutGeometry() throws Exception {
+            Venue venue = montmelo();
+            Track road = onlyTrack(venue);
+            Layout pending = venue.addLayout(road.getId(), pendingLayout("Variante 2"), NOW);
+            when(addLayout.addLayout(any(AddLayoutToTrackCommand.class))).thenReturn(pending);
+
+            mvc.perform(post(VENUES + "/" + venue.getId() + "/tracks/" + road.getId() + "/layouts")
+                    .header(HttpHeaders.AUTHORIZATION, TestTokens.rider())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{ \"name\": \"Variante 2\" }"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name").value("Variante 2"))
+                .andExpect(jsonPath("$.lengthMeters").doesNotExist())
+                .andExpect(jsonPath("$.direction").doesNotExist());
         }
 
         @Test

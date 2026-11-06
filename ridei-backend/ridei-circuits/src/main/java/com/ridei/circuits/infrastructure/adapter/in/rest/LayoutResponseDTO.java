@@ -10,7 +10,8 @@ import com.ridei.circuits.domain.model.Layout;
 public record LayoutResponseDTO(
     UUID id,
     String name,
-    int lengthMeters,
+    /** {@code null} mientras el layout está pendiente de su primera sesión. */
+    Integer lengthMeters,
     Integer turns,
     Direction direction,
     @JsonProperty("isDefault") boolean isDefault,
@@ -20,7 +21,7 @@ public record LayoutResponseDTO(
         return new LayoutResponseDTO(
             layout.getId().value(),
             layout.getName().value(),
-            layout.getLength().meters(),
+            layout.getLength() != null ? layout.getLength().meters() : null,
             layout.getTurns() != null ? layout.getTurns().count() : null,
             layout.getDirection(),
             layout.isDefault(),

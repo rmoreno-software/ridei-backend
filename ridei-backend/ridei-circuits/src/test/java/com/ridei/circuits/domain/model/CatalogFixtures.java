@@ -22,6 +22,11 @@ public final class CatalogFixtures {
         return new LayoutSpec(LayoutName.of(name), Length.ofMeters(meters), Turns.ofNullable(turns), direction);
     }
 
+    /** Layout pendiente: solo nombre, sin la geometría que calcula la primera sesión. */
+    public static LayoutSpec pendingLayout(String name) {
+        return new LayoutSpec(LayoutName.of(name), null, null, null);
+    }
+
     public static Venue venue(String name, GeoPoint location, TrackSpec firstTrack, LayoutSpec firstLayout) {
         return Venue.propose(VenueName.of(name), CountryCode.of("ES"), location, null, PROPOSER, firstTrack, firstLayout, NOW);
     }

@@ -50,9 +50,9 @@ Los campos opcionales llegan como `null`, no se omiten: `externalPlaceId`, `turn
 {
   "id": "30000000-0000-4000-8000-000000000001",
   "name": "GP",
-  "lengthMeters": 4657,
+  "lengthMeters": 4657,                // null hasta la primera sesión (lo calcula el GPS)
   "turns": 14,                         // puede ser null (desconocido)
-  "direction": "CLOCKWISE",            // CLOCKWISE | COUNTER_CLOCKWISE
+  "direction": "CLOCKWISE",            // CLOCKWISE | COUNTER_CLOCKWISE; null hasta la primera sesión
   "isDefault": true,                   // exactamente uno por track (si el track tiene layouts)
   "status": "VERIFIED"
 }
@@ -139,8 +139,7 @@ La respuesta tiene la misma forma que `GET /venues`, ordenada de más cerca a m�
   "externalPlaceId": "ChIJ…",                 // opcional: place_id de Google Places / Mapbox
   "confirmedNotDuplicate": false,             // opcional, por defecto false (ver flujo)
   "track":  { "discipline": "ROAD_RACING", "name": "Velocidad" },            // obligatorio
-  "layout": { "name": "GP", "lengthMeters": 4657, "turns": 14,               // opcional; pasa a ser el default
-              "direction": "CLOCKWISE" }
+  "layout": { "name": "GP" }   // opcional; pasa a ser el default. lengthMeters, turns y direction son opcionales
 }
 ```
 
@@ -186,7 +185,7 @@ Envía `externalPlaceId` siempre que el usuario haya elegido el sitio en el mapa
 { "name": "GP con chicane", "lengthMeters": 4675, "turns": 16, "direction": "CLOCKWISE" }
 ```
 
-`turns` es opcional. El primer layout de una pista pasa a ser su default.
+Solo `name` es obligatorio: `lengthMeters`, `turns` y `direction` los calcula el GPS con la primera sesión, así que la app puede crear el trazado solo con el nombre (`{ "name": "Variante 2" }`) y quedan a `null` hasta entonces. Un trazado sin geometría solo se compara por nombre al buscar duplicados. El primer layout de una pista pasa a ser su default.
 
 | Respuesta | Cuándo |
 |---|---|

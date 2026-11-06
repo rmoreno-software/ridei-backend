@@ -2,6 +2,7 @@ package com.ridei.circuits.domain.model;
 
 import static com.ridei.circuits.domain.model.CatalogFixtures.NOW;
 import static com.ridei.circuits.domain.model.CatalogFixtures.layout;
+import static com.ridei.circuits.domain.model.CatalogFixtures.pendingLayout;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
@@ -42,6 +43,34 @@ class LayoutTest {
     @Test
     void unknownTurnsOnOnlyOneSideAreNotTheSameTurns() {
         assertThat(gp.isEquivalentTo(layout("Sin datos", 4657, null, Direction.CLOCKWISE))).isFalse();
+    }
+
+    @Test
+    void pendingLayoutsWithDifferentNamesAreNotEquivalent() {
+        Layout pending = Layout.create(pendingLayout("Principal"), NOW);
+
+        assertThat(pending.isEquivalentTo(pendingLayout("Variante 2"))).isFalse();
+        assertThat(pending.getLength()).isNull();
+        assertThat(pending.getDirection()).isNull();
+    }
+
+    @Test
+    void pendingLayoutsAreStillComparedByName() {
+        Layout pending = Layout.create(pendingLayout("GP"), NOW);
+
+        assertThat(pending.isEquivalentTo(pendingLayout("Circuito GP"))).isTrue();
+    }
+
+    @Test
+    void consecutiveNumberedVariantsAreNotEquivalent() {
+        // La app numera los trazados sin nombre («Variante 5», «Variante 6»).
+        assertThat(Layout.create(pendingLayout("Variante 5"), NOW).isEquivalentTo(pendingLayout("Variante 6"))).isFalse();
+    }
+
+    @Test
+    void aPendingLayoutIsNotEquivalentByGeometryToOneThatHasIt() {
+        assertThat(gp.isEquivalentTo(pendingLayout("Variante F1"))).isFalse();
+        assertThat(Layout.create(pendingLayout("Variante F1"), NOW).isEquivalentTo(gp)).isFalse();
     }
 
     @Test

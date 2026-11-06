@@ -11,6 +11,11 @@ public record Length(int meters) {
         return new Length(meters);
     }
 
+    /** Conversión tolerante a nulos: una longitud aún no calculada es {@code null}. */
+    public static Length ofNullable(Integer meters) {
+        return meters == null ? null : new Length(meters);
+    }
+
     public boolean isWithinToleranceOf(Length other, int toleranceMeters) {
         return Math.abs(meters - other.meters) <= toleranceMeters;
     }

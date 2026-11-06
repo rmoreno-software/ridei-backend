@@ -7,7 +7,6 @@ import com.ridei.circuits.domain.model.Length;
 import com.ridei.circuits.domain.model.Turns;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
@@ -17,17 +16,17 @@ public record LayoutRequestDTO(
     @Size(max = 150, message = "Layout name must be at most 150 characters")
     String name,
 
-    @NotNull(message = "Layout length is required")
+    /** Opcional: la calcula el GPS con la primera sesión. */
     @Positive(message = "Layout length must be greater than 0 meters")
     Integer lengthMeters,
 
     @PositiveOrZero(message = "Turns must be zero or positive")
     Integer turns,
 
-    @NotNull(message = "Layout direction is required")
+    /** Opcional: lo calcula el GPS con la primera sesión. */
     Direction direction
 ) {
     public LayoutSpec toSpec() {
-        return new LayoutSpec(LayoutName.of(name), Length.ofMeters(lengthMeters), Turns.ofNullable(turns), direction);
+        return new LayoutSpec(LayoutName.of(name), Length.ofNullable(lengthMeters), Turns.ofNullable(turns), direction);
     }
 }

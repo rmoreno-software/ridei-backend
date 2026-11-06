@@ -64,15 +64,16 @@ public final class Layout {
         LayoutId mergedInto,
         Instant createdAt
     ) {
-        if (id == null || name == null || length == null || direction == null || status == null || createdAt == null) {
-            throw new IllegalArgumentException("Layout id, name, length, direction, status and creation date are required");
+        if (id == null || name == null || status == null || createdAt == null) {
+            throw new IllegalArgumentException("Layout id, name, status and creation date are required");
         }
         return new Layout(id, name, length, turns, direction, isDefault, status, mergedInto, createdAt);
     }
 
     /**
      * Es equivalente si el nombre es similar, o si la longitud está dentro de
-     * {@link #EQUIVALENT_LENGTH_TOLERANCE_METERS} y coinciden curvas y sentido.
+     * {@link #EQUIVALENT_LENGTH_TOLERANCE_METERS} y coinciden curvas y sentido. La geometría
+     * solo cuenta si los dos la tienen: dos layouts pendientes no son el mismo por no tenerla.
      */
     public boolean isEquivalentTo(LayoutSpec other) {
         return name.isSimilarTo(other.name()) || hasSameGeometryAs(other);
@@ -83,6 +84,7 @@ public final class Layout {
     }
 
     private boolean hasSameGeometryAs(LayoutSpec other) {
+        if (length == null || direction == null || !other.hasGeometry()) return false;
         return length.isWithinToleranceOf(other.length(), EQUIVALENT_LENGTH_TOLERANCE_METERS)
             && Objects.equals(turns, other.turns())
             && direction == other.direction();
@@ -137,6 +139,7 @@ public final class Layout {
         return name;
     }
 
+    /** Longitud, o {@code null} si aún no se ha calculado. */
     public Length getLength() {
         return length;
     }
@@ -146,6 +149,7 @@ public final class Layout {
         return turns;
     }
 
+    /** Sentido, o {@code null} si aún no se ha calculado. */
     public Direction getDirection() {
         return direction;
     }

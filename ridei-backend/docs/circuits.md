@@ -20,7 +20,7 @@ Venue (complex)       ← aggregate root; WHERE it is
 
 - **Venue**: `VenueId`, `VenueName`, `CountryCode` (ISO 3166-1 alpha-2 — not the numeric phone prefix used by identity), `GeoPoint`, optional `ExternalPlaceId` (Google Places / Mapbox id sent by the client), `CatalogStatus`, `mergedInto`, `createdBy` (from the JWT; `null` for seed data), timestamps, optimistic `version`.
 - **Track**: `TrackId`, `Discipline` (`ROAD_RACING`, `KARTING`, `ENDURO`, `TRIAL`, `MOTOCROSS`, `MIXED`, `FLAT_TRACK`, `DIRT_TRACK`; `MIXED` combines asphalt and dirt, e.g. supermoto), `TrackName`, status, `mergedInto`.
-- **Layout**: `LayoutId`, `LayoutName`, `Length` (m, > 0), optional `Turns` (≥ 0), `Direction` (`CLOCKWISE`, `COUNTER_CLOCKWISE`), `isDefault`, status, `mergedInto`.
+- **Layout**: `LayoutId`, `LayoutName`, optional `Length` (m, > 0), optional `Turns` (≥ 0), optional `Direction` (`CLOCKWISE`, `COUNTER_CLOCKWISE`), `isDefault`, status, `mergedInto`. Length, turns and direction come from the GPS of the first session, so a newly proposed layout may have only a name (`LayoutSpec.hasGeometry()` is false).
 - **CatalogStatus**: `PENDING_REVIEW` (user proposals — usable immediately) → `VERIFIED` (admin). `MERGED` is terminal: the row is kept (other services hold its id) and points to the canonical item.
 
 Invariants enforced by the aggregate (and backed by DB constraints):
@@ -28,7 +28,7 @@ Invariants enforced by the aggregate (and backed by DB constraints):
 - A track with active layouts has **exactly one default**; the first layout created becomes the default.
 - `Venue.addTrack` rejects same discipline + similar name → `DuplicateTrackException`.
 - `Track.addLayout` rejects an equivalent layout → `DuplicateLayoutException`.
-- `Layout.isEquivalentTo`: similar name **or** (length within `Layout.EQUIVALENT_LENGTH_TOLERANCE_METERS` = 25 m **and** same turns **and** same direction). Unknown turns on only one side do not count as "same turns".
+- `Layout.isEquivalentTo`: similar name **or** (length within `Layout.EQUIVALENT_LENGTH_TOLERANCE_METERS` = 25 m **and** same turns **and** same direction). Unknown turns on only one side do not count as "same turns". Geometry only counts when both layouts have length and direction: a layout without them is compared by name only. Layout names with different numbers are never similar ("Variante 5" ≠ "Variante 6", the names the app gives to unnamed layouts).
 - `MERGED` items reject every change (`MergedCatalogItemException`).
 
 The domain package is pure Java: no Spring, JPA or Lombok.

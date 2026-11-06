@@ -45,14 +45,14 @@ public class LayoutJpaEntity {
     @Column(name = "normalized_name", nullable = false, length = 150)
     private String normalizedName;
 
-    @Column(name = "length_m", nullable = false)
-    private int lengthMeters;
+    @Column(name = "length_m")
+    private Integer lengthMeters;
 
     @Column
     private Integer turns;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(length = 20)
     private Direction direction;
 
     @Column(name = "is_default", nullable = false)
@@ -74,7 +74,7 @@ public class LayoutJpaEntity {
         entity.track = track;
         entity.name = layout.getName().value();
         entity.normalizedName = layout.getName().normalized();
-        entity.lengthMeters = layout.getLength().meters();
+        entity.lengthMeters = layout.getLength() != null ? layout.getLength().meters() : null;
         entity.turns = layout.getTurns() != null ? layout.getTurns().count() : null;
         entity.direction = layout.getDirection();
         entity.isDefault = layout.isDefault();
@@ -88,7 +88,7 @@ public class LayoutJpaEntity {
         return Layout.reconstitute(
             new LayoutId(id),
             LayoutName.of(name),
-            Length.ofMeters(lengthMeters),
+            Length.ofNullable(lengthMeters),
             Turns.ofNullable(turns),
             direction,
             isDefault,
