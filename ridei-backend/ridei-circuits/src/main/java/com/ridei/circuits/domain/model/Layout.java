@@ -19,6 +19,7 @@ public final class Layout {
     private Length length;
     private Turns turns;
     private Direction direction;
+    private LayoutPath path;
     private boolean isDefault;
     private CatalogStatus status;
     private LayoutId mergedInto;
@@ -30,6 +31,7 @@ public final class Layout {
         Length length,
         Turns turns,
         Direction direction,
+        LayoutPath path,
         boolean isDefault,
         CatalogStatus status,
         LayoutId mergedInto,
@@ -40,6 +42,7 @@ public final class Layout {
         this.length = length;
         this.turns = turns;
         this.direction = direction;
+        this.path = path;
         this.isDefault = isDefault;
         this.status = status;
         this.mergedInto = mergedInto;
@@ -48,7 +51,7 @@ public final class Layout {
 
     static Layout create(LayoutSpec spec, Instant now) {
         return new Layout(
-            LayoutId.newId(), spec.name(), spec.length(), spec.turns(), spec.direction(),
+            LayoutId.newId(), spec.name(), spec.length(), spec.turns(), spec.direction(), null,
             false, CatalogStatus.PENDING_REVIEW, null, now
         );
     }
@@ -59,6 +62,7 @@ public final class Layout {
         Length length,
         Turns turns,
         Direction direction,
+        LayoutPath path,
         boolean isDefault,
         CatalogStatus status,
         LayoutId mergedInto,
@@ -67,7 +71,7 @@ public final class Layout {
         if (id == null || name == null || status == null || createdAt == null) {
             throw new IllegalArgumentException("Layout id, name, status and creation date are required");
         }
-        return new Layout(id, name, length, turns, direction, isDefault, status, mergedInto, createdAt);
+        return new Layout(id, name, length, turns, direction, path, isDefault, status, mergedInto, createdAt);
     }
 
     /**
@@ -120,6 +124,11 @@ public final class Layout {
         direction = corrected.direction();
     }
 
+    void redraw(LayoutPath newPath) {
+        requireActive();
+        path = newPath;
+    }
+
     void markMergedInto(LayoutId target) {
         requireActive();
         status = CatalogStatus.MERGED;
@@ -152,6 +161,11 @@ public final class Layout {
     /** Sentido, o {@code null} si aún no se ha calculado. */
     public Direction getDirection() {
         return direction;
+    }
+
+    /** Dibujo del trazado, o {@code null} si aún no lo tiene (p. ej. propuesto y sin rodar). */
+    public LayoutPath getPath() {
+        return path;
     }
 
     public boolean isDefault() {

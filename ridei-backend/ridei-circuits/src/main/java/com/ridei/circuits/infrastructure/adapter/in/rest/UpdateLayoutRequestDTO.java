@@ -1,11 +1,16 @@
 package com.ridei.circuits.infrastructure.adapter.in.rest;
 
+import java.util.List;
+
 import com.ridei.circuits.domain.model.Direction;
 import com.ridei.circuits.domain.model.LayoutCorrection;
 import com.ridei.circuits.domain.model.LayoutName;
+import com.ridei.circuits.domain.model.LayoutPath;
 import com.ridei.circuits.domain.model.Length;
 import com.ridei.circuits.domain.model.Turns;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
@@ -21,14 +26,26 @@ public record UpdateLayoutRequestDTO(
     @PositiveOrZero(message = "Turns must be zero or positive")
     Integer turns,
 
-    Direction direction
+    Direction direction,
+
+    /**
+     * Dibujo nuevo del trazado, en orden de recorrido. Se simplifica (Douglas-Peucker) a 200
+     * puntos como máximo; si repite el primer punto al final, se descarta.
+     */
+    @Size(min = LayoutPath.MIN_POINTS, max = MAX_RAW_PATH_POINTS,
+        message = "Layout path must have between 3 and 20000 points")
+    List<@NotNull(message = "Path points cannot be null") @Valid PathPointDTO> path
 ) {
+    /** Límite de la entrada sin simplificar (una vuelta GPS a 1 Hz cabe de sobra). */
+    static final int MAX_RAW_PATH_POINTS = 20_000;
+
     public LayoutCorrection toCorrection() {
         return new LayoutCorrection(
             name != null ? LayoutName.of(name) : null,
             lengthMeters != null ? Length.ofMeters(lengthMeters) : null,
             Turns.ofNullable(turns),
-            direction
+            direction,
+            path != null ? LayoutPath.simplified(path.stream().map(PathPointDTO::toDomain).toList()) : null
         );
     }
 }

@@ -54,9 +54,16 @@ Los campos opcionales llegan como `null`, no se omiten: `externalPlaceId`, `turn
   "turns": 14,                         // puede ser null (desconocido)
   "direction": "CLOCKWISE",            // CLOCKWISE | COUNTER_CLOCKWISE; null hasta la primera sesión
   "isDefault": true,                   // exactamente uno por track (si el track tiene layouts)
-  "status": "VERIFIED"
+  "status": "VERIFIED",
+  "path": [                            // dibujo del trazado; null si aún no tiene
+    { "latitude": 41.574321, "longitude": 2.262227 },
+    { "latitude": 41.573866, "longitude": 2.263174 }
+    /* … */
+  ]
 }
 ```
+
+- **`path`**: el dibujo del trazado para pintarlo en el mapa. Coordenadas WGS84 en grados decimales, con los mismos nombres que `latitude`/`longitude` del venue. Los puntos van en el orden en que se recorre la vuelta (respetando `direction`) y forman un circuito cerrado: el primer punto **no** se repite al final (une tú el último con el primero). Entre 3 y 200 puntos. `null` si el trazado aún no tiene dibujo (p. ej. uno propuesto que todavía no se ha rodado). Viene en **todas** las respuestas que incluyen trazados (`/venues/nearby`, `/venues`, `/venues/{id}` y las de crear complejo, pista y trazado). Geometría de © OpenStreetMap contributors (ODbL): muestra la atribución en el mapa.
 
 - **`status`**: lo que propone un usuario entra como `PENDING_REVIEW` y se puede usar en el acto. Recomendación: mostrar una etiqueta "Pendiente de verificación", sin bloquear nada. Un admin lo pasa a `VERIFIED`.
 - Las respuestas **nunca** incluyen elementos fusionados (`MERGED`).
@@ -208,7 +215,7 @@ Solo `name` es obligatorio: `lengthMeters`, `turns` y `direction` los calcula el
 | `PUT /admin/venues/{venueId}/tracks/{trackId}/default-layout/{layoutId}` | `TrackResponseDTO` |
 | `PATCH /admin/venues/{venueId}` | `VenueResponseDTO`. Cuerpo parcial: `name`, `countryCode`, `latitude` + `longitude` (juntos), `externalPlaceId` |
 | `PATCH /admin/venues/{venueId}/tracks/{trackId}` | `TrackResponseDTO`. Cuerpo parcial: `discipline`, `name` |
-| `PATCH /admin/venues/{venueId}/tracks/{trackId}/layouts/{layoutId}` | `LayoutResponseDTO`. Cuerpo parcial: `name`, `lengthMeters`, `turns`, `direction` |
+| `PATCH /admin/venues/{venueId}/tracks/{trackId}/layouts/{layoutId}` | `LayoutResponseDTO`. Cuerpo parcial: `name`, `lengthMeters`, `turns`, `direction`, `path` (3–20 000 puntos `{latitude, longitude}`; se simplifica a ≤ 200 con Douglas-Peucker; 400 si algún punto es nulo o está fuera de rango) |
 
 En los `PATCH` solo cambian los campos que envíes. `403` si el usuario no es admin; `422` si una fusión no tiene sentido.
 

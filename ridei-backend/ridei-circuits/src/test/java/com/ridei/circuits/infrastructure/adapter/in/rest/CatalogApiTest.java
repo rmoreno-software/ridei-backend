@@ -15,6 +15,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -38,6 +39,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.ridei.circuits.application.AddLayoutToTrackCommand;
 import com.ridei.circuits.application.ProposeVenueCommand;
+import com.ridei.circuits.application.UpdateLayoutCommand;
 import com.ridei.circuits.application.ProposeVenueResult;
 import com.ridei.circuits.application.VenueDetail;
 import com.ridei.circuits.application.port.in.AddLayoutToTrackUseCase;
@@ -65,7 +67,10 @@ import com.ridei.circuits.domain.model.CatalogStatus;
 import com.ridei.circuits.domain.model.Direction;
 import com.ridei.circuits.domain.model.Discipline;
 import com.ridei.circuits.domain.model.Distance;
+import com.ridei.circuits.domain.model.GeoPoint;
 import com.ridei.circuits.domain.model.Layout;
+import com.ridei.circuits.domain.model.LayoutCorrection;
+import com.ridei.circuits.domain.model.LayoutPath;
 import com.ridei.circuits.domain.model.Track;
 import com.ridei.circuits.domain.model.UserId;
 import com.ridei.circuits.domain.model.Venue;
@@ -377,6 +382,91 @@ class CatalogApiTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.details[0]").value("lat, lon and radiusKm must be given together"));
             verifyNoInteractions(searchVenues);
+        }
+    }
+
+    @Nested
+    class LayoutPaths {
+
+        private static final String SQUARE = """
+            [ {"latitude": 41.5700, "longitude": 2.2600}, {"latitude": 41.5710, "longitude": 2.2600},
+              {"latitude": 41.5710, "longitude": 2.2620}, {"latitude": 41.5700, "longitude": 2.2620} ]
+            """;
+
+        private String layoutUrl(Venue venue) {
+            Track road = onlyTrack(venue);
+            return ADMIN + "/venues/" + venue.getId() + "/tracks/" + road.getId() + "/layouts/" + road.defaultLayout().orElseThrow().getId();
+        }
+
+        @Test
+        void adminCanDrawALayoutAndTheResponseCarriesThePath() throws Exception {
+            Venue venue = montmelo();
+            Layout gp = onlyTrack(venue).defaultLayout().orElseThrow();
+            LayoutPath square = LayoutPath.of(List.of(GeoPoint.of(41.57, 2.26), GeoPoint.of(41.571, 2.26),
+                GeoPoint.of(41.571, 2.262), GeoPoint.of(41.57, 2.262)));
+            venue.correctLayout(gp.getId(), new LayoutCorrection(null, null, null, null, square), NOW);
+            when(updateLayout.update(any())).thenReturn(gp);
+
+            mvc.perform(patch(layoutUrl(venue)).header(HttpHeaders.AUTHORIZATION, TestTokens.admin())
+                    .contentType(MediaType.APPLICATION_JSON).content("{\"path\": " + SQUARE + "}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.path.length()").value(4))
+                .andExpect(jsonPath("$.path[0].latitude").value(41.57))
+                .andExpect(jsonPath("$.path[0].longitude").value(2.26));
+
+            ArgumentCaptor<UpdateLayoutCommand> command = ArgumentCaptor.forClass(UpdateLayoutCommand.class);
+            verify(updateLayout).update(command.capture());
+            assertThat(command.getValue().correction().path().points()).hasSize(4);
+        }
+
+        @Test
+        void pointOutOfRangeIsRejected() throws Exception {
+            String path = """
+                [ {"latitude": 91.0, "longitude": 2.26}, {"latitude": 41.571, "longitude": 2.26},
+                  {"latitude": 41.571, "longitude": 2.262} ]
+                """;
+
+            mvc.perform(patch(layoutUrl(montmelo())).header(HttpHeaders.AUTHORIZATION, TestTokens.admin())
+                    .contentType(MediaType.APPLICATION_JSON).content("{\"path\": " + path + "}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.details[0]").value(org.hamcrest.Matchers.containsString("latitude must be between -90 and 90")));
+            verifyNoInteractions(updateLayout);
+        }
+
+        @Test
+        void missingCoordinateIsRejectedInsteadOfBecomingZero() throws Exception {
+            String path = """
+                [ {"latitude": 41.57}, {"latitude": 41.571, "longitude": 2.26}, {"latitude": 41.571, "longitude": 2.262} ]
+                """;
+
+            mvc.perform(patch(layoutUrl(montmelo())).header(HttpHeaders.AUTHORIZATION, TestTokens.admin())
+                    .contentType(MediaType.APPLICATION_JSON).content("{\"path\": " + path + "}"))
+                .andExpect(status().isBadRequest());
+            verifyNoInteractions(updateLayout);
+        }
+
+        @Test
+        void pathWithLessThanThreePointsIsRejected() throws Exception {
+            String path = """
+                [ {"latitude": 41.57, "longitude": 2.26}, {"latitude": 41.571, "longitude": 2.26} ]
+                """;
+
+            mvc.perform(patch(layoutUrl(montmelo())).header(HttpHeaders.AUTHORIZATION, TestTokens.admin())
+                    .contentType(MediaType.APPLICATION_JSON).content("{\"path\": " + path + "}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.details[0]").value("Layout path must have between 3 and 20000 points"));
+            verifyNoInteractions(updateLayout);
+        }
+
+        @Test
+        void layoutsWithoutDrawingAreSerializedWithANullPath() throws Exception {
+            Venue venue = montmelo();
+            when(getVenueDetail.get(venue.getId())).thenReturn(new VenueDetail(venue.getId(), venue));
+
+            mvc.perform(get(VENUES + "/" + venue.getId()).header(HttpHeaders.AUTHORIZATION, TestTokens.rider()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.venue.tracks[0].layouts[0].path").doesNotExist())
+                .andExpect(jsonPath("$.venue.tracks[0].layouts[0]", org.hamcrest.Matchers.hasKey("path")));
         }
     }
 }

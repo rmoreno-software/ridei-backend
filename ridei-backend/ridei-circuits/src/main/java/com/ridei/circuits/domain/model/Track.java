@@ -98,6 +98,7 @@ public final class Track {
         LayoutSpec corrected = correction.applyTo(layout.spec());
         rejectEquivalentLayout(corrected, layoutId);
         layout.correct(corrected);
+        if (correction.path() != null) layout.redraw(correction.path());
     }
 
     /** Fusiona dos layouts de este track. Si el origen era el default, el destino pasa a serlo. */

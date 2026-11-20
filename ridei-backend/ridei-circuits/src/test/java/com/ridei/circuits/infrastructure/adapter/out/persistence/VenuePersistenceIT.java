@@ -27,6 +27,8 @@ import com.ridei.circuits.domain.model.Distance;
 import com.ridei.circuits.domain.model.ExternalPlaceId;
 import com.ridei.circuits.domain.model.GeoPoint;
 import com.ridei.circuits.domain.model.Layout;
+import com.ridei.circuits.domain.model.LayoutCorrection;
+import com.ridei.circuits.domain.model.LayoutPath;
 import com.ridei.circuits.domain.model.PageRequest;
 import com.ridei.circuits.domain.model.PageResult;
 import com.ridei.circuits.domain.model.SimilarityThreshold;
@@ -70,6 +72,25 @@ class VenuePersistenceIT extends PostgisIntegrationTest {
             Layout largo = loaded.activeTracks().get(0).defaultLayout().orElseThrow();
             assertThat(largo.getTurns()).isNull();
             assertThat(largo.getLength().meters()).isEqualTo(3000);
+        }
+
+        @Test
+        void roundTripsTheLayoutPathAsAClosedPostgisRingAndReturnsItOpen() {
+            GeoPoint origin = somewhereInTheOcean();
+            List<GeoPoint> points = List.of(origin, northOf(origin, 300),
+                GeoPoint.of(northOf(origin, 300).latitude(), origin.longitude() + 0.004), GeoPoint.of(origin.latitude(), origin.longitude() + 0.004));
+            LayoutPath path = LayoutPath.of(points.stream()
+                .map(p -> GeoPoint.of(Math.round(p.latitude() * 1e6) / 1e6, Math.round(p.longitude() * 1e6) / 1e6)).toList());
+            Venue venue = newVenue("Autódromo Dibujado", origin, null);
+            Layout largo = venue.activeTracks().get(0).defaultLayout().orElseThrow();
+            venue.correctLayout(largo.getId(), new LayoutCorrection(null, null, null, null, path), NOW.plusSeconds(1));
+
+            repository.save(venue);
+
+            Layout loaded = repository.findById(venue.getId()).orElseThrow().activeTracks().get(0).defaultLayout().orElseThrow();
+            assertThat(loaded.getPath()).isEqualTo(path);
+            assertThat(jdbc.queryForObject("SELECT ST_NPoints(path) FROM layout WHERE id = ?", Integer.class, largo.getId().value()))
+                .isEqualTo(5);
         }
 
         @Test

@@ -1,7 +1,11 @@
 package com.ridei.circuits.domain.model;
 
 /** Corrección parcial de un layout: cada campo {@code null} se deja como estaba. */
-public record LayoutCorrection(LayoutName name, Length length, Turns turns, Direction direction) {
+public record LayoutCorrection(LayoutName name, Length length, Turns turns, Direction direction, LayoutPath path) {
+
+    public LayoutCorrection(LayoutName name, Length length, Turns turns, Direction direction) {
+        this(name, length, turns, direction, null);
+    }
 
     LayoutSpec applyTo(LayoutSpec current) {
         return new LayoutSpec(

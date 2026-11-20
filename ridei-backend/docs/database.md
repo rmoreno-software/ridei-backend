@@ -200,6 +200,9 @@ Catalog of venues → tracks → layouts (see [circuits.md](circuits.md)). It ru
 | `V1__enable_extensions.sql` | `CREATE EXTENSION IF NOT EXISTS postgis` and `pg_trgm`. **`postgis` needs a superuser**: in production a superuser creates it when provisioning the DB, and V1 is then a no-op. |
 | `V2__create_catalog_tables.sql` | `venue`, `track`, `layout` + constraints and indexes |
 | `V3__seed_spanish_circuits.sql` | Main Spanish circuits, `VERIFIED`, `created_by NULL` (see "Seed" below) |
+| `V4__update_track_disciplines.sql` | Adds `TRIAL`, `MIXED`, `DIRT_TRACK`; `SUPERMOTO` → `MIXED` |
+| `V5__layout_geometry_optional.sql` | `layout.length_m` and `direction` become nullable (computed by the first GPS session) |
+| `V6__layout_path.sql` | `layout.path` (drawing of the layout) + Montmeló and Calafat layouts with their drawings from OpenStreetMap (ODbL) |
 
 ### Schema highlights
 
@@ -207,6 +210,7 @@ Catalog of venues → tracks → layouts (see [circuits.md](circuits.md)). It ru
 - `venue.latitude` and `venue.longitude` are plain columns. `location GEOGRAPHY(POINT, 4326)` is a `GENERATED ALWAYS … STORED` column, so Hibernate Spatial isn't needed. The JPA entity doesn't map it; geographic and trigram queries are native SQL in `VenueNativeQueries`.
 - `normalized_name` (venue, track, layout) is computed in Java by `NameNormalizer` and is the input to `pg_trgm`.
 - `venue.version` is the optimistic lock (`@Version`) of the whole aggregate.
+- `layout.path geometry(LineString, 4326)` is the drawing of the layout in lap order, `NULL` until it has one. It is stored **closed** (last point = first) so it is a valid PostGIS ring; the API returns it open. At most 201 stored points (200 distinct, `LayoutPath.MAX_POINTS`), so listings stay light. No Hibernate Spatial: `LayoutJpaEntity` maps it as WKT text with `@ColumnTransformer` (`ST_AsText(path, 6)` / `ST_GeomFromText(?, 4326)`), converted in `LayoutPathWkt`. `CHECK`s: closed ring with 4–201 points, coordinates in range.
 
 | Constraint / index | Purpose |
 |---|---|
@@ -225,7 +229,19 @@ Fixed ids (`10000000-…` venues, `20000000-…` tracks, `30000000-…` layouts)
 
 - **11 venues**: Barcelona-Catalunya, Jerez, MotorLand Aragón, Ricardo Tormo, Cartagena, Almería, Navarra, Albacete, Calafat, Alcarràs, Parcmotor Castellolí.
 - **Tracks**: a road-racing track per venue; Alcarràs also has a mixed circuit (karting/supermoto) and flat track; Castellolí also has karting, motocross and enduro.
-- **Layouts**: only Montmeló GP (4657 m, 14 turns, clockwise, default) and Jerez GP (4423 m, 13 turns, clockwise).
+- **Layouts**: Montmeló GP (4657 m, 14 turns, clockwise, default) and Jerez GP (4423 m, 13 turns, clockwise) in V3. V6 adds Montmeló *GP con chicane* (4675 m), *Nacional* (2977 m) and *Escuela* (1650 m), all clockwise and with unknown turns (so none is "equivalent" to the GP), and Calafat *Principal* (3250 m, clockwise, default) and *Corto* (`PENDING_REVIEW`, no length, direction or drawing).
+- **Drawings (`path`)**: all four Montmeló layouts and Calafat Principal, from OpenStreetMap `highway=raceway` ways (© OpenStreetMap contributors, ODbL; way ids and method in the migration header). `SeedDataIT` checks that each drawn length is within 5 % of `length_m`, that its orientation matches `direction` and that the venue pin falls on the default layout's drawing.
+
+| Layout | Points | Drawn length | `length_m` | Notes |
+|---|---|---|---|---|
+| Montmeló GP | 74 | 4652 m | 4657 | |
+| Montmeló GP con chicane | 77 | 4667 m | 4675 | final chicane ways instead of the "AZ" sweepers |
+| Montmeló Nacional | 44 | 2971 m | 2977 | shortcut way "Catalunya (Cutting Half)" |
+| Montmeló Escuela | 39 | 1704 m | 1650 | +3.3 %; built with an unnamed OSM link way — worth a check against the circuit's map |
+| Calafat Principal | 57 | 3239 m | 3250 | direction inferred (see below) |
+| Calafat Corto | — | — | — | no source identifies its shortcut |
+
+Calafat's direction is not published by any source found and its OSM way has no `oneway`. V6 seeds *clockwise* as an **inference**. It is the only orientation of the ring with more right-hand than left-hand corners, which fits the official "9 right / 7 left". It is also the only one where the bypass of *Curva de Escuela* (way 713130114) falls on the 3rd corner and before the cut of turns 5-6-7 (way 713130115), matching the official corner order and racingcircuits.info. Confirm with the circuit if possible.
 
 #### Seed pending verification
 
@@ -233,14 +249,14 @@ These layouts were left out because sources disagree on length, turns or directi
 
 | Venue | Pending | Conflict found |
 |---|---|---|
-| Barcelona-Catalunya | GP con chicane (2021–), 4675 m / 16 turns, clockwise | Only Wikipedia is precise; the second source ("4.7 km, 16 turns") fits the 2007–2020 layout (4655 m / 16) just as well |
+| Barcelona-Catalunya | Turns of *GP con chicane* (seeded in V6 without turns) | 16 turns per Wikipedia only |
 | MotorLand Aragón | FIM GP layout (counter-clockwise) | 5078 m / 16 turns (Wikipedia) vs 5077 m / 17 turns (Michelin preview) |
 | Ricardo Tormo | GP layout (counter-clockwise) | 14 turns (Wikipedia, Lapmeta) vs 13 (5 R + 8 L, motogp.com) |
 | Navarra | Full circuit since 2024 (clockwise) | 16 turns (Wikipedia) vs 17 (Lapmeta) |
 | Albacete | Full circuit 3550 m / 14 turns | Direction not stated by any source |
 | Cartagena | Circuit ~3506 m / 18 turns | Length format inconsistent in the source; direction not stated |
 | Almería | 4025 m, clockwise | "13 turns (8 R, 5 L and a chicane)": unclear whether the chicane counts |
-| Calafat | 3250 m | 16 vs 17 turns in the same source; direction not stated |
+| Calafat | Turns of *Principal*; *Corto* length/direction/drawing | 16 vs 17 turns in the same source; direction not stated (V6 infers clockwise, see above) |
 | Alcarràs | Autòdrom 3743 m / 14 turns; mixed 1017 m / 13 turns | Lengths differ across sources (3.73 / 3.743 / 4.145 km); direction only from Lapmeta |
 | Alcarràs | **Motocross track** | No source confirms a motocross track at the venue (not seeded) |
 | Parcmotor Castellolí | Speed circuit; karting 1340 m / 27 turns; school circuit 1700 m | Speed length 4146 vs 4113 m; no direction for any |

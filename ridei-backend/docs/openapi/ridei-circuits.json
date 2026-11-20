@@ -1423,8 +1423,36 @@
             "type" : "string",
             "enum" : [ "PENDING_REVIEW", "VERIFIED", "MERGED" ]
           },
+          "path" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PathPointDTO"
+            }
+          },
           "isDefault" : {
             "type" : "boolean"
+          }
+        }
+      },
+      "PathPointDTO" : {
+        "required" : [ "latitude", "longitude" ],
+        "type" : "object",
+        "properties" : {
+          "latitude" : {
+            "maximum" : 90,
+            "exclusiveMaximum" : false,
+            "minimum" : -90,
+            "exclusiveMinimum" : false,
+            "type" : "number",
+            "format" : "double"
+          },
+          "longitude" : {
+            "maximum" : 180,
+            "exclusiveMaximum" : false,
+            "minimum" : -180,
+            "exclusiveMinimum" : false,
+            "type" : "number",
+            "format" : "double"
           }
         }
       },
@@ -1455,7 +1483,7 @@
         }
       },
       "LayoutRequestDTO" : {
-        "required" : [ "direction", "lengthMeters", "name" ],
+        "required" : [ "name" ],
         "type" : "object",
         "properties" : {
           "name" : {
@@ -1664,6 +1692,14 @@
           "direction" : {
             "type" : "string",
             "enum" : [ "CLOCKWISE", "COUNTER_CLOCKWISE" ]
+          },
+          "path" : {
+            "maxItems" : 20000,
+            "minItems" : 3,
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PathPointDTO"
+            }
           }
         }
       },

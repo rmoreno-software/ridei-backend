@@ -11,6 +11,8 @@ import com.ridei.circuits.domain.model.LayoutName;
 import com.ridei.circuits.domain.model.Length;
 import com.ridei.circuits.domain.model.Turns;
 
+import org.hibernate.annotations.ColumnTransformer;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -55,6 +57,14 @@ public class LayoutJpaEntity {
     @Column(length = 20)
     private Direction direction;
 
+    /**
+     * WKT del anillo cerrado (ver {@link LayoutPathWkt}). Sin Hibernate Spatial: PostGIS
+     * convierte en la propia consulta; 6 decimales (~0,1 m) bastan y aligeran los listados.
+     */
+    @Column(columnDefinition = "geometry(LineString,4326)")
+    @ColumnTransformer(read = "ST_AsText(path, 6)", write = "ST_GeomFromText(?, 4326)")
+    private String path;
+
     @Column(name = "is_default", nullable = false)
     private boolean isDefault;
 
@@ -77,6 +87,7 @@ public class LayoutJpaEntity {
         entity.lengthMeters = layout.getLength() != null ? layout.getLength().meters() : null;
         entity.turns = layout.getTurns() != null ? layout.getTurns().count() : null;
         entity.direction = layout.getDirection();
+        entity.path = LayoutPathWkt.toWkt(layout.getPath());
         entity.isDefault = layout.isDefault();
         entity.status = layout.getStatus();
         entity.mergedIntoId = layout.getMergedInto() != null ? layout.getMergedInto().value() : null;
@@ -91,6 +102,7 @@ public class LayoutJpaEntity {
             Length.ofNullable(lengthMeters),
             Turns.ofNullable(turns),
             direction,
+            LayoutPathWkt.fromWkt(path),
             isDefault,
             status,
             mergedIntoId != null ? new LayoutId(mergedIntoId) : null,

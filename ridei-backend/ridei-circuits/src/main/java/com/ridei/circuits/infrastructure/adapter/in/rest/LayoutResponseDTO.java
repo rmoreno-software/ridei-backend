@@ -1,5 +1,6 @@
 package com.ridei.circuits.infrastructure.adapter.in.rest;
 
+import java.util.List;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -15,7 +16,12 @@ public record LayoutResponseDTO(
     Integer turns,
     Direction direction,
     @JsonProperty("isDefault") boolean isDefault,
-    CatalogStatus status
+    CatalogStatus status,
+    /**
+     * Dibujo del trazado en orden de recorrido, sin repetir el primer punto al final; 3–200
+     * puntos. {@code null} si el trazado aún no tiene dibujo.
+     */
+    List<PathPointDTO> path
 ) {
     public static LayoutResponseDTO fromDomain(Layout layout) {
         return new LayoutResponseDTO(
@@ -25,7 +31,10 @@ public record LayoutResponseDTO(
             layout.getTurns() != null ? layout.getTurns().count() : null,
             layout.getDirection(),
             layout.isDefault(),
-            layout.getStatus()
+            layout.getStatus(),
+            layout.getPath() != null
+                ? layout.getPath().points().stream().map(PathPointDTO::fromDomain).toList()
+                : null
         );
     }
 }
