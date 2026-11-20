@@ -20,6 +20,7 @@ public final class Layout {
     private Turns turns;
     private Direction direction;
     private LayoutPath path;
+    private FinishLine finishLine;
     private boolean isDefault;
     private CatalogStatus status;
     private LayoutId mergedInto;
@@ -32,6 +33,7 @@ public final class Layout {
         Turns turns,
         Direction direction,
         LayoutPath path,
+        FinishLine finishLine,
         boolean isDefault,
         CatalogStatus status,
         LayoutId mergedInto,
@@ -43,6 +45,7 @@ public final class Layout {
         this.turns = turns;
         this.direction = direction;
         this.path = path;
+        this.finishLine = finishLine;
         this.isDefault = isDefault;
         this.status = status;
         this.mergedInto = mergedInto;
@@ -51,7 +54,7 @@ public final class Layout {
 
     static Layout create(LayoutSpec spec, Instant now) {
         return new Layout(
-            LayoutId.newId(), spec.name(), spec.length(), spec.turns(), spec.direction(), null,
+            LayoutId.newId(), spec.name(), spec.length(), spec.turns(), spec.direction(), null, null,
             false, CatalogStatus.PENDING_REVIEW, null, now
         );
     }
@@ -63,6 +66,7 @@ public final class Layout {
         Turns turns,
         Direction direction,
         LayoutPath path,
+        FinishLine finishLine,
         boolean isDefault,
         CatalogStatus status,
         LayoutId mergedInto,
@@ -71,7 +75,7 @@ public final class Layout {
         if (id == null || name == null || status == null || createdAt == null) {
             throw new IllegalArgumentException("Layout id, name, status and creation date are required");
         }
-        return new Layout(id, name, length, turns, direction, path, isDefault, status, mergedInto, createdAt);
+        return new Layout(id, name, length, turns, direction, path, finishLine, isDefault, status, mergedInto, createdAt);
     }
 
     /**
@@ -124,9 +128,16 @@ public final class Layout {
         direction = corrected.direction();
     }
 
-    void redraw(LayoutPath newPath) {
+    /**
+     * Cambia el dibujo y/o la meta ({@code null} = sin cambios). Si el trazado acaba con los
+     * dos, el dibujo pasa a empezar en la meta y la meta tiene que cortarlo una sola vez.
+     */
+    void redraw(LayoutPath newPath, FinishLine newFinishLine) {
         requireActive();
-        path = newPath;
+        LayoutPath drawing = newPath != null ? newPath : path;
+        FinishLine finish = newFinishLine != null ? newFinishLine : finishLine;
+        path = drawing != null && finish != null ? drawing.startingAt(finish) : drawing;
+        finishLine = finish;
     }
 
     void markMergedInto(LayoutId target) {
@@ -166,6 +177,11 @@ public final class Layout {
     /** Dibujo del trazado, o {@code null} si aún no lo tiene (p. ej. propuesto y sin rodar). */
     public LayoutPath getPath() {
         return path;
+    }
+
+    /** Línea de meta, o {@code null} si no se conoce. */
+    public FinishLine getFinishLine() {
+        return finishLine;
     }
 
     public boolean isDefault() {

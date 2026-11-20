@@ -20,8 +20,9 @@ Venue (complex)       ← aggregate root; WHERE it is
 
 - **Venue**: `VenueId`, `VenueName`, `CountryCode` (ISO 3166-1 alpha-2 — not the numeric phone prefix used by identity), `GeoPoint`, optional `ExternalPlaceId` (Google Places / Mapbox id sent by the client), `CatalogStatus`, `mergedInto`, `createdBy` (from the JWT; `null` for seed data), timestamps, optimistic `version`.
 - **Track**: `TrackId`, `Discipline` (`ROAD_RACING`, `KARTING`, `ENDURO`, `TRIAL`, `MOTOCROSS`, `MIXED`, `FLAT_TRACK`, `DIRT_TRACK`; `MIXED` combines asphalt and dirt, e.g. supermoto), `TrackName`, status, `mergedInto`.
-- **Layout**: `LayoutId`, `LayoutName`, optional `Length` (m, > 0), optional `Turns` (≥ 0), optional `Direction` (`CLOCKWISE`, `COUNTER_CLOCKWISE`), `isDefault`, status, `mergedInto`, optional `LayoutPath`. Length, turns and direction come from the GPS of the first session, so a newly proposed layout may have only a name (`LayoutSpec.hasGeometry()` is false).
-- **LayoutPath** (the drawing shown on the map): closed ring of `GeoPoint`s in lap order, first point **not** repeated at the end, 3–200 points. `LayoutPath.simplified(...)` reduces a detailed drawing with Douglas-Peucker on the ring (2.5 m, tolerance raised until ≤ 200 points); `length()` (haversine, closing segment included) and `direction()` (signed area) let seeds and tests check it against `lengthMeters` and `direction`. It is not part of `LayoutSpec` and never used for equivalence: users can't send it (propose/add requests are unchanged); it comes from seed migrations or an admin `PATCH`, and later from the first GPS session.
+- **Layout**: `LayoutId`, `LayoutName`, optional `Length` (m, > 0), optional `Turns` (≥ 0), optional `Direction` (`CLOCKWISE`, `COUNTER_CLOCKWISE`), `isDefault`, status, `mergedInto`, optional `LayoutPath`, optional `FinishLine`. Length, turns and direction come from the GPS of the first session, so a newly proposed layout may have only a name (`LayoutSpec.hasGeometry()` is false).
+- **LayoutPath** (the drawing shown on the map): closed ring of `GeoPoint`s in lap order, first point **not** repeated at the end, 3–200 points. `LayoutPath.simplified(...)` reduces a detailed drawing with Douglas-Peucker on the ring (2.5 m, tolerance raised until ≤ 200 points); `length()` (haversine, closing segment included) and `direction()` (signed area) let seeds and tests check it against `lengthMeters` and `direction`. Coordinates are kept at 6 decimals (~0.1 m), as stored.
+- **FinishLine**: the finish-line gate, two points: `left` and `right` looking in the direction of travel (1–100 m apart), which tells a GPS lap timer in which direction a crossing counts. When a layout has both, the drawing starts where the gate crosses it (`LayoutPath.startingAt`), and the gate must cross it exactly once with its ends the right way round (`IllegalArgumentException` → 400 otherwise). Neither is part of `LayoutSpec` nor used for equivalence: users can't send it (propose/add requests are unchanged); it comes from seed migrations or an admin `PATCH`, and later from the first GPS session.
 - **CatalogStatus**: `PENDING_REVIEW` (user proposals — usable immediately) → `VERIFIED` (admin). `MERGED` is terminal: the row is kept (other services hold its id) and points to the canonical item.
 
 Invariants enforced by the aggregate (and backed by DB constraints):
@@ -129,7 +130,7 @@ Responses: `401` without a token, or with an invalid or revoked one; `403` with 
 }
 ```
 
-`layout` and `externalPlaceId` are optional. Responses only include active (non-`MERGED`) tracks and layouts. Every layout in every response (`/venues`, `/venues/nearby`, `/venues/{id}`, the create responses and admin responses) carries `path`: its drawing as `[{latitude, longitude}, …]` in lap order, or `null`. Geometry seeded from OpenStreetMap is © OpenStreetMap contributors (ODbL).
+`layout` and `externalPlaceId` are optional. Responses only include active (non-`MERGED`) tracks and layouts. Every layout in every response (`/venues`, `/venues/nearby`, `/venues/{id}`, the create responses and admin responses) carries `path`: its drawing as `[{latitude, longitude}, …]` in lap order (starting at the finish line when there is one), or `null`; and `finishLine`: `[left, right]` looking in the direction of travel, or `null`. Geometry seeded from OpenStreetMap is © OpenStreetMap contributors (ODbL).
 
 ### Admin endpoints (`/admin`)
 
@@ -140,7 +141,7 @@ Responses: `401` without a token, or with an invalid or revoked one; `403` with 
 | `PUT` | `/admin/venues/{venueId}/tracks/{trackId}/default-layout/{layoutId}` | 200 track |
 | `PATCH` | `/admin/venues/{venueId}` | 200 venue |
 | `PATCH` | `/admin/venues/{venueId}/tracks/{trackId}` | 200 track |
-| `PATCH` | `/admin/venues/{venueId}/tracks/{trackId}/layouts/{layoutId}` | 200 layout (body may include `path`: list of `{latitude, longitude}`, simplified to ≤ 200 points) |
+| `PATCH` | `/admin/venues/{venueId}/tracks/{trackId}/layouts/{layoutId}` | 200 layout (body may include `path`: list of `{latitude, longitude}`, simplified to ≤ 200 points; and `finishLine`: exactly 2 points, left then right) |
 
 Verify and merge of tracks/layouts take plain ids (the admin may not know the venue).
 

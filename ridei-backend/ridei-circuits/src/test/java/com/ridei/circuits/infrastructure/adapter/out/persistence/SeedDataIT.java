@@ -1,6 +1,7 @@
 package com.ridei.circuits.infrastructure.adapter.out.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 import static org.assertj.core.api.Assertions.withinPercentage;
 
 import java.util.List;
@@ -16,6 +17,8 @@ import com.ridei.circuits.PostgisIntegrationTest;
 import com.ridei.circuits.application.port.in.GetVenueDetailUseCase;
 import com.ridei.circuits.domain.model.CatalogStatus;
 import com.ridei.circuits.domain.model.Discipline;
+import com.ridei.circuits.domain.model.FinishLine;
+import com.ridei.circuits.domain.model.GeoPoint;
 import com.ridei.circuits.domain.model.Layout;
 import com.ridei.circuits.domain.model.LayoutPath;
 import com.ridei.circuits.domain.model.NameNormalizer;
@@ -94,6 +97,38 @@ class SeedDataIT extends PostgisIntegrationTest {
     @Test
     void calafatPrincipalHasADrawingConsistentWithItsData() {
         assertDrawingIsConsistent(layoutNamed(CALAFAT, "Principal"));
+    }
+
+    /** Meta del nodo raceway=finish de OSM: la comparten los trazados que pasan por la recta. */
+    @ParameterizedTest
+    @ValueSource(strings = {"GP", "GP con chicane", "Nacional"})
+    void montmeloLayoutsThroughTheMainStraightHaveTheFinishLineAndStartOnIt(String name) {
+        Layout layout = layoutNamed(MONTMELO, name);
+        FinishLine finish = layout.getFinishLine();
+
+        assertThat(finish).as("finish line of %s", name).isNotNull();
+        assertThat(finish.width().meters()).isCloseTo(17, within(0.5)); // 10 m a la izquierda + 7 m hasta el muro de boxes
+        assertThat(layout.getPath().points().get(0)).isEqualTo(GeoPoint.of(41.570986, 2.262025));
+        // Corta el dibujo una sola vez, con los extremos en su sitio, y el dibujo ya empieza en ella.
+        assertThat(layout.getPath().startingAt(finish)).isEqualTo(layout.getPath());
+    }
+
+    @Test
+    void calafatPrincipalHasTheFinishLineGivenByTheTeamAndStartsOnIt() {
+        Layout principal = layoutNamed(CALAFAT, "Principal");
+        FinishLine finish = principal.getFinishLine();
+
+        assertThat(finish).isNotNull();
+        assertThat(finish.width().meters()).isCloseTo(16.5, within(0.5)); // 10 m a la izquierda + 6,5 m hasta el muro de boxes
+        // 40°55'56.0"N 0°50'21.9"E proyectado sobre el eje de la pista
+        assertThat(principal.getPath().points().get(0)).isEqualTo(GeoPoint.of(40.932217, 0.839424));
+        assertThat(principal.getPath().startingAt(finish)).isEqualTo(principal.getPath());
+    }
+
+    @Test
+    void layoutsWithoutAKnownFinishLineHaveNone() {
+        assertThat(layoutNamed(MONTMELO, "Escuela").getFinishLine()).isNull();
+        assertThat(layoutNamed(CALAFAT, "Corto").getFinishLine()).isNull();
     }
 
     /** El pin del complejo cae dentro del dibujo de su trazado por defecto, o a menos de 100 m. */

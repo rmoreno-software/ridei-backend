@@ -18,6 +18,14 @@ public record GeoPoint(double latitude, double longitude) {
         return new GeoPoint(latitude, longitude);
     }
 
+    /**
+     * Redondeado a 6 decimales (~0,1 m), la precisión con la que se guardan los dibujos y la
+     * meta de los trazados; así lo que devuelve una escritura coincide con lo que se lee después.
+     */
+    public GeoPoint roundedToMicrodegrees() {
+        return new GeoPoint(Math.round(latitude * 1e6) / 1e6, Math.round(longitude * 1e6) / 1e6);
+    }
+
     /** Distancia de círculo máximo (haversine). Las consultas nativas usan la geodésica de PostGIS. */
     public Distance distanceTo(GeoPoint other) {
         double dLat = Math.toRadians(other.latitude - latitude);

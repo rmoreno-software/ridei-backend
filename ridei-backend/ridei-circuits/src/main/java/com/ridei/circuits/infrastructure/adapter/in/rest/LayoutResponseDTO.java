@@ -19,9 +19,14 @@ public record LayoutResponseDTO(
     CatalogStatus status,
     /**
      * Dibujo del trazado en orden de recorrido, sin repetir el primer punto al final; 3–200
-     * puntos. {@code null} si el trazado aún no tiene dibujo.
+     * puntos. Si hay {@code finishLine}, empieza en la meta. {@code null} si aún no tiene dibujo.
      */
-    List<PathPointDTO> path
+    List<PathPointDTO> path,
+    /**
+     * Línea de meta: dos puntos, el de la izquierda y el de la derecha mirando en el sentido de
+     * la marcha. {@code null} si no se conoce.
+     */
+    List<PathPointDTO> finishLine
 ) {
     public static LayoutResponseDTO fromDomain(Layout layout) {
         return new LayoutResponseDTO(
@@ -34,6 +39,9 @@ public record LayoutResponseDTO(
             layout.getStatus(),
             layout.getPath() != null
                 ? layout.getPath().points().stream().map(PathPointDTO::fromDomain).toList()
+                : null,
+            layout.getFinishLine() != null
+                ? List.of(PathPointDTO.fromDomain(layout.getFinishLine().left()), PathPointDTO.fromDomain(layout.getFinishLine().right()))
                 : null
         );
     }

@@ -9,7 +9,7 @@ import java.util.TreeSet;
  * Dibujo de un trazado: anillo cerrado de puntos WGS84 en el orden en que se recorre la vuelta.
  * El primer punto <b>no</b> se repite al final; el cierre (último → primero) es implícito.
  *
- * <p>Entre {@value #MIN_POINTS} y {@value #MAX_POINTS} puntos: {@link #simplified(List)} reduce
+ * <p>Coordenadas redondeadas a 6 decimales (~0,1 m). Entre {@value #MIN_POINTS} y {@value #MAX_POINTS} puntos: {@link #simplified(List)} reduce
  * un dibujo detallado (OSM, GPS) con Douglas-Peucker para no inflar las respuestas de listado.
  */
 public final class LayoutPath {
@@ -66,7 +66,7 @@ public final class LayoutPath {
         if (points.stream().anyMatch(Objects::isNull)) {
             throw new IllegalArgumentException("A layout path cannot contain null points");
         }
-        List<GeoPoint> open = new ArrayList<>(points);
+        List<GeoPoint> open = new ArrayList<>(points.stream().map(GeoPoint::roundedToMicrodegrees).toList());
         if (open.size() > 1 && open.get(0).equals(open.get(open.size() - 1))) open.remove(open.size() - 1);
         if (open.size() < MIN_POINTS) {
             throw new IllegalArgumentException("A layout path needs at least " + MIN_POINTS + " points");
@@ -101,6 +101,76 @@ public final class LayoutPath {
             area += a[0] * b[1] - b[0] * a[1];
         }
         return area > 0 ? Direction.COUNTER_CLOCKWISE : Direction.CLOCKWISE;
+    }
+
+    // ── Línea de meta ─────────────────────────────────────────────────────────────────────
+
+    /**
+     * El mismo dibujo empezando en la meta: el primer punto es donde la puerta corta el
+     * dibujo y el orden de recorrido no cambia.
+     *
+     * @throws IllegalArgumentException si la puerta no corta el dibujo, lo corta más de una vez
+     *     (ambigua) o sus extremos están al revés respecto al sentido de marcha
+     */
+    public LayoutPath startingAt(FinishLine finishLine) {
+        List<GeoPoint> all = new ArrayList<>(points);
+        all.add(finishLine.left());
+        all.add(finishLine.right());
+        double[][] xy = project(all);
+        int n = points.size();
+        double[] left = xy[n];
+        double[] right = xy[n + 1];
+
+        int crossedEdge = -1;
+        double crossedAt = 0;
+        for (int i = 0; i < n; i++) {
+            double[] a = xy[i];
+            double[] b = xy[(i + 1) % n];
+            double[] t = intersection(a, b, left, right);
+            if (t == null) continue;
+            if (crossedEdge >= 0) {
+                throw new IllegalArgumentException("Finish line crosses the layout path more than once");
+            }
+            crossedEdge = i;
+            crossedAt = t[0];
+        }
+        if (crossedEdge < 0) throw new IllegalArgumentException("Finish line does not cross the layout path");
+
+        double[] a = xy[crossedEdge];
+        double[] b = xy[(crossedEdge + 1) % n];
+        double[] travel = {b[0] - a[0], b[1] - a[1]};
+        double[] gate = {right[0] - left[0], right[1] - left[1]};
+        if (travel[0] * gate[1] - travel[1] * gate[0] > 0) {
+            throw new IllegalArgumentException("Finish line points are swapped: the first one must be on the left of the direction of travel");
+        }
+
+        GeoPoint from = points.get(crossedEdge);
+        GeoPoint to = points.get((crossedEdge + 1) % n);
+        GeoPoint crossing = GeoPoint.of(
+            from.latitude() + (to.latitude() - from.latitude()) * crossedAt,
+            from.longitude() + (to.longitude() - from.longitude()) * crossedAt).roundedToMicrodegrees();
+
+        List<GeoPoint> rotated = new ArrayList<>(n + 1);
+        rotated.add(crossing);
+        for (int k = 1; k <= n; k++) {
+            GeoPoint next = points.get((crossedEdge + k) % n);
+            if (!next.equals(crossing)) rotated.add(next);
+        }
+        return rotated.size() <= MAX_POINTS ? new LayoutPath(List.copyOf(rotated)) : simplified(rotated);
+    }
+
+    /** Parámetro {t} sobre a→b del cruce con c→d, o {@code null} si los segmentos no se cortan. */
+    private static double[] intersection(double[] a, double[] b, double[] c, double[] d) {
+        double rx = b[0] - a[0];
+        double ry = b[1] - a[1];
+        double sx = d[0] - c[0];
+        double sy = d[1] - c[1];
+        double denominator = rx * sy - ry * sx;
+        if (denominator == 0) return null;
+        double t = ((c[0] - a[0]) * sy - (c[1] - a[1]) * sx) / denominator;
+        double u = ((c[0] - a[0]) * ry - (c[1] - a[1]) * rx) / denominator;
+        // [0, 1) en el dibujo: un cruce justo en un vértice cuenta solo para el tramo que sale de él.
+        return t >= 0 && t < 1 && u >= 0 && u <= 1 ? new double[] {t} : null;
     }
 
     // ── Douglas-Peucker sobre un anillo ────────────────────────────────────────────────────

@@ -3,6 +3,7 @@ package com.ridei.circuits.infrastructure.adapter.in.rest;
 import java.util.List;
 
 import com.ridei.circuits.domain.model.Direction;
+import com.ridei.circuits.domain.model.FinishLine;
 import com.ridei.circuits.domain.model.LayoutCorrection;
 import com.ridei.circuits.domain.model.LayoutName;
 import com.ridei.circuits.domain.model.LayoutPath;
@@ -34,7 +35,15 @@ public record UpdateLayoutRequestDTO(
      */
     @Size(min = LayoutPath.MIN_POINTS, max = MAX_RAW_PATH_POINTS,
         message = "Layout path must have between 3 and 20000 points")
-    List<@NotNull(message = "Path points cannot be null") @Valid PathPointDTO> path
+    List<@NotNull(message = "Path points cannot be null") @Valid PathPointDTO> path,
+
+    /**
+     * Línea de meta: dos puntos, izquierda y derecha mirando en el sentido de la marcha. Tiene
+     * que cortar el dibujo (el enviado o el que ya tenga) una sola vez; el dibujo pasa a
+     * empezar en ella.
+     */
+    @Size(min = 2, max = 2, message = "Finish line must have exactly 2 points")
+    List<@NotNull(message = "Finish line points cannot be null") @Valid PathPointDTO> finishLine
 ) {
     /** Límite de la entrada sin simplificar (una vuelta GPS a 1 Hz cabe de sobra). */
     static final int MAX_RAW_PATH_POINTS = 20_000;
@@ -45,7 +54,8 @@ public record UpdateLayoutRequestDTO(
             lengthMeters != null ? Length.ofMeters(lengthMeters) : null,
             Turns.ofNullable(turns),
             direction,
-            path != null ? LayoutPath.simplified(path.stream().map(PathPointDTO::toDomain).toList()) : null
+            path != null ? LayoutPath.simplified(path.stream().map(PathPointDTO::toDomain).toList()) : null,
+            finishLine != null ? FinishLine.of(finishLine.get(0).toDomain(), finishLine.get(1).toDomain()) : null
         );
     }
 }

@@ -105,6 +105,91 @@ class LayoutPathTest {
         }
     }
 
+    @Nested
+    class FinishLines {
+
+        /** Puerta que cruza el lado oeste (recorrido hacia el norte): izquierda = oeste. */
+        private final FinishLine westSide = FinishLine.of(GeoPoint.of(41.0005, 1.9999), GeoPoint.of(41.0005, 2.0001));
+
+        @Test
+        void pathStartsWhereTheFinishLineCrossesItKeepingTheLapOrder() {
+            LayoutPath fromFinish = LayoutPath.of(CLOCKWISE_SQUARE).startingAt(westSide);
+
+            assertThat(fromFinish.points()).containsExactly(
+                GeoPoint.of(41.0005, 2.000), CLOCKWISE_SQUARE.get(1), CLOCKWISE_SQUARE.get(2),
+                CLOCKWISE_SQUARE.get(3), CLOCKWISE_SQUARE.get(0));
+            assertThat(fromFinish.direction()).isEqualTo(Direction.CLOCKWISE);
+        }
+
+        @Test
+        void startingAgainAtTheSameFinishLineChangesNothing() {
+            LayoutPath fromFinish = LayoutPath.of(CLOCKWISE_SQUARE).startingAt(westSide);
+
+            assertThat(fromFinish.startingAt(westSide)).isEqualTo(fromFinish);
+        }
+
+        @Test
+        void finishLineThatDoesNotCrossThePathIsRejected() {
+            FinishLine elsewhere = FinishLine.of(GeoPoint.of(41.0005, 2.0003), GeoPoint.of(41.0005, 2.0005));
+
+            assertThatThrownBy(() -> LayoutPath.of(CLOCKWISE_SQUARE).startingAt(elsewhere))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("does not cross");
+        }
+
+        @Test
+        void swappedEndsAreRejectedBecauseTheyWouldInvertTheCrossingDirection() {
+            FinishLine swapped = FinishLine.of(westSide.right(), westSide.left());
+
+            assertThatThrownBy(() -> LayoutPath.of(CLOCKWISE_SQUARE).startingAt(swapped))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("swapped");
+        }
+
+        @Test
+        void finishLineCrossingThePathTwiceIsAmbiguous() {
+            LayoutPath narrow = LayoutPath.of(List.of(GeoPoint.of(41.000, 2.000), GeoPoint.of(41.001, 2.000),
+                GeoPoint.of(41.001, 2.0005), GeoPoint.of(41.000, 2.0005)));
+            FinishLine acrossBoth = FinishLine.of(GeoPoint.of(41.0005, 1.9999), GeoPoint.of(41.0005, 2.0006));
+
+            assertThatThrownBy(() -> narrow.startingAt(acrossBoth))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("more than once");
+        }
+
+        @Test
+        void widthMustBeReasonable() {
+            assertThatThrownBy(() -> FinishLine.of(GeoPoint.of(41, 2), GeoPoint.of(41, 2)))
+                .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> FinishLine.of(GeoPoint.of(41, 2), GeoPoint.of(41, 2.002)))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("100 meters");
+            assertThatThrownBy(() -> FinishLine.of(null, GeoPoint.of(41, 2))).isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void layoutKeepsItsDrawingStartingAtTheFinishWhateverIsCorrectedFirst() {
+            Venue venue = CatalogFixtures.montmelo();
+            Layout gp = CatalogFixtures.onlyTrack(venue).defaultLayout().orElseThrow();
+
+            venue.correctLayout(gp.getId(), new LayoutCorrection(null, null, null, null, null, westSide), CatalogFixtures.NOW);
+            assertThat(gp.getFinishLine()).isEqualTo(westSide);
+            assertThat(gp.getPath()).isNull();
+
+            venue.correctLayout(gp.getId(), new LayoutCorrection(null, null, null, null, LayoutPath.of(CLOCKWISE_SQUARE), null), CatalogFixtures.NOW);
+            assertThat(gp.getPath().points().get(0)).isEqualTo(GeoPoint.of(41.0005, 2.000));
+        }
+
+        @Test
+        void aNewDrawingThatTheCurrentFinishLineDoesNotCrossIsRejected() {
+            Venue venue = CatalogFixtures.montmelo();
+            Layout gp = CatalogFixtures.onlyTrack(venue).defaultLayout().orElseThrow();
+            venue.correctLayout(gp.getId(), new LayoutCorrection(null, null, null, null, LayoutPath.of(CLOCKWISE_SQUARE), westSide), CatalogFixtures.NOW);
+            LayoutPath farAway = LayoutPath.of(List.of(GeoPoint.of(42, 3), GeoPoint.of(42.001, 3), GeoPoint.of(42.001, 3.001)));
+
+            assertThatThrownBy(() -> venue.correctLayout(gp.getId(),
+                new LayoutCorrection(null, null, null, null, farAway, null), CatalogFixtures.NOW))
+                .isInstanceOf(IllegalArgumentException.class);
+            assertThat(gp.getPath().points().get(0)).isEqualTo(GeoPoint.of(41.0005, 2.000));
+        }
+    }
+
     /** Círculo de 500 m de radio en sentido antihorario. */
     private static List<GeoPoint> circle(int points) {
         List<GeoPoint> result = new ArrayList<>();

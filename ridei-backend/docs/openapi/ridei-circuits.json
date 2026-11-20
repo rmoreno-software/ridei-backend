@@ -1429,6 +1429,12 @@
               "$ref" : "#/components/schemas/PathPointDTO"
             }
           },
+          "finishLine" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PathPointDTO"
+            }
+          },
           "isDefault" : {
             "type" : "boolean"
           }
@@ -1696,6 +1702,14 @@
           "path" : {
             "maxItems" : 20000,
             "minItems" : 3,
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PathPointDTO"
+            }
+          },
+          "finishLine" : {
+            "maxItems" : 2,
+            "minItems" : 2,
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/PathPointDTO"

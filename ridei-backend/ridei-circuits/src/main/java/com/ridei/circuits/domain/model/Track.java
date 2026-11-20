@@ -97,8 +97,12 @@ public final class Track {
         Layout layout = activeLayout(layoutId);
         LayoutSpec corrected = correction.applyTo(layout.spec());
         rejectEquivalentLayout(corrected, layoutId);
+        // Primero el dibujo: es lo único que puede fallar (meta que no lo corta) y así no queda
+        // nada corregido a medias.
+        if (correction.path() != null || correction.finishLine() != null) {
+            layout.redraw(correction.path(), correction.finishLine());
+        }
         layout.correct(corrected);
-        if (correction.path() != null) layout.redraw(correction.path());
     }
 
     /** Fusiona dos layouts de este track. Si el origen era el default, el destino pasa a serlo. */

@@ -42,10 +42,26 @@ class LayoutPathApiIT extends PostgisIntegrationTest {
     }
 
     @Test
+    void nearbyReturnsTheFinishLineAndThePathStartsOnIt() throws Exception {
+        JsonNode gp = layout(venueIn(call(get(VENUES + "/nearby").param("lat", "41.57").param("lon", "2.26111")), MONTMELO_ID), "GP");
+
+        JsonNode finishLine = gp.get("finishLine");
+        assertThat(finishLine.isArray()).isTrue();
+        assertThat(finishLine).hasSize(2).allSatisfy(point -> {
+            assertThat(point.get("latitude").isNumber()).isTrue();
+            assertThat(point.get("longitude").isNumber()).isTrue();
+        });
+        assertThat(gp.get("path").get(0).get("latitude").asDouble()).isEqualTo(41.570986);
+        assertThat(gp.get("path").get(0).get("longitude").asDouble()).isEqualTo(2.262025);
+    }
+
+    @Test
     void nearbyReturnsTheDrawingOfCalafatAndNullForTheLayoutWithoutOne() throws Exception {
         JsonNode calafat = venueIn(call(get(VENUES + "/nearby").param("lat", "40.93389").param("lon", "0.84167")), CALAFAT_ID);
 
         assertValidPath(layout(calafat, "Principal").get("path"), "Principal");
+        assertThat(layout(calafat, "Principal").get("finishLine")).hasSize(2);
+        assertThat(layout(calafat, "Corto").get("finishLine").isNull()).isTrue();
         assertThat(layout(calafat, "Corto").get("path").isNull()).isTrue();
     }
 

@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ridei.circuits.domain.model.FinishLine;
 import com.ridei.circuits.domain.model.GeoPoint;
 import com.ridei.circuits.domain.model.Layout;
 import com.ridei.circuits.domain.model.LayoutCorrection;
@@ -47,7 +48,7 @@ class LayoutPathDtoTest {
         void pathPresentIsAnArrayOfLatitudeLongitudeInLapOrder() throws Exception {
             Venue venue = montmelo();
             Layout gp = onlyTrack(venue).defaultLayout().orElseThrow();
-            venue.correctLayout(gp.getId(), new LayoutCorrection(null, null, null, null, LayoutPath.of(TRIANGLE)), NOW);
+            venue.correctLayout(gp.getId(), new LayoutCorrection(null, null, null, null, LayoutPath.of(TRIANGLE), null), NOW);
 
             JsonNode json = JSON.valueToTree(LayoutResponseDTO.fromDomain(gp));
 
@@ -65,6 +66,26 @@ class LayoutPathDtoTest {
 
             assertThat(json.has("path")).isTrue();
             assertThat(json.get("path").isNull()).isTrue();
+            assertThat(json.has("finishLine")).isTrue();
+            assertThat(json.get("finishLine").isNull()).isTrue();
+        }
+
+        @Test
+        void finishLineIsTwoPointsLeftThenRightAndThePathStartsOnIt() throws Exception {
+            Venue venue = montmelo();
+            Layout gp = onlyTrack(venue).defaultLayout().orElseThrow();
+            List<GeoPoint> square = List.of(GeoPoint.of(41.000, 2.000), GeoPoint.of(41.001, 2.000),
+                GeoPoint.of(41.001, 2.001), GeoPoint.of(41.000, 2.001));
+            FinishLine finish = FinishLine.of(GeoPoint.of(41.0005, 1.9999), GeoPoint.of(41.0005, 2.0001));
+            venue.correctLayout(gp.getId(), new LayoutCorrection(null, null, null, null, LayoutPath.of(square), finish), NOW);
+
+            JsonNode json = JSON.valueToTree(LayoutResponseDTO.fromDomain(gp));
+
+            assertThat(json.get("finishLine")).hasSize(2);
+            assertThat(json.get("finishLine").get(0).get("longitude").asDouble()).isEqualTo(1.9999);
+            assertThat(json.get("finishLine").get(1).get("longitude").asDouble()).isEqualTo(2.0001);
+            assertThat(json.get("path").get(0).get("latitude").asDouble()).isEqualTo(41.0005);
+            assertThat(json.get("path").get(0).get("longitude").asDouble()).isEqualTo(2.000);
         }
 
         @Test
@@ -72,7 +93,9 @@ class LayoutPathDtoTest {
             UpdateLayoutRequestDTO request = JSON.readValue("{\"name\": \"GP\"}", UpdateLayoutRequestDTO.class);
 
             assertThat(request.path()).isNull();
+            assertThat(request.finishLine()).isNull();
             assertThat(request.toCorrection().path()).isNull();
+            assertThat(request.toCorrection().finishLine()).isNull();
         }
 
         @Test
@@ -113,6 +136,22 @@ class LayoutPathDtoTest {
         }
 
         @Test
+        void finishLineMustHaveExactlyTwoPoints() {
+            UpdateLayoutRequestDTO request = new UpdateLayoutRequestDTO(null, null, null, null, null,
+                List.of(new PathPointDTO(41.57, 2.26), new PathPointDTO(41.5701, 2.2601), new PathPointDTO(41.5702, 2.2602)));
+
+            assertThat(messages(VALIDATOR.validate(request))).containsExactly("Finish line must have exactly 2 points");
+        }
+
+        @Test
+        void finishLinePointOutOfRangeIsRejected() {
+            UpdateLayoutRequestDTO request = new UpdateLayoutRequestDTO(null, null, null, null, null,
+                List.of(new PathPointDTO(-90.5, 2.26), new PathPointDTO(41.5701, 2.2601)));
+
+            assertThat(messages(VALIDATOR.validate(request))).containsExactly("Path point latitude must be between -90 and 90");
+        }
+
+        @Test
         void validPathPasses() {
             UpdateLayoutRequestDTO request = withPath(TRIANGLE.stream().map(PathPointDTO::fromDomain).toList());
 
@@ -120,7 +159,7 @@ class LayoutPathDtoTest {
         }
 
         private static UpdateLayoutRequestDTO withPath(List<PathPointDTO> path) {
-            return new UpdateLayoutRequestDTO(null, null, null, null, path);
+            return new UpdateLayoutRequestDTO(null, null, null, null, path, null);
         }
 
         private static List<String> messages(Set<ConstraintViolation<UpdateLayoutRequestDTO>> violations) {

@@ -58,12 +58,17 @@ public class LayoutJpaEntity {
     private Direction direction;
 
     /**
-     * WKT del anillo cerrado (ver {@link LayoutPathWkt}). Sin Hibernate Spatial: PostGIS
+     * WKT del anillo cerrado (ver {@link LayoutGeometryWkt}). Sin Hibernate Spatial: PostGIS
      * convierte en la propia consulta; 6 decimales (~0,1 m) bastan y aligeran los listados.
      */
     @Column(columnDefinition = "geometry(LineString,4326)")
     @ColumnTransformer(read = "ST_AsText(path, 6)", write = "ST_GeomFromText(?, 4326)")
     private String path;
+
+    /** WKT de la puerta de meta: dos puntos, izquierda → derecha según el sentido de marcha. */
+    @Column(name = "finish_line", columnDefinition = "geometry(LineString,4326)")
+    @ColumnTransformer(read = "ST_AsText(finish_line, 6)", write = "ST_GeomFromText(?, 4326)")
+    private String finishLine;
 
     @Column(name = "is_default", nullable = false)
     private boolean isDefault;
@@ -87,7 +92,8 @@ public class LayoutJpaEntity {
         entity.lengthMeters = layout.getLength() != null ? layout.getLength().meters() : null;
         entity.turns = layout.getTurns() != null ? layout.getTurns().count() : null;
         entity.direction = layout.getDirection();
-        entity.path = LayoutPathWkt.toWkt(layout.getPath());
+        entity.path = LayoutGeometryWkt.pathToWkt(layout.getPath());
+        entity.finishLine = LayoutGeometryWkt.finishLineToWkt(layout.getFinishLine());
         entity.isDefault = layout.isDefault();
         entity.status = layout.getStatus();
         entity.mergedIntoId = layout.getMergedInto() != null ? layout.getMergedInto().value() : null;
@@ -102,7 +108,8 @@ public class LayoutJpaEntity {
             Length.ofNullable(lengthMeters),
             Turns.ofNullable(turns),
             direction,
-            LayoutPathWkt.fromWkt(path),
+            LayoutGeometryWkt.pathFromWkt(path),
+            LayoutGeometryWkt.finishLineFromWkt(finishLine),
             isDefault,
             status,
             mergedIntoId != null ? new LayoutId(mergedIntoId) : null,

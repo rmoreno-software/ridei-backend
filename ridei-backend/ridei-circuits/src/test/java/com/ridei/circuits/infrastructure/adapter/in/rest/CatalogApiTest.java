@@ -404,7 +404,7 @@ class CatalogApiTest {
             Layout gp = onlyTrack(venue).defaultLayout().orElseThrow();
             LayoutPath square = LayoutPath.of(List.of(GeoPoint.of(41.57, 2.26), GeoPoint.of(41.571, 2.26),
                 GeoPoint.of(41.571, 2.262), GeoPoint.of(41.57, 2.262)));
-            venue.correctLayout(gp.getId(), new LayoutCorrection(null, null, null, null, square), NOW);
+            venue.correctLayout(gp.getId(), new LayoutCorrection(null, null, null, null, square, null), NOW);
             when(updateLayout.update(any())).thenReturn(gp);
 
             mvc.perform(patch(layoutUrl(venue)).header(HttpHeaders.AUTHORIZATION, TestTokens.admin())
@@ -455,6 +455,33 @@ class CatalogApiTest {
                     .contentType(MediaType.APPLICATION_JSON).content("{\"path\": " + path + "}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.details[0]").value("Layout path must have between 3 and 20000 points"));
+            verifyNoInteractions(updateLayout);
+        }
+
+        @Test
+        void finishLineThatDoesNotCrossTheDrawingIsA400() throws Exception {
+            Venue venue = montmelo();
+            when(updateLayout.update(any())).thenThrow(new IllegalArgumentException("Finish line does not cross the layout path"));
+            String body = """
+                { "finishLine": [ {"latitude": 41.60, "longitude": 2.30}, {"latitude": 41.6001, "longitude": 2.3001} ] }
+                """;
+
+            mvc.perform(patch(layoutUrl(venue)).header(HttpHeaders.AUTHORIZATION, TestTokens.admin())
+                    .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Finish line does not cross the layout path"));
+        }
+
+        @Test
+        void finishLineWithOnePointIsRejected() throws Exception {
+            String body = """
+                { "finishLine": [ {"latitude": 41.57, "longitude": 2.26} ] }
+                """;
+
+            mvc.perform(patch(layoutUrl(montmelo())).header(HttpHeaders.AUTHORIZATION, TestTokens.admin())
+                    .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.details[0]").value("Finish line must have exactly 2 points"));
             verifyNoInteractions(updateLayout);
         }
 

@@ -203,6 +203,8 @@ Catalog of venues → tracks → layouts (see [circuits.md](circuits.md)). It ru
 | `V4__update_track_disciplines.sql` | Adds `TRIAL`, `MIXED`, `DIRT_TRACK`; `SUPERMOTO` → `MIXED` |
 | `V5__layout_geometry_optional.sql` | `layout.length_m` and `direction` become nullable (computed by the first GPS session) |
 | `V6__layout_path.sql` | `layout.path` (drawing of the layout) + Montmeló and Calafat layouts with their drawings from OpenStreetMap (ODbL) |
+| `V7__layout_finish_line.sql` | `layout.finish_line` + Montmeló's finish line (GP, GP con chicane, Nacional) from OpenStreetMap; their drawings rewritten to start at it |
+| `V8__calafat_finish_line.sql` | Calafat Principal's finish line (point supplied by the team); its drawing rewritten to start at it |
 
 ### Schema highlights
 
@@ -210,7 +212,8 @@ Catalog of venues → tracks → layouts (see [circuits.md](circuits.md)). It ru
 - `venue.latitude` and `venue.longitude` are plain columns. `location GEOGRAPHY(POINT, 4326)` is a `GENERATED ALWAYS … STORED` column, so Hibernate Spatial isn't needed. The JPA entity doesn't map it; geographic and trigram queries are native SQL in `VenueNativeQueries`.
 - `normalized_name` (venue, track, layout) is computed in Java by `NameNormalizer` and is the input to `pg_trgm`.
 - `venue.version` is the optimistic lock (`@Version`) of the whole aggregate.
-- `layout.path geometry(LineString, 4326)` is the drawing of the layout in lap order, `NULL` until it has one. It is stored **closed** (last point = first) so it is a valid PostGIS ring; the API returns it open. At most 201 stored points (200 distinct, `LayoutPath.MAX_POINTS`), so listings stay light. No Hibernate Spatial: `LayoutJpaEntity` maps it as WKT text with `@ColumnTransformer` (`ST_AsText(path, 6)` / `ST_GeomFromText(?, 4326)`), converted in `LayoutPathWkt`. `CHECK`s: closed ring with 4–201 points, coordinates in range.
+- `layout.path geometry(LineString, 4326)` is the drawing of the layout in lap order, `NULL` until it has one. It is stored **closed** (last point = first) so it is a valid PostGIS ring; the API returns it open. At most 201 stored points (200 distinct, `LayoutPath.MAX_POINTS`), so listings stay light. No Hibernate Spatial: `LayoutJpaEntity` maps it as WKT text with `@ColumnTransformer` (`ST_AsText(path, 6)` / `ST_GeomFromText(?, 4326)`), converted in `LayoutGeometryWkt`. `CHECK`s: closed ring with 4–201 points, coordinates in range. When the layout has a finish line, the drawing **starts** where the finish line crosses it.
+- `layout.finish_line geometry(LineString, 4326)`: the finish-line gate, exactly 2 points: left then right, looking in the direction of travel. `NULL` = unknown. Same WKT mapping; the domain (`LayoutPath.startingAt`) rejects a gate that doesn't cross the drawing, crosses it more than once, or has its ends swapped. Coordinates of drawings and gates are kept at 6 decimals (`GeoPoint.roundedToMicrodegrees`) in the domain too, so what a write returns matches what is read later.
 
 | Constraint / index | Purpose |
 |---|---|
@@ -232,16 +235,18 @@ Fixed ids (`10000000-…` venues, `20000000-…` tracks, `30000000-…` layouts)
 - **Layouts**: Montmeló GP (4657 m, 14 turns, clockwise, default) and Jerez GP (4423 m, 13 turns, clockwise) in V3. V6 adds Montmeló *GP con chicane* (4675 m), *Nacional* (2977 m) and *Escuela* (1650 m), all clockwise and with unknown turns (so none is "equivalent" to the GP), and Calafat *Principal* (3250 m, clockwise, default) and *Corto* (`PENDING_REVIEW`, no length, direction or drawing).
 - **Drawings (`path`)**: all four Montmeló layouts and Calafat Principal, from OpenStreetMap `highway=raceway` ways (© OpenStreetMap contributors, ODbL; way ids and method in the migration header). `SeedDataIT` checks that each drawn length is within 5 % of `length_m`, that its orientation matches `direction` and that the venue pin falls on the default layout's drawing.
 
-| Layout | Points | Drawn length | `length_m` | Notes |
-|---|---|---|---|---|
-| Montmeló GP | 74 | 4652 m | 4657 | |
-| Montmeló GP con chicane | 77 | 4667 m | 4675 | final chicane ways instead of the "AZ" sweepers |
-| Montmeló Nacional | 44 | 2971 m | 2977 | shortcut way "Catalunya (Cutting Half)" |
-| Montmeló Escuela | 39 | 1704 m | 1650 | +3.3 %; built with an unnamed OSM link way — worth a check against the circuit's map |
-| Calafat Principal | 57 | 3239 m | 3250 | direction inferred (see below) |
-| Calafat Corto | — | — | — | no source identifies its shortcut |
+| Layout | Points | Drawn length | `length_m` | Finish line | Notes |
+|---|---|---|---|---|---|
+| Montmeló GP | 75 | 4653 m | 4657 | yes | |
+| Montmeló GP con chicane | 77 | 4668 m | 4675 | yes | final chicane ways instead of the "AZ" sweepers |
+| Montmeló Nacional | 44 | 2972 m | 2977 | yes | shortcut way "Catalunya (Cutting Half)" |
+| Montmeló Escuela | 39 | 1704 m | 1650 | — (doesn't use the main straight) | +3.3 %; built with an unnamed OSM link way — worth a check against the circuit's map |
+| Calafat Principal | 62 | 3240 m | 3250 | yes | direction inferred (see below) |
+| Calafat Corto | — | — | — | — | no source identifies its shortcut |
 
-Calafat's direction is not published by any source found and its OSM way has no `oneway`. V6 seeds *clockwise* as an **inference**. It is the only orientation of the ring with more right-hand than left-hand corners, which fits the official "9 right / 7 left". It is also the only one where the bypass of *Curva de Escuela* (way 713130114) falls on the 3rd corner and before the cut of turns 5-6-7 (way 713130115), matching the official corner order and racingcircuits.info. Confirm with the circuit if possible.
+**Finish lines**: Montmeló's comes from OSM node `14202158171` (`raceway=finish`), the finish of the `type=circuit` relations 284540 (GP without chicane), 2049529 (GP with chicane) and 21420925 (MotoGP); their ways match the ones used for the drawings. The gate is perpendicular to the direction of travel through that node: 10 m to the left and 7 m to the right, where the pit lane is. The pit lane's axis (way 178416729) is 14 m from the track's, so the gate stops at the midpoint, the pit wall, and does not enter the pit lane (its right end is 6.9 m from the pit lane's axis). The start line (`raceway=start`, 127 m earlier) is not stored. Calafat has no finish line in OSM or any source found; the team supplied the point 40°55'56.0"N 0°50'21.9"E. It is 0.8 m from the track's axis, 82 m into the main straight. V8 projects it onto the axis and draws the gate the same way: 10 m to the left, and 6.5 m to the right towards the pit wall, half the 12.9 m between the track's axis and the pit lane's (way 119486546).
+
+Calafat's direction is not published by any source found and its OSM way has no `oneway`. V6 seeds *clockwise* as an **inference**. The team's "the first corner is a left" fits it: going clockwise from the finish line, the straight ends in a gentle left (~26°) before a sharp right. It does not rule out counter-clockwise, though: that way the first corner would be a sharp left (~117°) 230 m after the line. It is the only orientation of the ring with more right-hand than left-hand corners, which fits the official "9 right / 7 left". It is also the only one where the bypass of *Curva de Escuela* (way 713130114) falls on the 3rd corner and before the cut of turns 5-6-7 (way 713130115), matching the official corner order and racingcircuits.info. Confirm with the circuit if possible.
 
 #### Seed pending verification
 
