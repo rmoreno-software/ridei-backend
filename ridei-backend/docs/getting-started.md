@@ -47,6 +47,15 @@ docker exec -it ridei-postgres psql -U ridei -d postgres \
   -c "REVOKE CONNECT ON DATABASE ridei_garage FROM PUBLIC;"
 ```
 
+`ridei-sessions` also lives in this container, in its own database:
+
+```bash
+docker exec -it ridei-postgres psql -U ridei -d postgres \
+  -c "CREATE USER ridei_sessions WITH PASSWORD 'ridei_sessions_dev';" \
+  -c "CREATE DATABASE ridei_sessions OWNER ridei_sessions;" \
+  -c "REVOKE CONNECT ON DATABASE ridei_sessions FROM PUBLIC;"
+```
+
 Data is persisted in a named Docker volume (`ridei_postgres_data`) and survives container restarts.
 
 `ridei-circuits` needs PostGIS, so it runs in its own container (`ridei-postgis`, image `postgis/postgis:16-3.4`), started by the same `docker compose up -d`. Its database and role are created automatically:
@@ -129,7 +138,12 @@ Paste the two Base64 values (no `-----BEGIN...-----` headers) into:
 
 # ridei-circuits (port 8083) — in a separate terminal
 ./mvnw spring-boot:run -pl ridei-circuits -Dspring-boot.run.profiles=local
+
+# ridei-sessions (port 8084) — needs circuits and garage running to upload sessions
+./mvnw spring-boot:run -pl ridei-sessions -Dspring-boot.run.profiles=local
 ```
+
+`ridei-sessions/src/main/resources/application-local.yml` (git-ignored) needs the datasource above (`jdbc:postgresql://localhost:5432/ridei_sessions`, `ridei_sessions` / `ridei_sessions_dev`) and the same `jwt.public-key`. `CIRCUITS_BASE_URL` / `GARAGE_BASE_URL` default to `localhost:8083` / `:8082`.
 
 `ridei-circuits/src/main/resources/application-local.yml` (git-ignored) only needs the `ridei-postgis` datasource above and the same `jwt.public-key` as garage:
 

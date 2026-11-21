@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: ridei-sessions
+  datasource:
+    url: ${SESSIONS_DB_URL}
+    username: ${SESSIONS_DB_USERNAME}
+    password: ${SESSIONS_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+server:
+  port: 8084
+  # Una tanda de 30 min a 10 Hz son ~18 000 muestras (~2 MB en JSON); comprimir la respuesta
+  # ayuda con las trazas de vuelta.
+  compression:
+    enabled: true
+    mime-types: application/json
+
+jwt:
+  public-key: ${JWT_PUBLIC_KEY}
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+# Al subir y recalcular sesiones se consulta, con el token del piloto, el catálogo de circuitos
+# (trazado, meta y dibujo) y el garaje (que la moto sea suya). Si no responden: 503.
+sessions:
+  clients:
+    circuits-base-url: ${CIRCUITS_BASE_URL:http://localhost:8083}
+    garage-base-url: ${GARAGE_BASE_URL:http://localhost:8082}
+    connect-timeout: 2s
+    read-timeout: 5s

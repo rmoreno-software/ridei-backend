@@ -13,13 +13,14 @@ docker compose up -d                       # Postgres 16 (ridei-postgres :5432, 
 ./mvnw spring-boot:run -pl ridei-identity -Dspring-boot.run.profiles=local   # port 8081
 ./mvnw spring-boot:run -pl ridei-garage   -Dspring-boot.run.profiles=local   # port 8082
 ./mvnw spring-boot:run -pl ridei-circuits -Dspring-boot.run.profiles=local   # port 8083
+./mvnw spring-boot:run -pl ridei-sessions -Dspring-boot.run.profiles=local   # port 8084
 ./mvnw clean package -pl ridei-garage -am -DskipTests   # build one module
 ./mvnw clean verify                        # build + all tests
 ./mvnw test -pl ridei-garage -Dtest=MotorbikeTest        # single test class
 ./mvnw test -pl ridei-garage -Dtest=MotorbikeTest#methodName      # single test method
 ```
 
-- Running requires the `local` profile: `application-local.yml` (git-ignored) holds real DB credentials, R2 credentials and the ES256 JWT key pair. `application.yml` has only `${ENV_VAR}` placeholders. See `docs/getting-started.md` for generating keys and creating the separate `ridei_garage` database/role (not created by docker-compose).
+- Running requires the `local` profile: `application-local.yml` (git-ignored) holds real DB credentials, R2 credentials and the ES256 JWT key pair. `application.yml` has only `${ENV_VAR}` placeholders. See `docs/getting-started.md` for generating keys and creating the separate `ridei_garage` / `ridei_sessions` databases and roles (not created by docker-compose).
 - There is no linter configured.
 - Tests are plain JUnit 5 + AssertJ + Mockito unit tests (no Spring context, no DB) for domain models and application services; see `docs/testing.md`. Exception: `ridei-circuits` also has `@WebMvcTest` slices (`*Test`) and Testcontainers/PostGIS integration tests (`*IT`, run by failsafe in `verify` — **`./mvnw verify` needs Docker**). Coverage is still small — controllers, persistence and R2 adapters are untested. After moving/renaming packages run `./mvnw clean verify`, since stale classes in `target/` can hide broken imports.
 
@@ -29,6 +30,7 @@ docker compose up -d                       # Postgres 16 (ridei-postgres :5432, 
 - `ridei-identity` (`com.ridei.identity`) — registration, login (password + Google), JWT issuing, refresh tokens, email verification, password reset, multi-step onboarding, profile pictures. Also hosts a small `com.ridei.landing` package (waitlist), picked up via `@ComponentScan` in `IdentityServiceApplication`.
 - `ridei-garage` (`com.ridei.garage`) — users' motorbikes, brands catalog, motorbike photos.
 - `ridei-circuits` (`com.ridei.circuits`) — catalog of venues → tracks → layouts with deduplication (trigram + distance) and admin merges; PostGIS database. Its `domain` package is pure Java (no Lombok, unlike the other modules). See `docs/circuits.md`.
+- `ridei-sessions` (`com.ridei.sessions`) — recorded track sessions: GPS lap/sector timing, ideal lap, speed–distance traces, corner analysis, personal records. Plain Postgres (`ridei_sessions` in `ridei-postgres`). Calls circuits (layout geometry) and garage (motorbike ownership) over HTTP **forwarding the rider's bearer token**, only on upload/recalculate; layout geometry is snapshotted into the session. Pure-Java domain like circuits. See `docs/sessions.md`.
 
 The services are deliberately independent bounded contexts: **no shared/common module**, no Maven dependency between them, separate databases with **no cross-DB foreign keys**. Duplicated infrastructure (e.g. `JwtAuthenticationFilter`, `SecurityConfig`, `ApiError`, `ImageContentType`, `PresignedUpload`) is intentional — don't extract it into a shared library. New services should follow the `ridei-garage` pattern.
 
@@ -50,4 +52,4 @@ The services are deliberately independent bounded contexts: **no shared/common m
 - **i18n (identity)**: user-facing emails/pages use `messages*.properties` (default, `es`, `ca`) and Thymeleaf templates in `templates/`; locale flows through commands (e.g. `RegisterUserCommand.locale`). Keep all three properties files in sync.
 
 ### Deployment
-Database backups: `ops/backup/` (encrypted `pg_dump` to R2 via a systemd timer, see `docs/deployment.md` §10). Identity and garage run on an Ubuntu server as systemd units (`ridei-identity`, `ridei-garage`; `ridei-circuits` not deployed yet — see `docs/deployment.md` §3.6) with profile `prod`, secrets injected from `/etc/<service>/*.env`. See `docs/deployment.md` before adding new env vars.
+Database backups: `ops/backup/` (encrypted `pg_dump` to R2 via a systemd timer, see `docs/deployment.md` §10). Identity and garage run on an Ubuntu server as systemd units (`ridei-identity`, `ridei-garage`; `ridei-circuits` and `ridei-sessions` not deployed yet — see `docs/deployment.md` §3.6–3.7) with profile `prod`, secrets injected from `/etc/<service>/*.env`. See `docs/deployment.md` before adding new env vars.

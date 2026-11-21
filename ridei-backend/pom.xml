@@ -17,6 +17,7 @@
         <module>ridei-identity</module>
         <module>ridei-garage</module>
         <module>ridei-circuits</module>
+        <module>ridei-sessions</module>
     </modules>
 
     <!-- El padre de todos los módulos es Spring Boot -->

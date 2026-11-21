@@ -9,7 +9,7 @@ Since `ridei-garage` was introduced as a separate microservice, **each service o
 - Schema management: Flyway 10 per service (scripts at each module's own `classpath:db/migration`)
 - JPA strategy: `ddl-auto: validate` — Hibernate validates the schema against the entities but never modifies it; Flyway owns all DDL.
 
-This document covers `ridei-identity`'s schema in detail (§1), `ridei-garage`'s schema (§2) and `ridei-circuits`' PostGIS schema (§3).
+This document covers `ridei-identity`'s schema in detail (§1), `ridei-garage`'s schema (§2), `ridei-circuits`' PostGIS schema (§3) and `ridei-sessions`' schema (§4).
 
 ---
 
@@ -283,3 +283,19 @@ spring:
 ```
 
 `baseline-on-migrate: true` allows Flyway to work with an existing schema (e.g. if the database was created before Flyway was introduced). For new databases, it has no effect.
+
+---
+
+## 4. `ridei-sessions` database
+
+Recorded track sessions (see [sessions.md](sessions.md)). Database `ridei_sessions` in `ridei-postgres`, role `ridei_sessions`, created by hand like garage's (see [getting-started.md](getting-started.md)).
+
+| Migration | Content |
+|---|---|
+| `V1__create_sessions.sql` | `riding_session`, `session_lap`, `session_telemetry` |
+
+- `riding_session`: one row per session. It stores a **snapshot** of the layout (`layout_path` and `finish_line` as JSONB `[[lat, lon], …]`, `sector_count`) and of the motorbike, so lap times don't change when the catalog does. `rider_id`, `venue_id`, `layout_id` and `motorbike_id` are ids from other contexts, **without FK**. `best_lap_ms`, `ideal_lap_ms` and `valid_lap_count` are denormalized for listings.
+- `session_lap`: PK `(session_id, lap_number)`, `sector_ms BIGINT[]` (one element per sector, `NULL` = gate not detected), `validity` (`VALID`, `TOO_SHORT`, `TOO_LONG`, `GPS_GAP`).
+- `session_telemetry`: raw GPS/IMU samples, gzip-compressed binary (`encoding = 'ridei-bin-v1'`, about 21 bytes per sample). Kept to re-time laps and to compute traces and corner analysis on demand.
+- `ON DELETE CASCADE` from the session to its laps and telemetry.
+

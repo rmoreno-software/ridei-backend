@@ -19,6 +19,7 @@ Welcome to the Ridei Backend documentation. This index links to all available do
 | [Motorbike Setup](motorbike-setup.md) | Garage: tyres & final drive setup with history — domain, endpoints, schema |
 | [Motorbike Deletion](motorbike-deletion.md) | Garage: deleting a motorbike with its setup and photos (DB + R2), after-commit purge |
 | [Circuits](circuits.md) | Circuits catalog: venue → track → layout model, deduplication, merges, REST API, race conditions |
+| [Sessions](sessions.md) | Track sessions: upload, GPS lap timing, sectors, ideal lap, speed–distance comparison, corner analysis, records — algorithms, API, errors |
 | [Circuits — frontend guide](circuits-frontend-guide.md) | For the Flutter app: endpoints, request/response JSON, duplicate flow, error handling; OpenAPI spec in [`openapi/ridei-circuits.json`](openapi/ridei-circuits.json) |
 
 ---
@@ -34,6 +35,7 @@ Welcome to the Ridei Backend documentation. This index links to all available do
 | `ridei-identity` | User registration, authentication (JWT/ES256), onboarding, and identity management | `8081` |
 | `ridei-garage` | Motorbike garage management — independent database, verifies but doesn't issue JWTs | `8082` |
 | `ridei-circuits` | Circuits catalog (venues, tracks, layouts) with deduplication — PostGIS database, verifies JWTs | `8083` |
+| `ridei-sessions` | Recorded track sessions, lap timing and lap analysis — calls circuits and garage with the rider's token | `8084` |
 
 ### Tech stack
 

@@ -47,6 +47,10 @@ sudo systemctl restart ridei-identity
 # garage only
 ./mvnw clean package -pl ridei-garage -am -DskipTests
 sudo systemctl restart ridei-garage
+
+# sessions only
+./mvnw clean package -pl ridei-sessions -am -DskipTests
+sudo systemctl restart ridei-sessions
 ```
 
 `-am` ("also make") also rebuilds whatever the target module depends on in the reactor — harmless to always include even when there's no cross-module dependency.
@@ -230,6 +234,61 @@ Token revocation: circuits validates every access token online against identity 
 - If identity is down, circuits answers `503` to authenticated requests (fails closed). Restarting identity briefly affects circuits.
 - Tuning lives under `circuits.identity.*` in `application.yml`: `validation-cache-ttl` (default 60 s), and `connect-timeout` / `read-timeout` (1 s / 2 s).
 
+### 3.7 `ridei-sessions` (not deployed yet — checklist for its first deployment)
+
+Session recording and lap analysis (see [sessions.md](sessions.md)). Follow §3.5 with the names below. It needs **`ridei-circuits` deployed first** (§3.6): uploading a session reads the layout's finish line and drawing from it. It also needs `ridei-garage`, which checks that the motorbike is the rider's. Plain Postgres, no PostGIS: it lives in `ridei-postgres` next to identity and garage.
+
+| Concern | Value |
+|---|---|
+| Unit / jar | `ridei-sessions` / `ridei-sessions/target/ridei-sessions-0.0.1-SNAPSHOT.jar` |
+| Port | `8084` |
+| Database | `ridei_sessions` in `ridei-postgres` (separate DB + role) |
+
+| Variable | File | Notes |
+|---|---|---|
+| `SESSIONS_DB_URL` | `app.env` | `jdbc:postgresql://localhost:5432/ridei_sessions` |
+| `SESSIONS_DB_USERNAME` | `secrets.env` | Dedicated role `ridei_sessions` |
+| `SESSIONS_DB_PASSWORD` | `secrets.env` | Alphanumeric only (see §3.2) |
+| `JWT_PUBLIC_KEY` | `secrets.env` | Byte-for-byte the same as `ridei-identity`'s |
+| `CIRCUITS_BASE_URL` | `app.env` | Optional, default `http://localhost:8083` |
+| `GARAGE_BASE_URL` | `app.env` | Optional, default `http://localhost:8082` |
+
+Provisioning, once (no superuser-only extensions needed):
+
+```bash
+docker exec -it ridei-postgres psql -U ridei -d postgres \
+  -c "CREATE USER ridei_sessions WITH PASSWORD '<alphanumeric>';" \
+  -c "CREATE DATABASE ridei_sessions OWNER ridei_sessions;" \
+  -c "REVOKE CONNECT ON DATABASE ridei_sessions FROM PUBLIC;"
+```
+
+Unit file `/etc/systemd/system/ridei-sessions.service`, same shape as garage's:
+
+```ini
+[Unit]
+Description=Ridei sessions service
+After=network.target docker.service
+
+[Service]
+User=spring
+WorkingDirectory=/root/ridei-backend/source/ridei-backend/ridei-backend
+Environment=SPRING_PROFILES_ACTIVE=prod
+ExecStart=/usr/bin/java -jar ridei-sessions/target/ridei-sessions-0.0.1-SNAPSHOT.jar
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Then `sudo systemctl edit ridei-sessions` with the two `EnvironmentFile=` lines (`/etc/ridei-sessions/app.env`, `/etc/ridei-sessions/secrets.env`). Check them with `systemctl cat`, then `daemon-reload` and `enable --now`.
+
+- **Deploy order:** identity → garage → circuits → sessions.
+- **Cloudflare ingress:** add a `path: /api/v1/sessions/*` → `http://localhost:8084` rule **before** the identity fallback (§7).
+- **Backups:** add `ridei-postgres:ridei:ridei_sessions` to `BACKUP_TARGETS` in `/etc/ridei-backup/backup.env` (already in `backup.env.example`).
+- **Smoke test:** `GET https://api.rideiapp.com/api/v1/sessions` with a real token → `200 []`. Without a token → `401`.
+- Upload bodies can be a few MB (≈ 120 bytes per GPS fix in JSON). Cloudflare's 100 MB request limit is far above a real session.
+
 ---
 
 ## 4. Checking what's currently configured
@@ -329,6 +388,13 @@ ingress:
   - hostname: api.rideiapp.com
     path: /api/v1/garage/*
     service: http://localhost:8082
+  # tras el primer despliegue de circuits y sessions (§3.6, §3.7):
+  # - hostname: api.rideiapp.com
+  #   path: /api/v1/circuits/*
+  #   service: http://localhost:8083
+  # - hostname: api.rideiapp.com
+  #   path: /api/v1/sessions/*
+  #   service: http://localhost:8084
   - hostname: api.rideiapp.com
     service: http://localhost:8081
   - service: http_status:404
