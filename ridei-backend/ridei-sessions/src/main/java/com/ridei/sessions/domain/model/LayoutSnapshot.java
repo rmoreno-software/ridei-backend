@@ -18,4 +18,9 @@ public record LayoutSnapshot(
         if (layoutName == null || layoutName.isBlank()) throw new IllegalArgumentException("Layout name is required");
         if (geometry == null) throw new IllegalArgumentException("Layout geometry is required");
     }
+
+    /** El mismo trazado sin geometría. */
+    public LayoutRef ref() {
+        return new LayoutRef(venueId, venueName, trackName, layoutId, layoutName);
+    }
 }

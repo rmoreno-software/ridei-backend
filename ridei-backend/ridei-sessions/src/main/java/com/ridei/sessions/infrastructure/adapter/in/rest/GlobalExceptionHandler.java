@@ -20,6 +20,8 @@ import com.ridei.sessions.domain.exception.ExternalServiceUnavailableException;
 import com.ridei.sessions.domain.exception.LapNotFoundException;
 import com.ridei.sessions.domain.exception.LayoutNotFoundException;
 import com.ridei.sessions.domain.exception.LayoutNotTimeableException;
+import com.ridei.sessions.domain.exception.ManualLapTimeIdConflictException;
+import com.ridei.sessions.domain.exception.ManualLapTimeNotFoundException;
 import com.ridei.sessions.domain.exception.MotorbikeNotFoundException;
 import com.ridei.sessions.domain.exception.NoValidLapsException;
 import com.ridei.sessions.domain.exception.SessionIdConflictException;
@@ -48,7 +50,7 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.BAD_REQUEST, "Malformed request body");
     }
 
-    @ExceptionHandler({SessionNotFoundException.class, LapNotFoundException.class})
+    @ExceptionHandler({SessionNotFoundException.class, LapNotFoundException.class, ManualLapTimeNotFoundException.class})
     public ResponseEntity<ApiError> handleNotFound(RuntimeException ex) {
         return error(HttpStatus.NOT_FOUND, ex.getMessage());
     }
@@ -58,9 +60,9 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
     }
 
-    @ExceptionHandler({SessionIdConflictException.class, ObjectOptimisticLockingFailureException.class})
+    @ExceptionHandler({SessionIdConflictException.class, ManualLapTimeIdConflictException.class, ObjectOptimisticLockingFailureException.class})
     public ResponseEntity<ApiError> handleConflict(RuntimeException ex) {
-        return error(HttpStatus.CONFLICT, ex instanceof SessionIdConflictException ? ex.getMessage() : "The session was modified concurrently, please retry");
+        return error(HttpStatus.CONFLICT, ex instanceof ObjectOptimisticLockingFailureException ? "The session was modified concurrently, please retry" : ex.getMessage());
     }
 
     @ExceptionHandler(UpstreamUnauthorizedException.class)

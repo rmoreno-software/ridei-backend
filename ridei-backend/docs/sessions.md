@@ -1,16 +1,17 @@
 # Sessions (`ridei-sessions`)
 
 Registro de tandas en circuito y análisis para mejorar como piloto. Es el backend de las pantallas
-02 y 04–09, 11, 12 y 14–16 del diseño *Ridei: Coach de circuito móvil*: historial, resumen de
+02, 04–09, 11, 12, 14–16 y 22–22E del diseño *Ridei: Coach de circuito móvil*: historial, resumen de
 sesión, vuelta ideal, gráfico velocidad–distancia, ficha de curva, ranking de tiempo perdido,
-visor de trazada, récords y la vuelta de referencia del HUD.
+visor de trazada, récords, la vuelta de referencia del HUD y los tiempos manuales de antes de
+Ridei (§6).
 
 | | |
 |---|---|
 | Módulo / paquete | `ridei-sessions` / `com.ridei.sessions` |
 | Puerto | `8084` |
 | Base de datos | `ridei_sessions` en `ridei-postgres` (Postgres 16, sin PostGIS) |
-| Depende de | `ridei-circuits` (trazado, meta y dibujo) y `ridei-garage` (la moto es tuya), solo al **subir** y **recalcular** |
+| Depende de | `ridei-circuits` (trazado, meta y dibujo) y `ridei-garage` (la moto es tuya), solo al **subir**, **recalcular**, **apuntar** tiempos manuales e **importar** notas |
 
 ## 1. Flujo
 
@@ -55,7 +56,9 @@ Servicios de dominio (Java puro, sin Spring):
 |---|---|
 | `LapTimer` → `TimedRun` | Crono GPS: pasos por meta y puertas de sector, vueltas, validez; trazas por distancia y vuelta ideal cosida |
 | `CornerAnalyzer` | Detecta curvas en la mejor vuelta y mide cada paso por ellas |
-| `PersonalRecords` | Récord por (trazado, moto): mejor vuelta, ideal histórica, evolución |
+| `PersonalRecords` | Récord por (trazado, moto): mejor vuelta GPS, ideal histórica, mejor tiempo manual, evolución |
+| `ManualTimeNotesParser` | Notas pegadas → circuito, fecha, tiempo(s), condiciones (§6.2) |
+| `CatalogMatcher` | Dentro de un complejo, elige pista y trazado según el texto (§6.2) |
 
 ### 2.1 Cronometraje (`LapTimer`)
 
@@ -135,6 +138,7 @@ token. Una sesión de otro piloto responde `404`, igual que una que no existe. L
 | `GET /api/v1/sessions/{id}/corners` | 08 ficha de curva · 09 ranking | |
 | `GET /api/v1/sessions/records?layoutId=&motorbikeId=` | 11 mejor por circuito · 14 ficha de trazado | |
 | `GET /api/v1/sessions/reference-lap?layoutId=&motorbikeId=` | 04 HUD (delta en vivo) | `200` · `204` si aún no hay récord |
+| `…/manual-times…` | 22–22E tiempos manuales | ver §6.1 |
 
 ### 3.1 Subir una sesión
 
@@ -198,7 +202,11 @@ Respuesta (detalle de sesión, también en `GET /{id}`):
 - **`/laps/{n}/trace`** y **`/ideal-lap/trace`**: `{lap, timeMillis, lengthMeters, minSpeedKmh, maxSpeedKmh, points:[{d, t, v, lat, lon, lean}]}`. `d` es la distancia en m, `t` los ms desde la meta y `v` los km/h. `lap = 0` es la ideal.
 - **`/laps/{n}/comparison`**: `{lap, lapTimeMillis, referenceLap, referenceTimeMillis, finalDeltaMillis, lengthMeters, points:[{d, v, refV, delta}]}`. Un `delta` positivo es que vas por detrás.
 - **`/corners`**: `{referenceLap, totalRecoverableMillis, ranking:[4, 7, …], corners:[{number, label:"T4", direction, apexDistanceMeters, apex, zoneStartMeters, zoneEndMeters, bestPassLap, bestLapLossMillis, averageLossMillis, cause, bestLapPass, bestPass, passes:[{lap, timeMillis, entrySpeedKmh, minSpeedKmh, exitSpeedKmh, brakingMetersBeforeApex, maxLeanDegrees}]}]}`.
-- **`/records`**: `[{venueId, venueName, layoutId, layoutName, motorbike, bestLap:{sessionId, lap, timeMillis, date}, idealLap:{timeMillis, sectors:[{index, timeMillis, sessionId, lap}]}, sessionCount, validLapCount, evolution:[{sessionId, startedAt, bestLapMillis}]}]`.
+- **`/records`**: `[{venueId, venueName, layoutId, layoutName, motorbike, bestLap:{sessionId, lap, timeMillis, date}, idealLap:{timeMillis, sectors:[{index, timeMillis, sessionId, lap}]}, bestManual:{manualTimeId, timeMillis, precision, date, source}, sessionCount, validLapCount, manualTimeCount, evolution:[{source, sessionId, manualTimeId, startedAt, date, bestLapMillis, precision}]}]`.
+  Hay un récord por (trazado, moto) con alguna vuelta GPS válida **o** algún tiempo manual, así que
+  `bestLap` e `idealLap` pueden ser `null` (solo manuales) y `bestManual` es `null` si no hay
+  manuales. `evolution` mezcla las dos fuentes (`source` `GPS` / `MANUAL`) por fecha; los manuales
+  no tienen `startedAt`, solo `date`.
 - **`/reference-lap`**: `{sessionId, timeMillis, sectorsMillis, finishLine:[left, right], sectorGates:[[left, right], …], trace}`. Las puertas son las de cronometrar, ya orientadas en el sentido en que se rodó. Con ellas el HUD da los mismos sectores que el servidor.
 
 ### 3.3 Errores
@@ -207,10 +215,10 @@ Respuesta (detalle de sesión, también en `GET /{id}`):
 |---|---|
 | `400` | JSON mal formado, validación, muestras inválidas (< 10 fixes útiles, coordenadas fuera de rango…) |
 | `401` | sin token, o token revocado según circuits o garage |
-| `404` | sesión o vuelta inexistente (o de otro piloto) |
-| `409` | `sessionId` usado por otro piloto; modificación concurrente. Dos subidas simultáneas del mismo piloto con el mismo id se resuelven como un reintento (`200`) |
-| `422` | moto que no está en tu garaje, trazado inexistente, trazado sin meta o dibujo, sesión sin vueltas válidas (ideal, curvas, comparación) |
-| `503` | circuits o garage no responden al subir o recalcular. La app debe reintentar la subida más tarde con el mismo id |
+| `404` | sesión, vuelta o tiempo manual inexistente (o de otro piloto) |
+| `409` | `sessionId` o id de tiempo manual usado por otro piloto; modificación concurrente. Dos subidas simultáneas del mismo piloto con el mismo id se resuelven como un reintento (`200`) |
+| `422` | moto que no está en tu garaje, trazado inexistente, trazado sin meta o dibujo (solo GPS), sesión sin vueltas válidas (ideal, curvas, comparación) |
+| `503` | circuits o garage no responden al subir, recalcular, apuntar o importar. La app debe reintentar la subida más tarde con el mismo id |
 
 ## 4. Persistencia
 
@@ -219,6 +227,9 @@ Respuesta (detalle de sesión, también en `GET /{id}`):
 - `riding_session`: snapshot del trazado (`layout_path`, `finish_line` en JSONB) y de la moto.
   También guarda desnormalizados `best_lap_ms`, `ideal_lap_ms` y `valid_lap_count`.
 - `session_lap`: `sector_ms BIGINT[]`.
+- `manual_lap_time` (`V2`): tiempos manuales, con el trazado y la moto congelados como en
+  `riding_session` pero sin geometría. `lap_date DATE`, `lap_precision`, `time_source`,
+  `other_laps_ms BIGINT[]`.
 - `session_telemetry`: muestras en binario comprimido (`TelemetryCodec`, `ridei-bin-v1`, unos 21
   bytes por muestra). Una tanda de 30 min a 10 Hz ocupa ~380 KB.
 
@@ -235,3 +246,97 @@ recalcula desde la telemetría en cada petición, en milisegundos.
   aplica indirectamente al subir, porque circuits valida el token contra identity.
 - La copia de la pantalla 01 ("Las sesiones se guardan en local. Nada sube a la nube") ya no es
   cierta con este backend. Hay que cambiarla en la app.
+- **Tiempos manuales**: no se pueden editar (se borran y se apuntan de nuevo). 22B enseña
+  "Récord del trazado", que es un récord entre pilotos: no existe en ningún backend todavía. Que no
+  compitan en clasificaciones públicas no requiere nada mientras no existan esas clasificaciones.
+
+## 6. Tiempos manuales (antes de Ridei)
+
+Pantallas 22–22E. Tiempos de tandas pasadas, apuntados de uno en uno (22B) o importados pegando las
+notas (22C). Un tiempo manual (`ManualLapTime`, agregado aparte de `Session`) va siempre a un
+trazado y a una moto, como una sesión, y lleva su origen: `OFFICIAL_TIMING`, `LAPTIMER`,
+`STOPWATCH` o `APPROXIMATE`. No tiene GPS, así que:
+
+- cuenta para el historial (22E), la evolución y el **mejor tiempo manual** de `/records` (22D);
+- **no** cuenta para el récord GPS, `personalBest`, la vuelta ideal (de sesión o histórica), los
+  sectores ni la vuelta de referencia del HUD. Un manual más rápido que el récord GPS no se lo quita;
+- vale para trazados **sin meta ni dibujo** (Calafat *Corto*): solo se comprueba que el trazado
+  exista en el catálogo;
+- la moto debe estar en el garaje del piloto, pero puede ser una que ya no tiene (`disposalDate`):
+  garage las sigue devolviendo. "Añádela como anterior" (22B) se hace en garage.
+
+Se guarda la **precisión** con que se apuntó (`SECONDS` 1:52 · `TENTHS` 1:49.8 · `HUNDREDTHS`
+1:14.22 · `THOUSANDTHS` 1:45.300) para mostrar el tiempo sin inventar decimales. La fecha es un día
+(`LocalDate`), no puede ser futura ni anterior a 1950. Entre 10 s y 60 min por vuelta.
+
+### 6.1 API
+
+| Método y ruta | Pantalla | Respuesta |
+|---|---|---|
+| `PUT /api/v1/sessions/manual-times/{id}` | 22B "Guardar tiempo" | `201` nuevo · `200` ya existía (idempotente, el id lo genera la app) |
+| `POST /api/v1/sessions/manual-times/import/preview` | 22C detectar | líneas interpretadas; no guarda nada |
+| `POST /api/v1/sessions/manual-times/batch` | 22C "Guardar 3 tiempos" | todos o ninguno; `201` si alguno es nuevo · `200` |
+| `GET /api/v1/sessions/manual-times?layoutId=&motorbikeId=` | 22E "Antes de Ridei" · 22D historial | lista, fecha más reciente primero |
+| `GET /api/v1/sessions/manual-times/{id}` | | detalle |
+| `DELETE /api/v1/sessions/manual-times/{id}` | | `204` |
+
+```http
+PUT /api/v1/sessions/manual-times/5f0d6c1e-8a43-4f1b-9d7e-1c2b3a4d5e6f
+
+{
+  "venueId": "10000000-0000-4000-8000-000000000009",
+  "layoutId": "30000000-0000-4000-8000-000000000006",
+  "motorbikeId": "<id de la moto en garage>",
+  "date": "2024-05-12",
+  "bestLapMillis": 105300,
+  "precision": "TENTHS",
+  "source": "LAPTIMER",
+  "lapCount": 12, "trackCondition": "DRY", "tyres": "Pirelli SC1",
+  "otherLapsMillis": [106100, 107400], "notes": null
+}
+```
+
+`precision` es opcional (si falta, la menos precisa compatible: 105300 → `TENTHS`). Todo lo que va
+después de `source` es "Más datos · opcional". `otherLapsMillis` no puede tener vueltas más rápidas
+que `bestLapMillis`, y `lapCount`, si se da, ha de cubrirlas. El lote es
+`{"times": [{"id": "…", …mismos campos}]}`, como máximo 100.
+
+Respuesta: `{id, venue:{id, name}, trackName, layout:{id, name}, motorbike, date, bestLapMillis,
+precision, source, lapCount, trackCondition, tyres, otherLapsMillis, notes, createdAt}`.
+
+### 6.2 Importar desde las notas
+
+`POST …/import/preview` con `{"notes": "…"}`. El texto tiene como máximo 20 000 caracteres, 100
+líneas y 30 circuitos distintos. Cada línea es una tanda con circuito, fecha y tiempo **en
+cualquier orden**:
+
+```
+Calafat 12/05/24 1:45.3                 → Calafat · Velocidad · Principal, 12 may 2024, 1:45.3
+Castellolí 2/6/24 1:14,22 (lluvia)      → … 2 jun 2024, 1:14.22, WET
+Montmeló nacional 20-9-24 1.26.10       → … trazado Nacional, 20 sep 2024, 1:26.10
+Alcarras 3/3/23 1:52                    → NEEDS_REVIEW: TRACK_AMBIGUOUS (3 pistas)
+```
+
+- **Fechas**: día/mes/año con `/`, `-` o `.`, año de 2 o 4 cifras (si las 2 cifras dan un año
+  futuro, es del siglo pasado), o ISO `2024-05-12`. `12.05.24` también puede ser un tiempo: es
+  fecha solo si no hay otra fecha y sí otro tiempo en la línea.
+- **Tiempos**: `1:52`, `1:45.3`, `1:14,22`, `1.26.10`, `48.3` (karting). Con varios tiempos, el
+  más rápido es la mejor vuelta y el resto `otherLapsMillis`.
+- **Condiciones**: lluvia/mojado/pluja/wet → `WET`, húmedo/humit/damp → `DAMP`, seco/sec/dry →
+  `DRY`, sueltas o entre paréntesis. El resto del paréntesis va a `notes`.
+- **Circuito**: lo que queda con letras. Se busca en circuits (`GET /venues?q=`, con el token del
+  piloto), primero el texto entero y luego sin la última palabra. Dentro del complejo,
+  `CatalogMatcher` elige la pista y el trazado que nombre el texto. Si no nombra ninguno, coge la
+  única pista y su trazado por defecto. Si hay varias pistas, no adivina.
+
+Respuesta: `{detectedCount, readyCount, needsReviewCount, lines:[{lineNumber, text, status,
+problems, circuitText, venue, trackName, layout, date, bestLapMillis, precision, otherLapsMillis,
+trackCondition, notes, tracks}]}`. `status` es `READY` o `NEEDS_REVIEW`. `problems` puede traer
+`MISSING_CIRCUIT`, `CIRCUIT_NOT_FOUND`, `TRACK_AMBIGUOUS`, `LAYOUT_AMBIGUOUS`, `NO_LAYOUTS`,
+`MISSING_DATE`, `INVALID_DATE`, `MISSING_TIME` o `TIME_OUT_OF_RANGE`. Si hay que elegir pista o
+trazado ("Elegir pista"), `tracks` trae las pistas del complejo con sus trazados
+(`{name, discipline, layouts:[{id, name, isDefault}]}`).
+
+La app enseña la lista, deja corregir lo dudoso y elegir la moto y el origen para todos ("Moto para
+todos · origen"). Después guarda con `POST …/batch`.
+

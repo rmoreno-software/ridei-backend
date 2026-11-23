@@ -10,14 +10,20 @@ import org.springframework.web.client.RestClient;
 import com.ridei.sessions.application.LapAnalysisService;
 import com.ridei.sessions.application.ListSessionsService;
 import com.ridei.sessions.application.ManageSessionService;
+import com.ridei.sessions.application.ManualLapTimesService;
 import com.ridei.sessions.application.PersonalRecordsService;
+import com.ridei.sessions.application.PreviewManualTimesImportService;
+import com.ridei.sessions.application.RecordManualLapTimesService;
 import com.ridei.sessions.application.RecordSessionService;
 import com.ridei.sessions.application.port.in.GetPersonalRecordsUseCase;
+import com.ridei.sessions.application.port.in.PreviewManualTimesImportUseCase;
 import com.ridei.sessions.application.port.in.RecordSessionUseCase;
 import com.ridei.sessions.domain.port.out.GaragePort;
 import com.ridei.sessions.domain.port.out.LayoutCatalogPort;
+import com.ridei.sessions.domain.port.out.ManualLapTimeRepositoryPort;
 import com.ridei.sessions.domain.port.out.SessionRepositoryPort;
 import com.ridei.sessions.domain.port.out.TelemetryRepositoryPort;
+import com.ridei.sessions.domain.port.out.VenueCatalogPort;
 import com.ridei.sessions.infrastructure.adapter.out.circuits.CircuitsCatalogAdapter;
 import com.ridei.sessions.infrastructure.adapter.out.garage.GarageAdapter;
 
@@ -34,8 +40,9 @@ public class BeanConfig {
         return Clock.systemUTC();
     }
 
+    /** {@code LayoutCatalogPort} (con geometría, para cronometrar) + {@code VenueCatalogPort} (sin ella, tiempos manuales). */
     @Bean
-    public LayoutCatalogPort layoutCatalogPort(ClientsProperties properties) {
+    public CircuitsCatalogAdapter circuitsCatalogAdapter(ClientsProperties properties) {
         return new CircuitsCatalogAdapter(restClient(properties.circuitsBaseUrl(), properties));
     }
 
@@ -68,8 +75,33 @@ public class BeanConfig {
     }
 
     @Bean
-    public GetPersonalRecordsUseCase getPersonalRecordsUseCase(SessionRepositoryPort sessionRepository) {
-        return new PersonalRecordsService(sessionRepository);
+    public GetPersonalRecordsUseCase getPersonalRecordsUseCase(
+        SessionRepositoryPort sessionRepository,
+        ManualLapTimeRepositoryPort manualLapTimeRepository
+    ) {
+        return new PersonalRecordsService(sessionRepository, manualLapTimeRepository);
+    }
+
+    /** {@code RecordManualLapTimeUseCase} + {@code ImportManualLapTimesUseCase}. */
+    @Bean
+    public RecordManualLapTimesService recordManualLapTimesService(
+        ManualLapTimeRepositoryPort manualLapTimeRepository,
+        VenueCatalogPort venueCatalog,
+        GaragePort garage,
+        Clock clock
+    ) {
+        return new RecordManualLapTimesService(manualLapTimeRepository, venueCatalog, garage, clock);
+    }
+
+    @Bean
+    public PreviewManualTimesImportUseCase previewManualTimesImportUseCase(VenueCatalogPort venueCatalog, Clock clock) {
+        return new PreviewManualTimesImportService(venueCatalog, clock);
+    }
+
+    /** {@code ListManualLapTimesUseCase} + {@code GetManualLapTimeUseCase} + {@code DeleteManualLapTimeUseCase}. */
+    @Bean
+    public ManualLapTimesService manualLapTimesService(ManualLapTimeRepositoryPort manualLapTimeRepository) {
+        return new ManualLapTimesService(manualLapTimeRepository);
     }
 
     /** {@code EditSessionUseCase} + {@code RecalculateSessionUseCase} + {@code DeleteSessionUseCase}. */

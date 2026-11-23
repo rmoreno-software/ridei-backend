@@ -2,7 +2,6 @@ package com.ridei.sessions.application;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,9 +44,6 @@ public class ListSessionsService implements ListSessionsUseCase, GetSessionUseCa
     }
 
     private static Map<PersonalRecords.Key, SessionId> recordHolders(List<Session> sessions) {
-        return PersonalRecords.of(sessions).stream().collect(Collectors.toMap(
-            r -> new PersonalRecords.Key(r.layout().layoutId(), r.motorbike().motorbikeId()),
-            r -> r.bestLap().sessionId(),
-            (a, b) -> a));
+        return PersonalRecords.gpsRecordHolders(sessions);
     }
 }

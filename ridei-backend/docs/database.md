@@ -293,9 +293,11 @@ Recorded track sessions (see [sessions.md](sessions.md)). Database `ridei_sessio
 | Migration | Content |
 |---|---|
 | `V1__create_sessions.sql` | `riding_session`, `session_lap`, `session_telemetry` |
+| `V2__create_manual_lap_times.sql` | `manual_lap_time` |
 
 - `riding_session`: one row per session. It stores a **snapshot** of the layout (`layout_path` and `finish_line` as JSONB `[[lat, lon], …]`, `sector_count`) and of the motorbike, so lap times don't change when the catalog does. `rider_id`, `venue_id`, `layout_id` and `motorbike_id` are ids from other contexts, **without FK**. `best_lap_ms`, `ideal_lap_ms` and `valid_lap_count` are denormalized for listings.
 - `session_lap`: PK `(session_id, lap_number)`, `sector_ms BIGINT[]` (one element per sector, `NULL` = gate not detected), `validity` (`VALID`, `TOO_SHORT`, `TOO_LONG`, `GPS_GAP`).
 - `session_telemetry`: raw GPS/IMU samples, gzip-compressed binary (`encoding = 'ridei-bin-v1'`, about 21 bytes per sample). Kept to re-time laps and to compute traces and corner analysis on demand.
 - `ON DELETE CASCADE` from the session to its laps and telemetry.
+- `manual_lap_time`: lap times typed in by the rider for sessions before Ridei (no GPS). Same layout/motorbike snapshot as `riding_session` but without geometry, plus `lap_date DATE`, `best_lap_ms`, `lap_precision` (`SECONDS`…`THOUSANDTHS`, how it was written down), `time_source` (`OFFICIAL_TIMING`, `LAPTIMER`, `STOPWATCH`, `APPROXIMATE`) and the optional `lap_count`, `track_condition`, `tyres`, `other_laps_ms BIGINT[]`, `notes`. Ids from other contexts **without FK**. Not linked to `riding_session`.
 
