@@ -23,7 +23,7 @@ public final class CatalogMatcher {
         TRACK_AMBIGUOUS,
         /** Varios trazados, ninguno por defecto y el texto no dice cuál. */
         LAYOUT_AMBIGUOUS,
-        /** El complejo aún no tiene trazados. */
+        /** La pista (o el complejo) aún no tiene trazados: no se puede apuntar ahí todavía. */
         NO_LAYOUTS
     }
 
@@ -44,7 +44,9 @@ public final class CatalogMatcher {
         List<String> hints = TextNormalizer.words(text).stream()
             .filter(w -> w.length() >= 3 && !STOPWORDS.contains(w))
             .toList();
-        List<CatalogVenue.Track> tracks = venue.tracks().stream().filter(t -> !t.layouts().isEmpty()).toList();
+        // La duda se mide sobre todas las pistas, tengan trazados o no: si solo una tiene trazado,
+        // un tiempo de "Alcarras" a secas puede ser del karting y no hay que asignarlo a velocidad.
+        List<CatalogVenue.Track> tracks = venue.tracks();
         if (tracks.isEmpty()) return new Match(venue, null, null, Issue.NO_LAYOUTS);
 
         List<CatalogVenue.Track> candidates = tracks.stream()
@@ -54,6 +56,7 @@ public final class CatalogMatcher {
         if (candidates.size() > 1) return new Match(venue, null, null, Issue.TRACK_AMBIGUOUS);
 
         CatalogVenue.Track track = candidates.get(0);
+        if (track.layouts().isEmpty()) return new Match(venue, null, null, Issue.NO_LAYOUTS);
         List<CatalogVenue.Layout> named = track.layouts().stream().filter(l -> mentions(l.name(), hints)).toList();
         Optional<CatalogVenue.Layout> layout = named.size() == 1 ? Optional.of(named.get(0)) : track.defaultLayout();
         return layout

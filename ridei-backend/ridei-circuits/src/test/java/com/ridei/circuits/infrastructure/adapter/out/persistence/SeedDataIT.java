@@ -16,6 +16,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import com.ridei.circuits.PostgisIntegrationTest;
 import com.ridei.circuits.application.port.in.GetVenueDetailUseCase;
 import com.ridei.circuits.domain.model.CatalogStatus;
+import com.ridei.circuits.domain.model.Direction;
 import com.ridei.circuits.domain.model.Discipline;
 import com.ridei.circuits.domain.model.FinishLine;
 import com.ridei.circuits.domain.model.GeoPoint;
@@ -30,6 +31,7 @@ class SeedDataIT extends PostgisIntegrationTest {
 
     private static final VenueId MONTMELO = VenueId.of("10000000-0000-4000-8000-000000000001");
     private static final VenueId CALAFAT = VenueId.of("10000000-0000-4000-8000-000000000009");
+    private static final VenueId ALCARRAS = VenueId.of("10000000-0000-4000-8000-000000000010");
 
     @Autowired JdbcTemplate jdbc;
     @Autowired GetVenueDetailUseCase getVenueDetail;
@@ -122,6 +124,23 @@ class SeedDataIT extends PostgisIntegrationTest {
         assertThat(finish.width().meters()).isCloseTo(16.5, within(0.5)); // 10 m a la izquierda + 6,5 m hasta el muro de boxes
         // 40°55'56.0"N 0°50'21.9"E proyectado sobre el eje de la pista
         assertThat(principal.getPath().points().get(0)).isEqualTo(GeoPoint.of(40.932217, 0.839424));
+        assertThat(principal.getPath().startingAt(finish)).isEqualTo(principal.getPath());
+    }
+
+    /** V9: relación OSM 21388960, sentido por oneway=yes, meta en el nodo raceway=start-finish. */
+    @Test
+    void alcarrasSpeedTrackHasTheOsmCircuitAsDefaultLayoutStartingOnTheFinishLine() {
+        Track road = getVenueDetail.get(ALCARRAS).venue().activeTracks().stream()
+            .filter(track -> track.getDiscipline() == Discipline.ROAD_RACING).findFirst().orElseThrow();
+        Layout principal = road.defaultLayout().orElseThrow();
+        FinishLine finish = principal.getFinishLine();
+
+        assertThat(principal.getName().value()).isEqualTo("Principal");
+        assertThat(principal.getDirection()).isEqualTo(Direction.COUNTER_CLOCKWISE);
+        assertDrawingIsConsistent(principal);
+        assertThat(finish).isNotNull();
+        assertThat(finish.width().meters()).isCloseTo(16.15, within(0.5)); // 10 m a la izquierda + 6,15 m hasta el muro de boxes
+        assertThat(principal.getPath().points().get(0)).isEqualTo(GeoPoint.of(41.619280, 0.402912));
         assertThat(principal.getPath().startingAt(finish)).isEqualTo(principal.getPath());
     }
 

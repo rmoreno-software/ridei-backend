@@ -205,6 +205,7 @@ Catalog of venues → tracks → layouts (see [circuits.md](circuits.md)). It ru
 | `V6__layout_path.sql` | `layout.path` (drawing of the layout) + Montmeló and Calafat layouts with their drawings from OpenStreetMap (ODbL) |
 | `V7__layout_finish_line.sql` | `layout.finish_line` + Montmeló's finish line (GP, GP con chicane, Nacional) from OpenStreetMap; their drawings rewritten to start at it |
 | `V8__calafat_finish_line.sql` | Calafat Principal's finish line (point supplied by the team); its drawing rewritten to start at it |
+| `V9__alcarras_speed_layout.sql` | Alcarràs speed track's *Principal* layout (default, 3743 m, 14 turns, counter-clockwise) with drawing and finish line from OpenStreetMap |
 
 ### Schema highlights
 
@@ -243,8 +244,9 @@ Fixed ids (`10000000-…` venues, `20000000-…` tracks, `30000000-…` layouts)
 | Montmeló Escuela | 39 | 1704 m | 1650 | — (doesn't use the main straight) | +3.3 %; built with an unnamed OSM link way — worth a check against the circuit's map |
 | Calafat Principal | 62 | 3240 m | 3250 | yes | direction inferred (see below) |
 | Calafat Corto | — | — | — | — | no source identifies its shortcut |
+| Alcarràs Principal (V9) | 59 | 3731 m | 3743 | yes | OSM `type=circuit` relation 21388960 (ways 194653541 + 1558804057); counter-clockwise from `oneway=yes`, matches Lapmeta |
 
-**Finish lines**: Montmeló's comes from OSM node `14202158171` (`raceway=finish`), the finish of the `type=circuit` relations 284540 (GP without chicane), 2049529 (GP with chicane) and 21420925 (MotoGP); their ways match the ones used for the drawings. The gate is perpendicular to the direction of travel through that node: 10 m to the left and 7 m to the right, where the pit lane is. The pit lane's axis (way 178416729) is 14 m from the track's, so the gate stops at the midpoint, the pit wall, and does not enter the pit lane (its right end is 6.9 m from the pit lane's axis). The start line (`raceway=start`, 127 m earlier) is not stored. Calafat has no finish line in OSM or any source found; the team supplied the point 40°55'56.0"N 0°50'21.9"E. It is 0.8 m from the track's axis, 82 m into the main straight. V8 projects it onto the axis and draws the gate the same way: 10 m to the left, and 6.5 m to the right towards the pit wall, half the 12.9 m between the track's axis and the pit lane's (way 119486546).
+**Finish lines**: Montmeló's comes from OSM node `14202158171` (`raceway=finish`), the finish of the `type=circuit` relations 284540 (GP without chicane), 2049529 (GP with chicane) and 21420925 (MotoGP); their ways match the ones used for the drawings. The gate is perpendicular to the direction of travel through that node: 10 m to the left and 7 m to the right, where the pit lane is. The pit lane's axis (way 178416729) is 14 m from the track's, so the gate stops at the midpoint, the pit wall, and does not enter the pit lane (its right end is 6.9 m from the pit lane's axis). The start line (`raceway=start`, 127 m earlier) is not stored. Alcarràs's (V9) is OSM node `14178221871` (`raceway=start-finish`, on the track's axis): 10 m to the left and 6.15 m to the right, half the 12.3 m to the pit lane's axis (way 194653524). Calafat has no finish line in OSM or any source found; the team supplied the point 40°55'56.0"N 0°50'21.9"E. It is 0.8 m from the track's axis, 82 m into the main straight. V8 projects it onto the axis and draws the gate the same way: 10 m to the left, and 6.5 m to the right towards the pit wall, half the 12.9 m between the track's axis and the pit lane's (way 119486546).
 
 Calafat's direction is not published by any source found and its OSM way has no `oneway`. V6 seeds *clockwise* as an **inference**. The team's "the first corner is a left" fits it: going clockwise from the finish line, the straight ends in a gentle left (~26°) before a sharp right. It does not rule out counter-clockwise, though: that way the first corner would be a sharp left (~117°) 230 m after the line. It is the only orientation of the ring with more right-hand than left-hand corners, which fits the official "9 right / 7 left". It is also the only one where the bypass of *Curva de Escuela* (way 713130114) falls on the 3rd corner and before the cut of turns 5-6-7 (way 713130115), matching the official corner order and racingcircuits.info. Confirm with the circuit if possible.
 
@@ -262,7 +264,7 @@ These layouts were left out because sources disagree on length, turns or directi
 | Cartagena | Circuit ~3506 m / 18 turns | Length format inconsistent in the source; direction not stated |
 | Almería | 4025 m, clockwise | "13 turns (8 R, 5 L and a chicane)": unclear whether the chicane counts |
 | Calafat | Turns of *Principal*; *Corto* length/direction/drawing | 16 vs 17 turns in the same source; direction not stated (V6 infers clockwise, see above) |
-| Alcarràs | Autòdrom 3743 m / 14 turns; mixed 1017 m / 13 turns | Lengths differ across sources (3.73 / 3.743 / 4.145 km); direction only from Lapmeta |
+| Alcarràs | Mixed circuit 1017 m / 13 turns (the speed track was added in V9, see above) | Lengths differ across sources; no drawing yet |
 | Alcarràs | **Motocross track** | No source confirms a motocross track at the venue (not seeded) |
 | Parcmotor Castellolí | Speed circuit; karting 1340 m / 27 turns; school circuit 1700 m | Speed length 4146 vs 4113 m; no direction for any |
 

@@ -52,6 +52,19 @@ class CatalogMatcherTest {
         assertThat(match.layoutRef()).isEmpty();
     }
 
+    /** Como en el catálogo real: solo la pista de velocidad tiene trazado de momento. */
+    @Test
+    void doesNotPickTheOnlyTrackWithLayoutsWhenTheTextDoesNotSayWhichOne() {
+        CatalogVenue alcarras = venue("Circuit d'Alcarràs",
+            new Track("Velocidad", "ROAD_RACING", List.of(layout("Principal", true))),
+            new Track("Circuito mixto", "KARTING", List.of()),
+            new Track("Flat track", "FLAT_TRACK", List.of()));
+
+        assertThat(CatalogMatcher.match(alcarras, "Alcarras").issue()).isEqualTo(Issue.TRACK_AMBIGUOUS);
+        assertThat(CatalogMatcher.match(alcarras, "Alcarras velocidad").layout().name()).isEqualTo("Principal");
+        assertThat(CatalogMatcher.match(alcarras, "Alcarras mixto").issue()).isEqualTo(Issue.NO_LAYOUTS);
+    }
+
     @Test
     void aTrackNamedInTheTextIgnoringAccentsAndCase() {
         CatalogMatcher.Match match = CatalogMatcher.match(ALCARRAS, "alcarràs KARTING");
